@@ -1,0 +1,8 @@
+{
+    "editor.renderWhitespace": "all",
+    "editor.insertSpaces": false,
+    "editor.rulers": [
+        80, 120
+    ],
+    "cmake.ignoreCMakeListsMissing": true
+}

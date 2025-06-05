@@ -3,11 +3,13 @@ cmake_minimum_required(VERSION 2.8.8 FATAL_ERROR)
 set(PROJECT_NAME slim-ng)
 project(${PROJECT_NAME})
 
-#Pretty colors
+# Pretty colors
 set(CMAKE_COLOR_MAKEFILE ON)
-#Dont force verbose
+
+# Dont force verbose
 set(CMAKE_VERBOSE_MAKEFILE ON)
-#Include current dir
+
+# Include current dir
 set(CMAKE_INCLUDE_CURRENT_DIR TRUE)
 
 INCLUDE(CheckIncludeFile)
@@ -26,6 +28,7 @@ set(PKGDATADIR "${CMAKE_INSTALL_FULL_DATADIR}/slim")
 set(SYSCONFDIR "/etc")
 
 set(SLIM_DEFINITIONS)
+
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD" OR
 		${CMAKE_SYSTEM_NAME} MATCHES "NetBSD" OR
 		${CMAKE_SYSTEM_NAME} MATCHES "OpenBSD"
@@ -61,6 +64,7 @@ set(common_srcs
     panel.cpp
     util.cpp
 )
+
 if(USE_PAM)
 	set(common_srcs ${common_srcs} PAM.cpp)
     # for now, only build slimlock if we are using PAM.
@@ -83,11 +87,12 @@ if(USE_CONSOLEKIT)
 endif(USE_CONSOLEKIT)
 
 add_executable(slim ${slim_srcs})
+
 if(BUILD_SLIMLOCK)
     add_executable(slimlock ${slimlock_srcs})
 endif(BUILD_SLIMLOCK)
 
-#Set the custom CMake module directory where our include/lib finders are
+# Set the custom CMake module directory where our include/lib finders are
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
 find_package(X11 REQUIRED)
@@ -97,7 +102,9 @@ find_package(PNG REQUIRED)
 
 # Fontconfig
 set(FONTCONFIG_DIR ${CMAKE_MODULE_PATH})
+
 find_package(FONTCONFIG REQUIRED)
+
 if(FONTCONFIG_FOUND)
 	message("\tFontConfig Found")
 	target_link_libraries(slim ${FONTCONFIG_LIBRARY})
@@ -233,11 +240,14 @@ install(FILES slim.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 if(BUILD_SLIMLOCK)
 install(FILES slimlock.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1)
 endif(BUILD_SLIMLOCK)
+
 # configure
 install(FILES slim.conf DESTINATION ${CMAKE_INSTALL_SYSCONFDIR})
+
 # systemd service file
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	install(FILES slim.service DESTINATION ${CMAKE_INSTALL_LIBDIR}/systemd/system)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+
 # themes directory
 subdirs(themes)
