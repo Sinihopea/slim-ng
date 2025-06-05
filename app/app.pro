@@ -6,10 +6,6 @@ QT =
 
 TARGET = slim
 
-INCLUDEPATH += .
-
-# DEFINES += QT_DISABLE_DEPRECATED_UP_TO=0x060000
-
 HEADERS += src/app.hpp \
            src/cfg.hpp \
            src/ck.hpp \
