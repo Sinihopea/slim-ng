@@ -252,13 +252,13 @@ App::App (int argc, char **argv)
 void
 App::Run ()
 {
-	DisplayName = DISPLAY;
+	m_display_name = DISPLAY;
 	char *p = getenv ("DISPLAY");
 
 	if (p && p[0])
 		{
-			DisplayName = p;
-			std::cout << "Using display name " << DisplayName << std::endl;
+			m_display_name = p;
+			std::cout << "Using display name " << m_display_name << std::endl;
 		}
 
 	/* Read theme */
@@ -293,7 +293,7 @@ App::Run ()
 	try
 		{
 			pam.start ("slim");
-			pam.set_item (PAM::Authenticator::TTY, DisplayName);
+			pam.set_item (PAM::Authenticator::TTY, m_display_name);
 			pam.set_item (PAM::Authenticator::Requestor, "root");
 		}
 	catch (PAM::Exception &e)
@@ -340,7 +340,7 @@ App::Run ()
 			LoginApp->GetLock ();
 
 			/* Start x-server */
-			setenv ("DISPLAY", DisplayName, 1);
+			setenv ("DISPLAY", m_display_name, 1);
 			signal (SIGQUIT, CatchSignal);
 			signal (SIGTERM, CatchSignal);
 			signal (SIGKILL, CatchSignal);
@@ -389,9 +389,9 @@ App::Run ()
 		}
 
 	/* Open display */
-	if ((m_display = XOpenDisplay (DisplayName)) == 0)
+	if ((m_display = XOpenDisplay (m_display_name)) == 0)
 		{
-			logStream << APPNAME << ": could not open display '" << DisplayName
+			logStream << APPNAME << ": could not open display '" << m_display_name
 					  << "'" << std::endl;
 			if (!testing)
 				StopServer ();
@@ -710,7 +710,7 @@ App::Login ()
 			pam.setenv ("USER", pw->pw_name);
 			pam.setenv ("LOGNAME", pw->pw_name);
 			pam.setenv ("PATH", cfg.getOption ("default_path").c_str ());
-			pam.setenv ("DISPLAY", DisplayName);
+			pam.setenv ("DISPLAY", m_display_name);
 			pam.setenv ("MAIL", maildir.c_str ());
 			pam.setenv ("XAUTHORITY", xauthority.c_str ());
 		}
@@ -727,7 +727,7 @@ App::Login ()
 			/* Setup the ConsoleKit session */
 			try
 				{
-					ck.open_session (DisplayName, pw->pw_uid);
+					ck.open_session (m_display_name, pw->pw_uid);
 				}
 			catch (Ck::Exception &e)
 				{
@@ -786,7 +786,7 @@ App::Login ()
 			child_env[n++] = StrConcat ("LOGNAME=", pw->pw_name);
 			child_env[n++]
 				= StrConcat ("PATH=", cfg.getOption ("default_path").c_str ());
-			child_env[n++] = StrConcat ("DISPLAY=", DisplayName);
+			child_env[n++] = StrConcat ("DISPLAY=", m_display_name);
 			child_env[n++] = StrConcat ("MAIL=", maildir.c_str ());
 			child_env[n++] = StrConcat ("XAUTHORITY=", xauthority.c_str ());
 #ifdef USE_CONSOLEKIT
@@ -801,7 +801,7 @@ App::Login ()
 #endif
 
 			/* Login process starts here */
-			SwitchUser Su (pw, cfg, DisplayName, child_env);
+			SwitchUser Su (pw, cfg, m_display_name, child_env);
 			std::string session = LoginPanel->getSession ();
 			std::string loginCommand = cfg.getOption ("login_cmd");
 			replaceVariables (loginCommand, SESSION_VAR, session);
@@ -1121,7 +1121,7 @@ App::WaitForServer ()
 
 	for (cycles = 0; cycles < ncycles; cycles++)
 		{
-			if ((m_display = XOpenDisplay (DisplayName)))
+			if ((m_display = XOpenDisplay (m_display_name)))
 				{
 					XSetIOErrorHandler (xioerror);
 					return 1;

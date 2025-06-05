@@ -84,7 +84,7 @@ class App
 	int m_screen;
 	Panel *LoginPanel;
 	int ServerPID;
-	const char *DisplayName;
+	const char *m_display_name;
 	bool serverStarted;
 
 #ifdef USE_PAM
