@@ -18,9 +18,9 @@
 #include <X11/Xmu/WinUtil.h>
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
-#include <iostream>
 #include <csignal>
 #include <cstdlib>
+#include <iostream>
 #include <string>
 #include <sys/wait.h>
 
@@ -39,13 +39,9 @@ struct Rectangle
 	unsigned int width;
 	unsigned int height;
 
-	Rectangle () : x (0), y (0), width (0), height (0) {};
-	Rectangle (int x, int y, unsigned int width, unsigned int height) : x (x), y (y), width (width), height (height) {};
-	bool
-	is_empty () const
-	{
-		return width == 0 || height == 0;
-	}
+	Rectangle() : x(0), y(0), width(0), height(0) {};
+	Rectangle(int x, int y, unsigned int width, unsigned int height) : x(x), y(y), width(width), height(height) {};
+	bool is_empty() const { return width == 0 || height == 0; }
 };
 
 class Panel
@@ -74,40 +70,40 @@ class Panel
 		Mode_Lock
 	};
 
-	Panel (Display *dpy, int scr, Window root, Cfg &config, const std::string &themed, PanelType panel_mode);
-	~Panel ();
-	void OpenPanel ();
-	void ClosePanel ();
-	void ClearPanel ();
-	void WrongPassword (int timeout);
-	void Message (const std::string &text);
-	void Error (const std::string &text);
-	void EventHandler (const FieldType &curfield);
-	std::string getSession ();
-	ActionType getAction (void) const;
-	void Reset (void);
-	void ResetName (void);
-	void ResetPasswd (void);
-	void SetName (const std::string &name);
-	const std::string &GetName (void) const;
-	const std::string &GetPasswd (void) const;
-	void SwitchSession ();
+	Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string &themed, PanelType panel_mode);
+	~Panel();
+	void OpenPanel();
+	void ClosePanel();
+	void ClearPanel();
+	void WrongPassword(int timeout);
+	void Message(const std::string &text);
+	void Error(const std::string &text);
+	void EventHandler(const FieldType &curfield);
+	std::string getSession();
+	ActionType getAction(void) const;
+	void Reset(void);
+	void ResetName(void);
+	void ResetPasswd(void);
+	void SetName(const std::string &name);
+	const std::string &GetName(void) const;
+	const std::string &GetPasswd(void) const;
+	void SwitchSession();
 
   private:
-	Panel ();
-	void Cursor (int visible);
-	unsigned long GetColor (const char *colorname);
-	void OnExpose (void);
-	void EraseLastChar (std::string &formerString);
-	bool OnKeyPress (XEvent &event);
-	void ShowText ();
-	void ShowSession ();
+	Panel();
+	void Cursor(int visible);
+	unsigned long GetColor(const char *colorname);
+	void OnExpose(void);
+	void EraseLastChar(std::string &formerString);
+	bool OnKeyPress(XEvent &event);
+	void ShowText();
+	void ShowSession();
 
-	void SlimDrawString8 (XftDraw *d, XftColor *color, XftFont *font, int x, int y, const std::string &str,
-						  XftColor *shadowColor, int xOffset, int yOffset);
+	void SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font, int x, int y, const std::string &str,
+						 XftColor *shadowColor, int xOffset, int yOffset);
 
-	Rectangle GetPrimaryViewport ();
-	void ApplyBackground (Rectangle = Rectangle ());
+	Rectangle GetPrimaryViewport();
+	void ApplyBackground(Rectangle = Rectangle());
 
 	/* Private data */
 	PanelType mode; /* work mode */

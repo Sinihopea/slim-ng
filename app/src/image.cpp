@@ -28,17 +28,17 @@ extern "C"
 #include <png.h>
 }
 
-Image::Image () : width (0), height (0), area (0), rgb_data (nullptr), png_alpha (nullptr), quality_ (80) {}
+Image::Image() : width(0), height(0), area(0), rgb_data(nullptr), png_alpha(nullptr), quality_(80) {}
 
-Image::Image (const int w, const int h, const unsigned char *rgb, const unsigned char *alpha)
-	: width (w), height (h), area (w * h), quality_ (80)
+Image::Image(const int w, const int h, const unsigned char *rgb, const unsigned char *alpha)
+	: width(w), height(h), area(w * h), quality_(80)
 {
 	width = w;
 	height = h;
 	area = w * h;
 
-	rgb_data = (unsigned char *)malloc (3 * area);
-	memcpy (rgb_data, rgb, 3 * area);
+	rgb_data = (unsigned char *)malloc(3 * area);
+	memcpy(rgb_data, rgb, 3 * area);
 
 	if (alpha == nullptr)
 	{
@@ -46,25 +46,24 @@ Image::Image (const int w, const int h, const unsigned char *rgb, const unsigned
 	}
 	else
 	{
-		png_alpha = (unsigned char *)malloc (area);
-		memcpy (png_alpha, alpha, area);
+		png_alpha = (unsigned char *)malloc(area);
+		memcpy(png_alpha, alpha, area);
 	}
 }
 
-Image::~Image ()
+Image::~Image()
 {
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 }
 
-bool
-Image::Read (const char *filename)
+bool Image::Read(const char *filename)
 {
 	char buf[4];
 	unsigned char *ubuf = (unsigned char *)buf;
 	int success = 0;
 	FILE *file;
-	file = std::fopen (filename, "rb");
+	file = std::fopen(filename, "rb");
 
 	if (file == nullptr)
 	{
@@ -73,28 +72,27 @@ Image::Read (const char *filename)
 
 	/* see what kind of file we have */
 
-	std::fread (buf, 1, 4, file);
-	std::fclose (file);
+	std::fread(buf, 1, 4, file);
+	std::fclose(file);
 
-	if ((ubuf[0] == 0x89) && !strncmp ("PNG", buf + 1, 3))
+	if ((ubuf[0] == 0x89) && !strncmp("PNG", buf + 1, 3))
 	{
-		success = readPng (filename, &width, &height, &rgb_data, &png_alpha);
+		success = readPng(filename, &width, &height, &rgb_data, &png_alpha);
 	}
 	else if ((ubuf[0] == 0xff) && (ubuf[1] == 0xd8))
 	{
-		success = readJpeg (filename, &width, &height, &rgb_data);
+		success = readJpeg(filename, &width, &height, &rgb_data);
 	}
 	else
 	{
-		fprintf (stderr, "Unknown image format\n");
+		fprintf(stderr, "Unknown image format\n");
 		success = 0;
 	}
 
 	return (success == 1);
 }
 
-void
-Image::Reduce (const int factor)
+void Image::Reduce(const int factor)
 {
 	if (factor < 1)
 	{
@@ -112,14 +110,14 @@ Image::Reduce (const int factor)
 	int w = width / scale;
 	int h = height / scale;
 	int new_area = w * h;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * new_area);
-	memset (new_rgb, 0, 3 * new_area);
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * new_area);
+	memset(new_rgb, 0, 3 * new_area);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
 	{
-		new_alpha = (unsigned char *)malloc (new_area);
-		memset (new_alpha, 0, new_area);
+		new_alpha = (unsigned char *)malloc(new_area);
+		memset(new_alpha, 0, new_area);
 	}
 
 	int ipos = 0;
@@ -134,20 +132,20 @@ Image::Reduce (const int factor)
 
 			for (int k = 0; k < 3; k++)
 			{
-				new_rgb[3 * (js * w + is) + k] += static_cast<unsigned char> ((rgb_data[3 * ipos + k] + 0.5) / scale2);
+				new_rgb[3 * (js * w + is) + k] += static_cast<unsigned char>((rgb_data[3 * ipos + k] + 0.5) / scale2);
 			}
 
 			if (png_alpha != nullptr)
 			{
-				new_alpha[js * w + is] += static_cast<unsigned char> (png_alpha[ipos] / scale2);
+				new_alpha[js * w + is] += static_cast<unsigned char>(png_alpha[ipos] / scale2);
 			}
 
 			ipos++;
 		}
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 
 	rgb_data = new_rgb;
 	png_alpha = new_alpha;
@@ -157,8 +155,7 @@ Image::Reduce (const int factor)
 	area = w * h;
 }
 
-void
-Image::Resize (const int w, const int h)
+void Image::Resize(const int w, const int h)
 {
 
 	if (width == w && height == h)
@@ -167,12 +164,12 @@ Image::Resize (const int w, const int h)
 	}
 
 	int new_area = w * h;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * new_area);
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * new_area);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
 	{
-		new_alpha = (unsigned char *)malloc (new_area);
+		new_alpha = (unsigned char *)malloc(new_area);
 	}
 
 	const double scale_x = ((double)w) / width;
@@ -189,19 +186,19 @@ Image::Resize (const int w, const int h)
 
 			if (new_alpha == nullptr)
 			{
-				getPixel (x, y, new_rgb + 3 * ipos);
+				getPixel(x, y, new_rgb + 3 * ipos);
 			}
 			else
 			{
-				getPixel (x, y, new_rgb + 3 * ipos, new_alpha + ipos);
+				getPixel(x, y, new_rgb + 3 * ipos, new_alpha + ipos);
 			}
 
 			ipos++;
 		}
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = new_alpha;
 	width = w;
@@ -212,14 +209,9 @@ Image::Resize (const int w, const int h)
 /* Find the color of the desired point using bilinear interpolation. */
 /* Assume the array indices refer to the denter of the pixel, so each */
 /* pixel has corners at (i - 0.5, j - 0.5) and (i + 0.5, j + 0.5) */
-void
-Image::getPixel (double x, double y, unsigned char *pixel)
-{
-	getPixel (x, y, pixel, nullptr);
-}
+void Image::getPixel(double x, double y, unsigned char *pixel) { getPixel(x, y, pixel, nullptr); }
 
-void
-Image::getPixel (double x, double y, unsigned char *pixel, unsigned char *alpha)
+void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *alpha)
 {
 	if (x < -0.5)
 		x = -0.5;
@@ -231,22 +223,22 @@ Image::getPixel (double x, double y, unsigned char *pixel, unsigned char *alpha)
 	if (y >= height - 0.5)
 		y = height - 0.5;
 
-	int ix0 = (int)(floor (x));
+	int ix0 = (int)(floor(x));
 	int ix1 = ix0 + 1;
 	if (ix0 < 0)
 		ix0 = width - 1;
 	if (ix1 >= width)
 		ix1 = 0;
 
-	int iy0 = (int)(floor (y));
+	int iy0 = (int)(floor(y));
 	int iy1 = iy0 + 1;
 	if (iy0 < 0)
 		iy0 = 0;
 	if (iy1 >= height)
 		iy1 = height - 1;
 
-	const double t = x - floor (x);
-	const double u = 1 - (y - floor (y));
+	const double t = x - floor(x);
+	const double u = 1 - (y - floor(y));
 
 	double weight[4];
 	weight[1] = t * u;
@@ -260,7 +252,7 @@ Image::getPixel (double x, double y, unsigned char *pixel, unsigned char *alpha)
 	pixels[2] = rgb_data + 3 * (iy1 * width + ix0);
 	pixels[3] = rgb_data + 3 * (iy1 * width + ix1);
 
-	memset (pixel, 0, 3);
+	memset(pixel, 0, 3);
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 3; j++)
@@ -285,20 +277,19 @@ Image::getPixel (double x, double y, unsigned char *pixel, unsigned char *alpha)
  * The images is merged on position (x, y) on the
  * background, the background must contain the image.
  */
-void
-Image::Merge (Image *background, const int x, const int y)
+void Image::Merge(Image *background, const int x, const int y)
 {
 
-	if (x + width > background->Width () || y + height > background->Height ())
+	if (x + width > background->Width() || y + height > background->Height())
 		return;
 
-	if (background->Width () * background->Height () != width * height)
-		background->Crop (x, y, width, height);
+	if (background->Width() * background->Height() != width * height)
+		background->Crop(x, y, width, height);
 
 	double tmp;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * width * height);
-	memset (new_rgb, 0, 3 * width * height);
-	const unsigned char *bg_rgb = background->getRGBData ();
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * width * height);
+	memset(new_rgb, 0, 3 * width * height);
+	const unsigned char *bg_rgb = background->getRGBData();
 
 	int ipos = 0;
 	if (png_alpha != nullptr)
@@ -309,9 +300,9 @@ Image::Merge (Image *background, const int x, const int y)
 			{
 				for (int k = 0; k < 3; k++)
 				{
-					tmp = rgb_data[3 * ipos + k] * png_alpha[ipos] / 255.0
-						  + bg_rgb[3 * ipos + k] * (1 - png_alpha[ipos] / 255.0);
-					new_rgb[3 * ipos + k] = static_cast<unsigned char> (tmp);
+					tmp = rgb_data[3 * ipos + k] * png_alpha[ipos] / 255.0 +
+						  bg_rgb[3 * ipos + k] * (1 - png_alpha[ipos] / 255.0);
+					new_rgb[3 * ipos + k] = static_cast<unsigned char>(tmp);
 				}
 				ipos++;
 			}
@@ -326,15 +317,15 @@ Image::Merge (Image *background, const int x, const int y)
 				for (int k = 0; k < 3; k++)
 				{
 					tmp = rgb_data[3 * ipos + k];
-					new_rgb[3 * ipos + k] = static_cast<unsigned char> (tmp);
+					new_rgb[3 * ipos + k] = static_cast<unsigned char>(tmp);
 				}
 				ipos++;
 			}
 		}
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 }
@@ -346,11 +337,10 @@ Image::Merge (Image *background, const int x, const int y)
  */
 #define IMG_POS_RGB(p, x) (3 * p + x)
 
-void
-Image::Merge_non_crop (Image *background, const int x, const int y)
+void Image::Merge_non_crop(Image *background, const int x, const int y)
 {
-	int bg_w = background->Width ();
-	int bg_h = background->Height ();
+	int bg_w = background->Width();
+	int bg_h = background->Height();
 
 	if (x + width > bg_w || y + height > bg_h)
 	{
@@ -358,14 +348,14 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 	}
 
 	double tmp;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * bg_w * bg_h);
-	const unsigned char *bg_rgb = background->getRGBData ();
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * bg_w * bg_h);
+	const unsigned char *bg_rgb = background->getRGBData();
 	int pnl_pos = 0;
 	int bg_pos = 0;
 	int pnl_w_end = x + width;
 	int pnl_h_end = y + height;
 
-	memcpy (new_rgb, bg_rgb, 3 * bg_w * bg_h);
+	memcpy(new_rgb, bg_rgb, 3 * bg_w * bg_h);
 
 	for (int j = 0; j < bg_h; j++)
 	{
@@ -377,15 +367,15 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 				{
 					if (png_alpha != nullptr)
 					{
-						tmp = rgb_data[IMG_POS_RGB (pnl_pos, k)] * png_alpha[pnl_pos] / 255.0
-							  + bg_rgb[IMG_POS_RGB (bg_pos, k)] * (1 - png_alpha[pnl_pos] / 255.0);
+						tmp = rgb_data[IMG_POS_RGB(pnl_pos, k)] * png_alpha[pnl_pos] / 255.0 +
+							  bg_rgb[IMG_POS_RGB(bg_pos, k)] * (1 - png_alpha[pnl_pos] / 255.0);
 					}
 					else
 					{
-						tmp = rgb_data[IMG_POS_RGB (pnl_pos, k)];
+						tmp = rgb_data[IMG_POS_RGB(pnl_pos, k)];
 					}
 
-					new_rgb[IMG_POS_RGB (bg_pos, k)] = static_cast<unsigned char> (tmp);
+					new_rgb[IMG_POS_RGB(bg_pos, k)] = static_cast<unsigned char>(tmp);
 				}
 				pnl_pos++;
 			}
@@ -395,8 +385,8 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 
 	width = bg_w;
 	height = bg_h;
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 }
@@ -406,8 +396,7 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
  * The new dimensions should be > of the current ones.
  * Note that this flattens image (alpha removed)
  */
-void
-Image::Tile (const int w, const int h)
+void Image::Tile(const int w, const int h)
 {
 	if (w < width || h < height)
 	{
@@ -430,8 +419,8 @@ Image::Tile (const int w, const int h)
 
 	int newwidth = nx * width;
 	int newheight = ny * height;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * newwidth * newheight);
-	memset (new_rgb, 0, 3 * width * height * nx * ny);
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * newwidth * newheight);
+	memset(new_rgb, 0, 3 * width * height * nx * ny);
 	int ipos = 0;
 	int opos = 0;
 
@@ -448,27 +437,26 @@ Image::Tile (const int w, const int h)
 
 					for (int k = 0; k < 3; k++)
 					{
-						new_rgb[3 * ipos + k] = static_cast<unsigned char> (rgb_data[3 * opos + k]);
+						new_rgb[3 * ipos + k] = static_cast<unsigned char>(rgb_data[3 * opos + k]);
 					}
 				}
 			}
 		}
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 	width = newwidth;
 	height = newheight;
 	area = width * height;
-	Crop (0, 0, w, h);
+	Crop(0, 0, w, h);
 }
 
 /* Crop the image
  */
-void
-Image::Crop (const int x, const int y, const int w, const int h)
+void Image::Crop(const int x, const int y, const int w, const int h)
 {
 
 	if (x + w > width || y + h > height)
@@ -478,14 +466,14 @@ Image::Crop (const int x, const int y, const int w, const int h)
 
 	int x2 = x + w;
 	int y2 = y + h;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
-	memset (new_rgb, 0, 3 * w * h);
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * w * h);
+	memset(new_rgb, 0, 3 * w * h);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
 	{
-		new_alpha = (unsigned char *)malloc (w * h);
-		memset (new_alpha, 0, w * h);
+		new_alpha = (unsigned char *)malloc(w * h);
+		memset(new_alpha, 0, w * h);
 	}
 
 	int ipos = 0;
@@ -499,12 +487,12 @@ Image::Crop (const int x, const int y, const int w, const int h)
 			{
 				for (int k = 0; k < 3; k++)
 				{
-					new_rgb[3 * ipos + k] = static_cast<unsigned char> (rgb_data[3 * opos + k]);
+					new_rgb[3 * ipos + k] = static_cast<unsigned char>(rgb_data[3 * opos + k]);
 				}
 
 				if (png_alpha != nullptr)
 				{
-					new_alpha[ipos] = static_cast<unsigned char> (png_alpha[opos]);
+					new_alpha[ipos] = static_cast<unsigned char>(png_alpha[opos]);
 				}
 
 				ipos++;
@@ -514,8 +502,8 @@ Image::Crop (const int x, const int y, const int w, const int h)
 		}
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 
 	if (png_alpha != nullptr)
@@ -531,28 +519,27 @@ Image::Crop (const int x, const int y, const int w, const int h)
 /* Center the image in a rectangle of given width and height.
  * Fills the remaining space (if any) with the hex color
  */
-void
-Image::Center (const int w, const int h, const char *hex)
+void Image::Center(const int w, const int h, const char *hex)
 {
 	unsigned long packed_rgb;
-	sscanf (hex, "%lx", &packed_rgb);
+	sscanf(hex, "%lx", &packed_rgb);
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
-	memset (new_rgb, 0, 3 * w * h);
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * w * h);
+	memset(new_rgb, 0, 3 * w * h);
 	int x = (w - width) / 2;
 	int y = (h - height) / 2;
 
 	if (x < 0)
 	{
-		Crop ((width - w) / 2, 0, w, height);
+		Crop((width - w) / 2, 0, w, height);
 		x = 0;
 	}
 
 	if (y < 0)
 	{
-		Crop (0, (height - h) / 2, width, h);
+		Crop(0, (height - h) / 2, width, h);
 		y = 0;
 	}
 
@@ -582,9 +569,9 @@ Image::Center (const int w, const int h, const char *hex)
 
 					for (int k = 0; k < 3; k++)
 					{
-						tmp = rgb_data[3 * opos + k] * png_alpha[opos] / 255.0
-							  + new_rgb[k] * (1 - png_alpha[opos] / 255.0);
-						new_rgb[3 * ipos + k] = static_cast<unsigned char> (tmp);
+						tmp = rgb_data[3 * opos + k] * png_alpha[opos] / 255.0 +
+							  new_rgb[k] * (1 - png_alpha[opos] / 255.0);
+						new_rgb[3 * ipos + k] = static_cast<unsigned char>(tmp);
 					}
 
 					opos++;
@@ -605,7 +592,7 @@ Image::Center (const int w, const int h, const char *hex)
 					for (int k = 0; k < 3; k++)
 					{
 						tmp = rgb_data[3 * opos + k];
-						new_rgb[3 * ipos + k] = static_cast<unsigned char> (tmp);
+						new_rgb[3 * ipos + k] = static_cast<unsigned char>(tmp);
 					}
 
 					opos++;
@@ -614,8 +601,8 @@ Image::Center (const int w, const int h, const char *hex)
 		}
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 	width = w;
@@ -625,17 +612,16 @@ Image::Center (const int w, const int h, const char *hex)
 /* Fill the image with the given color and adjust its dimensions
  * to passed values.
  */
-void
-Image::Plain (const int w, const int h, const char *hex)
+void Image::Plain(const int w, const int h, const char *hex)
 {
 
 	unsigned long packed_rgb;
-	sscanf (hex, "%lx", &packed_rgb);
+	sscanf(hex, "%lx", &packed_rgb);
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
-	memset (new_rgb, 0, 3 * w * h);
+	unsigned char *new_rgb = (unsigned char *)malloc(3 * w * h);
+	memset(new_rgb, 0, 3 * w * h);
 	area = w * h;
 
 	for (int i = 0; i < area; i++)
@@ -645,16 +631,15 @@ Image::Plain (const int w, const int h, const char *hex)
 		new_rgb[3 * i + 2] = b;
 	}
 
-	free (rgb_data);
-	free (png_alpha);
+	free(rgb_data);
+	free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 	width = w;
 	height = h;
 }
 
-void
-Image::computeShift (unsigned long mask, unsigned char &left_shift, unsigned char &right_shift)
+void Image::computeShift(unsigned long mask, unsigned char &left_shift, unsigned char &right_shift)
 {
 	left_shift = 0;
 	right_shift = 8;
@@ -675,17 +660,16 @@ Image::computeShift (unsigned long mask, unsigned char &left_shift, unsigned cha
 	}
 }
 
-Pixmap
-Image::createPixmap (Display *dpy, int scr, Window win)
+Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 {
 	/* loop variables */
 	int i;
 	int j;
 
-	const int depth = DefaultDepth (dpy, scr);
-	Visual *visual = DefaultVisual (dpy, scr);
-	Colormap colormap = DefaultColormap (dpy, scr);
-	Pixmap tmp = XCreatePixmap (dpy, win, width, height, depth);
+	const int depth = DefaultDepth(dpy, scr);
+	Visual *visual = DefaultVisual(dpy, scr);
+	Colormap colormap = DefaultColormap(dpy, scr);
+	Pixmap tmp = XCreatePixmap(dpy, win, width, height, depth);
 	char *pixmap_data = nullptr;
 
 	switch (depth)
@@ -705,11 +689,11 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 		break;
 	}
 
-	XImage *ximage = XCreateImage (dpy, visual, depth, ZPixmap, 0, pixmap_data, width, height, 8, 0);
+	XImage *ximage = XCreateImage(dpy, visual, depth, ZPixmap, 0, pixmap_data, width, height, 8, 0);
 	int entries;
 	XVisualInfo v_template;
-	v_template.visualid = XVisualIDFromVisual (visual);
-	XVisualInfo *visual_info = XGetVisualInfo (dpy, VisualIDMask, &v_template, &entries);
+	v_template.visualid = XVisualIDFromVisual(visual);
+	XVisualInfo *visual_info = XGetVisualInfo(dpy, VisualIDMask, &v_template, &entries);
 	unsigned long ipos = 0;
 
 	switch (visual_info->c_class)
@@ -726,7 +710,7 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 			colors[i].pixel = (unsigned long)i;
 		}
 
-		XQueryColors (dpy, colormap, colors, num_colors);
+		XQueryColors(dpy, colormap, colors, num_colors);
 		int *closest_color = new int[num_colors];
 
 		for (i = 0; i < num_colors; i++)
@@ -768,7 +752,7 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 				xc.green = (unsigned short)(rgb_data[ipos++] & 0xe0);
 				xc.blue = (unsigned short)(rgb_data[ipos++] & 0xc0);
 				xc.pixel = xc.red | (xc.green >> 3) | (xc.blue >> 6);
-				XPutPixel (ximage, i, j, colors[closest_color[xc.pixel]].pixel);
+				XPutPixel(ximage, i, j, colors[closest_color[xc.pixel]].pixel);
 			}
 		}
 
@@ -785,9 +769,9 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 		unsigned char blue_left_shift;
 		unsigned char blue_right_shift;
 
-		computeShift (visual_info->red_mask, red_left_shift, red_right_shift);
-		computeShift (visual_info->green_mask, green_left_shift, green_right_shift);
-		computeShift (visual_info->blue_mask, blue_left_shift, blue_right_shift);
+		computeShift(visual_info->red_mask, red_left_shift, red_right_shift);
+		computeShift(visual_info->green_mask, green_left_shift, green_right_shift);
+		computeShift(visual_info->blue_mask, blue_left_shift, blue_right_shift);
 
 		unsigned long pixel;
 		unsigned long red, green, blue;
@@ -800,11 +784,11 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 				green = (unsigned long)rgb_data[ipos++] >> green_right_shift;
 				blue = (unsigned long)rgb_data[ipos++] >> blue_right_shift;
 
-				pixel = (((red << red_left_shift) & visual_info->red_mask)
-						 | ((green << green_left_shift) & visual_info->green_mask)
-						 | ((blue << blue_left_shift) & visual_info->blue_mask));
+				pixel = (((red << red_left_shift) & visual_info->red_mask) |
+						 ((green << green_left_shift) & visual_info->green_mask) |
+						 ((blue << blue_left_shift) & visual_info->blue_mask));
 
-				XPutPixel (ximage, i, j, pixel);
+				XPutPixel(ximage, i, j, pixel);
 			}
 		}
 	}
@@ -816,28 +800,27 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 	}
 	}
 
-	GC gc = XCreateGC (dpy, win, 0, nullptr);
-	XPutImage (dpy, tmp, gc, ximage, 0, 0, 0, 0, width, height);
-	XFreeGC (dpy, gc);
-	XFree (visual_info);
+	GC gc = XCreateGC(dpy, win, 0, nullptr);
+	XPutImage(dpy, tmp, gc, ximage, 0, 0, 0, 0, width, height);
+	XFreeGC(dpy, gc);
+	XFree(visual_info);
 
 	delete[] pixmap_data;
 
 	/* Set ximage data to nullptr since pixmap data was deallocated above */
 	ximage->data = nullptr;
-	XDestroyImage (ximage);
+	XDestroyImage(ximage);
 
 	return (tmp);
 }
 
-int
-Image::readJpeg (const char *filename, int *width, int *height, unsigned char **rgb)
+int Image::readJpeg(const char *filename, int *width, int *height, unsigned char **rgb)
 {
 	int ret = 0;
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	unsigned char *ptr = nullptr;
-	FILE *infile = std::fopen (filename, "rb");
+	FILE *infile = std::fopen(filename, "rb");
 
 	if (infile == nullptr)
 	{
@@ -845,11 +828,11 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 		return ret;
 	}
 
-	cinfo.err = jpeg_std_error (&jerr);
-	jpeg_create_decompress (&cinfo);
-	jpeg_stdio_src (&cinfo, infile);
-	jpeg_read_header (&cinfo, TRUE);
-	jpeg_start_decompress (&cinfo);
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_decompress(&cinfo);
+	jpeg_stdio_src(&cinfo, infile);
+	jpeg_read_header(&cinfo, TRUE);
+	jpeg_start_decompress(&cinfo);
 
 	/* Prevent against integer overflow */
 	if (cinfo.output_width >= MAX_DIMENSION || cinfo.output_height >= MAX_DIMENSION)
@@ -860,7 +843,7 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
-	rgb[0] = (unsigned char *)malloc (3 * cinfo.output_width * cinfo.output_height);
+	rgb[0] = (unsigned char *)malloc(3 * cinfo.output_width * cinfo.output_height);
 
 	if (rgb[0] == nullptr)
 	{
@@ -874,13 +857,13 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 
 		while (cinfo.output_scanline < cinfo.output_height)
 		{
-			jpeg_read_scanlines (&cinfo, &ptr, 1);
+			jpeg_read_scanlines(&cinfo, &ptr, 1);
 			ptr += 3 * cinfo.output_width;
 		}
 	}
 	else if (cinfo.output_components == 1)
 	{
-		ptr = (unsigned char *)malloc (cinfo.output_width);
+		ptr = (unsigned char *)malloc(cinfo.output_width);
 
 		if (ptr == nullptr)
 		{
@@ -893,34 +876,33 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 
 		while (cinfo.output_scanline < cinfo.output_height)
 		{
-			jpeg_read_scanlines (&cinfo, &ptr, 1);
+			jpeg_read_scanlines(&cinfo, &ptr, 1);
 
 			for (unsigned int i = 0; i < cinfo.output_width; i++)
 			{
-				memset (rgb[0] + ipos, ptr[i], 3);
+				memset(rgb[0] + ipos, ptr[i], 3);
 				ipos += 3;
 			}
 		}
 
-		free (ptr);
+		free(ptr);
 	}
 
-	jpeg_finish_decompress (&cinfo);
+	jpeg_finish_decompress(&cinfo);
 	ret = 1;
 	goto close_file;
 
 rgb_free:
-	free (rgb[0]);
+	free(rgb[0]);
 
 close_file:
-	jpeg_destroy_decompress (&cinfo);
-	fclose (infile);
+	jpeg_destroy_decompress(&cinfo);
+	fclose(infile);
 
 	return (ret);
 }
 
-int
-Image::readPng (const char *filename, int *width, int *height, unsigned char **rgb, unsigned char **alpha)
+int Image::readPng(const char *filename, int *width, int *height, unsigned char **rgb, unsigned char **alpha)
 {
 	int ret = 0;
 	png_structp png_ptr;
@@ -930,7 +912,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	png_uint_32 w, h;
 	int bit_depth, color_type, interlace_type;
 	int i;
-	FILE *infile = std::fopen (filename, "rb");
+	FILE *infile = std::fopen(filename, "rb");
 
 	if (infile == nullptr)
 	{
@@ -938,34 +920,34 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 		return ret;
 	}
 
-	png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, (png_voidp) nullptr, (png_error_ptr) nullptr,
-									  (png_error_ptr) nullptr);
+	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp) nullptr, (png_error_ptr) nullptr,
+									 (png_error_ptr) nullptr);
 	if (!png_ptr)
 	{
 		goto file_close;
 	}
 
-	info_ptr = png_create_info_struct (png_ptr);
+	info_ptr = png_create_info_struct(png_ptr);
 
 	if (!info_ptr)
 	{
-		png_destroy_read_struct (&png_ptr, (png_infopp) nullptr, (png_infopp) nullptr);
+		png_destroy_read_struct(&png_ptr, (png_infopp) nullptr, (png_infopp) nullptr);
 	}
 
 #if PNG_LIBPNG_VER_MAJOR >= 1 && PNG_LIBPNG_VER_MINOR >= 4
-	if (setjmp (png_jmpbuf ((png_ptr))))
+	if (setjmp(png_jmpbuf((png_ptr))))
 	{
 #else
-	if (setjmp (png_ptr->jmpbuf))
+	if (setjmp(png_ptr->jmpbuf))
 	{
 #endif
 		goto png_destroy;
 	}
 
-	png_init_io (png_ptr, infile);
-	png_read_info (png_ptr, info_ptr);
+	png_init_io(png_ptr, infile);
+	png_read_info(png_ptr, info_ptr);
 
-	png_get_IHDR (png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, &interlace_type, (int *)nullptr, (int *)nullptr);
+	png_get_IHDR(png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, &interlace_type, (int *)nullptr, (int *)nullptr);
 
 	/* Prevent against integer overflow */
 	if (w >= MAX_DIMENSION || h >= MAX_DIMENSION)
@@ -979,7 +961,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 
 	if (color_type == PNG_COLOR_TYPE_RGB_ALPHA || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
-		alpha[0] = (unsigned char *)malloc (*width * *height);
+		alpha[0] = (unsigned char *)malloc(*width * *height);
 
 		if (alpha[0] == nullptr)
 		{
@@ -991,24 +973,24 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	/* Change a paletted/grayscale image to RGB */
 	if (color_type == PNG_COLOR_TYPE_PALETTE && bit_depth <= 8)
 	{
-		png_set_expand (png_ptr);
+		png_set_expand(png_ptr);
 	}
 
 	/* Change a grayscale image to RGB */
 	if (color_type == PNG_COLOR_TYPE_GRAY || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
-		png_set_gray_to_rgb (png_ptr);
+		png_set_gray_to_rgb(png_ptr);
 	}
 
 	/* If the PNG file has 16 bits per channel, strip them down to 8 */
 	if (bit_depth == 16)
 	{
-		png_set_strip_16 (png_ptr);
+		png_set_strip_16(png_ptr);
 	}
 
 	/* use 1 byte per pixel */
-	png_set_packing (png_ptr);
-	row_pointers = (png_byte **)malloc (*height * sizeof (png_bytep));
+	png_set_packing(png_ptr);
+	row_pointers = (png_byte **)malloc(*height * sizeof(png_bytep));
 
 	if (row_pointers == nullptr)
 	{
@@ -1019,7 +1001,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 
 	for (i = 0; i < *height; i++)
 	{
-		row_pointers[i] = (png_byte *)malloc (4 * *width);
+		row_pointers[i] = (png_byte *)malloc(4 * *width);
 
 		if (row_pointers == nullptr)
 		{
@@ -1029,8 +1011,8 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 		}
 	}
 
-	png_read_image (png_ptr, row_pointers);
-	rgb[0] = (unsigned char *)malloc (3 * (*width) * (*height));
+	png_read_image(png_ptr, row_pointers);
+	rgb[0] = (unsigned char *)malloc(3 * (*width) * (*height));
 
 	if (rgb[0] == nullptr)
 	{
@@ -1044,7 +1026,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 
 		for (i = 0; i < *height; i++)
 		{
-			memcpy (ptr, row_pointers[i], 3 * (*width));
+			memcpy(ptr, row_pointers[i], 3 * (*width));
 			ptr += 3 * (*width);
 		}
 	}
@@ -1073,17 +1055,17 @@ rows_free:
 	{
 		if (row_pointers[i] != nullptr)
 		{
-			free (row_pointers[i]);
+			free(row_pointers[i]);
 		}
 	}
 
-	free (row_pointers);
+	free(row_pointers);
 
 png_destroy:
-	png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp) nullptr);
+	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) nullptr);
 
 file_close:
-	fclose (infile);
+	fclose(infile);
 
 	return (ret);
 }

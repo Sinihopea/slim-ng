@@ -40,43 +40,43 @@
 class App
 {
   public:
-	explicit App (int argc, char **argv);
-	~App () = default;
+	explicit App(int argc, char **argv);
+	~App() = default;
 
-	void Run ();
-	int GetServerPID ();
-	void RestartServer ();
-	void StopServer ();
+	void Run();
+	int GetServerPID();
+	void RestartServer();
+	void StopServer();
 
 	/* Lock functions */
-	void GetLock ();
-	void RemoveLock ();
+	void GetLock();
+	void RemoveLock();
 
-	bool isServerStarted ();
+	bool isServerStarted();
 
   private:
-	void Login ();
-	void Reboot ();
-	void Halt ();
-	void Suspend ();
-	void Console ();
-	void Exit ();
-	void KillAllClients (Bool top);
+	void Login();
+	void Reboot();
+	void Halt();
+	void Suspend();
+	void Console();
+	void Exit();
+	void KillAllClients(Bool top);
 	// void ReadConfig ();
-	void OpenLog ();
-	void CloseLog ();
-	void HideCursor ();
-	void CreateServerAuth ();
-	char *StrConcat (const char *str1, const char *str2);
-	void UpdatePid ();
-	bool AuthenticateUser (bool focuspass);
-	std::string findValidRandomTheme (const std::string &set);
-	static void replaceVariables (std::string &input, const std::string &var, const std::string &value);
+	void OpenLog();
+	void CloseLog();
+	void HideCursor();
+	void CreateServerAuth();
+	char *StrConcat(const char *str1, const char *str2);
+	void UpdatePid();
+	bool AuthenticateUser(bool focuspass);
+	std::string findValidRandomTheme(const std::string &set);
+	static void replaceVariables(std::string &input, const std::string &var, const std::string &value);
 
 	/* Server functions */
-	int StartServer ();
-	int ServerTimeout (int timeout, char *string);
-	int WaitForServer ();
+	int StartServer();
+	int ServerTimeout(int timeout, char *string);
+	int WaitForServer();
 
 	/* Private data */
 	Display *m_display;
@@ -97,8 +97,8 @@ class App
 #endif
 
 	/* Options */
-	void blankScreen ();
-	void setBackground (const std::string &themedir);
+	void blankScreen();
+	void setBackground(const std::string &themedir);
 
 	// char *DispName;
 	Cfg m_config_app;
