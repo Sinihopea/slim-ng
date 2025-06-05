@@ -35,8 +35,6 @@
 #define APPNAME "slimlock"
 #define SLIMLOCKCFG SYSCONFDIR "/slimlock.conf"
 
-using namespace std;
-
 void setBackground (const string & themedir);
 void HideCursor ();
 bool AuthenticateUser ();

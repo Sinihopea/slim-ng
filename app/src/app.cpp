@@ -31,8 +31,6 @@
 #include <shadow.h>
 #endif
 
-using namespace std;
-
 #ifdef USE_PAM
 #include <string>
 
@@ -93,7 +91,7 @@ conv (int num_msg, const struct pam_message ** msg,
 			 *
 			 * @TODO: Maybe we should simply ignore them
 			 */
-			logStream << APPNAME << ": " << msg[i]->msg << endl;
+			logStream << APPNAME << ": " << msg[i]->msg << std::endl;
 			break;
 		}
 		if (result != PAM_SUCCESS)
@@ -127,7 +125,7 @@ xioerror (Display * disp)
 void
 CatchSignal (int sig)
 {
-	logStream << APPNAME << ": unexpected signal " << sig << endl;
+	logStream << APPNAME << ": unexpected signal " << sig << std::endl;
 
 	if (LoginApp->isServerStarted ())
 		LoginApp->StopServer ();
@@ -148,7 +146,7 @@ App::App (int argc, char ** argv)
 	  pam (conv, static_cast<void *> (&LoginPanel)),
 #endif
 	  ServerPID (-1), testing (false), serverStarted (false),
-	  mcookie (string (MCOOKIESIZE, 'a')), daemonmode (false),
+	  mcookie (std::string (MCOOKIESIZE, 'a')), daemonmode (false),
 	  force_nodaemon (false),
 #ifdef USE_CONSOLEKIT
 	  consolekit_support_enabled (true),
@@ -167,7 +165,7 @@ App::App (int argc, char ** argv)
 		switch (tmp) {
 		case 'c': /* Config */
 			if (optarg == NULL) {
-				logStream << "The -c option requires an argument" << endl;
+				logStream << "The -c option requires an argument" << std::endl;
 				exit (ERR_EXIT);
 			}
 			cfg.readConf (optarg);
@@ -179,7 +177,7 @@ App::App (int argc, char ** argv)
 			testing = true;
 
 			if (testtheme == NULL) {
-				logStream << "The -p option requires an argument" << endl;
+				logStream << "The -p option requires an argument" << std::endl;
 				exit (ERR_EXIT);
 			}
 			break;
@@ -194,7 +192,7 @@ App::App (int argc, char ** argv)
 			break;
 		/* Version */
 		case 'v':
-			std::cout << APPNAME << " version " << VERSION << endl;
+			std::cout << APPNAME << " version " << VERSION << std::endl;
 			exit (OK_EXIT);
 			break;
 #ifdef USE_CONSOLEKIT
@@ -203,26 +201,26 @@ App::App (int argc, char ** argv)
 			break;
 #endif
 		case '?': /* Illegal */
-			logStream << endl;
+			logStream << std::endl;
 		case 'h': /* Help */
-			logStream << "usage:  " << APPNAME << " [option ...]" << endl
-					  << "options:" << endl
-					  << "	-c file: configuration file" << endl
-					  << "	-d: daemon mode" << endl
-					  << "	-n: no-daemon mode" << endl
-					  << "	-v: show version" << endl
+			logStream << "usage:  " << APPNAME << " [option ...]" << std::endl
+					  << "options:" << std::endl
+					  << "	-c file: configuration file" << std::endl
+					  << "	-d: daemon mode" << std::endl
+					  << "	-n: no-daemon mode" << std::endl
+					  << "	-v: show version" << std::endl
 #ifdef USE_CONSOLEKIT
 					  << "	-s: start for systemd, disable consolekit support"
 					  << endl
 #endif
-					  << "	-p /path/to/theme/dir: preview theme" << endl;
+					  << "	-p /path/to/theme/dir: preview theme" << std::endl;
 			exit (OK_EXIT);
 			break;
 		}
 	}
 #ifndef XNEST_DEBUG
 	if (getuid () != 0 && !testing) {
-		logStream << APPNAME << ": only root can run this program" << endl;
+		logStream << APPNAME << ": only root can run this program" << std::endl;
 		exit (ERR_EXIT);
 	}
 #endif /* XNEST_DEBUG */
@@ -236,63 +234,86 @@ App::Run ()
 {
 	DisplayName = DISPLAY;
 	char * p = getenv ("DISPLAY");
-	if (p && p[0]) {
+	
+	if (p && p[0])
+	{
 		DisplayName = p;
-		cout << "Using display name " << DisplayName << endl;
+		std::cout << "Using display name " << DisplayName << std::endl;
 	}
 
 	/* Read theme */
-	string themebase = "";
-	string themefile = "";
-	string themedir = "";
+	std::string themebase = "";
+	std::string themefile = "";
+	std::string themedir = "";
 	themeName = "";
-	if (testing) {
+
+	if (testing)
+	{
 		themeName = testtheme;
-	} else {
+	}
+	else
+	{
 		themebase = cfg.getOption ("themes_dir") + "/";
 		themeName = cfg.getOption ("current_theme");
-		string::size_type pos;
-		if ((pos = themeName.find (",")) != string::npos) {
+		std::string::size_type pos;
+
+		if ((pos = themeName.find (",")) != std::string::npos)
+		{
 			/* input is a set */
 			themeName = findValidRandomTheme (themeName);
-			if (themeName == "") {
+
+			if (themeName == "")
+			{
 				themeName = "default";
 			}
 		}
 	}
 
 #ifdef USE_PAM
-	try {
+	try
+	{
 		pam.start ("slim");
 		pam.set_item (PAM::Authenticator::TTY, DisplayName);
 		pam.set_item (PAM::Authenticator::Requestor, "root");
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+	}
+	catch (PAM::Exception & e)
+	{
+		logStream << APPNAME << ": " << e << std::endl;
 		exit (ERR_EXIT);
 	}
 #endif
 
 	bool loaded = false;
-	while (!loaded) {
+
+	while (!loaded)
+	{
 		themedir = themebase + themeName;
 		themefile = themedir + THEMESFILE;
-		if (!cfg.readConf (themefile)) {
-			if (themeName == "default") {
+
+		if (!cfg.readConf (themefile))
+		{
+			if (themeName == "default")
+			{
 				logStream << APPNAME << ": Failed to open default theme file "
-						  << themefile << endl;
+						  << themefile << std::endl;
 				exit (ERR_EXIT);
-			} else {
+			}
+			else
+			{
 				logStream << APPNAME
-						  << ": Invalid theme in config: " << themeName
-						  << endl;
+						  << ": Invalid theme in config: "
+						  << themeName << std::endl;
 				themeName = "default";
 			}
-		} else {
+		}
+		else
+		{
 			loaded = true;
 		}
 	}
 
-	if (!testing) {
+	if (!testing)
+	{
 		/* Create lock file */
 		LoginApp->GetLock ();
 
@@ -314,7 +335,7 @@ App::Run ()
 		/* Daemonize */
 		if (daemonmode) {
 			if (daemon (0, 0) == -1) {
-				logStream << APPNAME << ": " << strerror (errno) << endl;
+				logStream << APPNAME << ": " << strerror (errno) << std::endl;
 				exit (ERR_EXIT);
 			}
 		}
@@ -331,10 +352,10 @@ App::Run ()
 		if (cfg.getOption ("xsetup_script") != "") {
 			const char * xsetup_cmd = cfg.getOption ("xsetup_script").c_str ();
 			logStream << APPNAME << ": executing xsetup script '" << xsetup_cmd
-					  << "'" << endl;
+					  << "'" << std::endl;
 			system (xsetup_cmd);
 			logStream << APPNAME << ": xsetup script '" << xsetup_cmd
-					  << "' finished." << endl;
+					  << "' finished." << std::endl;
 		}
 #endif
 	}
@@ -342,7 +363,7 @@ App::Run ()
 	/* Open display */
 	if ((Dpy = XOpenDisplay (DisplayName)) == 0) {
 		logStream << APPNAME << ": could not open display '" << DisplayName
-				  << "'" << endl;
+				  << "'" << std::endl;
 		if (!testing)
 			StopServer ();
 		exit (ERR_EXIT);
@@ -387,10 +408,14 @@ App::Run ()
 	}
 
 	/* Set NumLock */
-	string numlock = cfg.getOption ("numlock");
-	if (numlock == "on") {
+	std::string numlock = cfg.getOption ("numlock");
+	
+	if (numlock == "on")
+	{
 		NumLock::setOn (Dpy);
-	} else if (numlock == "off") {
+	}
+	else if (numlock == "off")
+	{
 		NumLock::setOff (Dpy);
 	}
 
@@ -487,10 +512,10 @@ App::AuthenticateUser (bool focuspass)
 		default:
 			break;
 		}
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 		return false;
 	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 		exit (ERR_EXIT);
 	}
 	return true;
@@ -505,7 +530,7 @@ App::AuthenticateUser (bool focuspass)
 		case Panel::Exit:
 		case Panel::Console:
 			logStream << APPNAME << ": Got a special command ("
-					  << LoginPanel->GetName () << ")" << endl;
+					  << LoginPanel->GetName () << ")" << std::endl;
 			return true; /* <--- This is simply fake! */
 		default:
 			break;
@@ -588,10 +613,10 @@ App::Login ()
 			pam.get_item (PAM::Authenticator::User)));
 	} catch (PAM::Cred_Exception & e) {
 		/* Credentials couldn't be established */
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 		return;
 	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 		exit (ERR_EXIT);
 	}
 #else
@@ -608,10 +633,10 @@ App::Login ()
 
 	/* Setup the environment */
 	char * term = getenv ("TERM");
-	string maildir = _PATH_MAILDIR;
+	std::string maildir = _PATH_MAILDIR;
 	maildir.append ("/");
 	maildir.append (pw->pw_name);
-	string xauthority = pw->pw_dir;
+	std::string xauthority = pw->pw_dir;
 	xauthority.append ("/.Xauthority");
 
 #ifdef USE_PAM
@@ -629,7 +654,7 @@ App::Login ()
 		pam.setenv ("MAIL", maildir.c_str ());
 		pam.setenv ("XAUTHORITY", xauthority.c_str ());
 	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 		exit (ERR_EXIT);
 	}
 #endif
@@ -707,15 +732,18 @@ App::Login ()
 
 		/* Login process starts here */
 		SwitchUser Su (pw, cfg, DisplayName, child_env);
-		string session = LoginPanel->getSession ();
-		string loginCommand = cfg.getOption ("login_cmd");
+		std::string session = LoginPanel->getSession ();
+		std::string loginCommand = cfg.getOption ("login_cmd");
 		replaceVariables (loginCommand, SESSION_VAR, session);
 		replaceVariables (loginCommand, THEME_VAR, themeName);
-		string sessStart = cfg.getOption ("sessionstart_cmd");
-		if (sessStart != "") {
+		std::string sessStart = cfg.getOption ("sessionstart_cmd");
+		
+		if (sessStart != "")
+		{
 			replaceVariables (sessStart, USER_VAR, pw->pw_name);
 			system (sessStart.c_str ());
 		}
+
 		Su.Login (loginCommand.c_str (), mcookie.c_str ());
 		_exit (OK_EXIT);
 	}
@@ -727,37 +755,52 @@ App::Login ()
 	/* Wait until user is logging out (login process terminates) */
 	pid_t wpid = -1;
 	int status;
-	while (wpid != pid) {
+	
+	while (wpid != pid)
+	{
 		wpid = wait (&status);
 		if (wpid == ServerPID)
 			xioerror (Dpy); /* Server died, simulate IO error */
 	}
-	if (WIFEXITED (status) && WEXITSTATUS (status)) {
+
+	if (WIFEXITED (status) && WEXITSTATUS (status))
+	{
 		LoginPanel->Message ("Failed to execute login command");
 		sleep (3);
-	} else {
-		string sessStop = cfg.getOption ("sessionstop_cmd");
-		if (sessStop != "") {
+	}
+	else
+	{
+		std::string sessStop = cfg.getOption ("sessionstop_cmd");
+		
+		if (sessStop != "")
+		{
 			replaceVariables (sessStop, USER_VAR, pw->pw_name);
 			system (sessStop.c_str ());
 		}
 	}
 
 #ifdef USE_CONSOLEKIT
-	if (consolekit_support_enabled) {
-		try {
+	if (consolekit_support_enabled)
+	{
+		try
+		{
 			ck.close_session ();
-		} catch (Ck::Exception & e) {
+		}
+		catch (Ck::Exception & e)
+		{
 			logStream << APPNAME << ": " << e << endl;
 		};
 	}
 #endif
 
 #ifdef USE_PAM
-	try {
+	try
+	{
 		pam.close_session ();
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+	}
+	catch (PAM::Exception & e)
+	{
+		logStream << APPNAME << ": " << e << std::endl;
 	}
 #endif
 
@@ -788,7 +831,7 @@ App::Reboot ()
 	try {
 		pam.end ();
 	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 	}
 #endif
 
@@ -810,7 +853,7 @@ App::Halt ()
 	try {
 		pam.end ();
 	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 	}
 #endif
 
@@ -861,7 +904,7 @@ App::Exit ()
 	try {
 		pam.end ();
 	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+		logStream << APPNAME << ": " << e << std::endl;
 	}
 #endif
 
@@ -889,20 +932,27 @@ void
 App::RestartServer ()
 {
 #ifdef USE_PAM
-	try {
+	try
+	{
 		pam.end ();
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << endl;
+	}
+	catch (PAM::Exception & e)
+	{
+		logStream << APPNAME << ": " << e << std::endl;
 	}
 #endif
 
 	StopServer ();
 	RemoveLock ();
-	if (force_nodaemon) {
+	
+	if (force_nodaemon)
+	{
 		delete LoginPanel;
-		exit (ERR_EXIT); /* use ERR_EXIT so that systemd's RESTART=on-failure
-							works */
-	} else {
+		/* use ERR_EXIT so that systemd's RESTART=on-failure works */
+		exit (ERR_EXIT);
+	}
+	else
+	{
 		while (waitpid (-1, NULL, WNOHANG) > 0)
 			; // Collects all dead childrens
 		Run ();
@@ -956,7 +1006,7 @@ App::ServerTimeout (int timeout, char * text)
 			break;
 		if (timeout) {
 			if (i == 0 && text != lasttext)
-				logStream << endl << APPNAME << ": waiting for " << text;
+				logStream << std::endl << APPNAME << ": waiting for " << text;
 			else
 				logStream << ".";
 		}
@@ -967,7 +1017,7 @@ App::ServerTimeout (int timeout, char * text)
 	}
 
 	if (i > 0)
-		logStream << endl;
+		logStream << std::endl;
 	lasttext = text;
 
 	return (ServerPID != pidfound);
@@ -990,7 +1040,7 @@ App::WaitForServer ()
 		}
 	}
 
-	logStream << "Giving up." << endl;
+	logStream << "Giving up." << std::endl;
 
 	return 0;
 }
@@ -1004,15 +1054,15 @@ App::StartServer ()
 	static const int MAX_XSERVER_ARGS = 256;
 	static char * server[MAX_XSERVER_ARGS + 2] = { NULL };
 	server[0] = (char *)cfg.getOption ("default_xserver").c_str ();
-	string argOption = cfg.getOption ("xserver_arguments");
+	std::string argOption = cfg.getOption ("xserver_arguments");
+
 	/* Add mandatory -xauth option */
 	argOption = argOption + " -auth " + cfg.getOption ("authfile");
 	char * args = new char[argOption.length () + 2]; /* NULL plus vt */
 	strcpy (args, argOption.c_str ());
-
 	serverStarted = false;
-
 	bool hasVtSet = false;
+
 	while (args[pos] != '\0') {
 		if (args[pos] == ' ' || args[pos] == '\t') {
 			*(args + pos) = '\0';
@@ -1053,7 +1103,7 @@ App::StartServer ()
 		setpgid (0, getpid ());
 
 		execvp (server[0], server);
-		logStream << APPNAME << ": X server could not be started" << endl;
+		logStream << APPNAME << ": X server could not be started" << std::endl;
 		exit (ERR_EXIT);
 		break;
 
@@ -1069,7 +1119,7 @@ App::StartServer ()
 
 		/* Wait for server to start up */
 		if (WaitForServer () == 0) {
-			logStream << APPNAME << ": unable to connect to X server" << endl;
+			logStream << APPNAME << ": unable to connect to X server" << std::endl;
 			StopServer ();
 			ServerPID = -1;
 			exit (ERR_EXIT);
@@ -1088,7 +1138,7 @@ jmp_buf CloseEnv;
 int
 IgnoreXIO (Display * d)
 {
-	logStream << APPNAME << ": connection to X server lost." << endl;
+	logStream << APPNAME << ": connection to X server lost." << std::endl;
 	longjmp (CloseEnv, 1);
 }
 
@@ -1111,7 +1161,7 @@ App::StopServer ()
 	errno = 0;
 	if ((killpg (getpid (), SIGHUP) != 0) && (errno != ESRCH))
 		logStream << APPNAME << ": can't send HUP to process group "
-				  << getpid () << endl;
+				  << getpid () << std::endl;
 
 	/* Send TERM to server */
 	if (ServerPID < 0)
@@ -1119,9 +1169,11 @@ App::StopServer ()
 
 	errno = 0;
 
-	if (killpg (ServerPID, SIGTERM) < 0) {
-		if (errno == EPERM) {
-			logStream << APPNAME << ": can't kill X server" << endl;
+	if (killpg (ServerPID, SIGTERM) < 0)
+	{
+		if (errno == EPERM)
+		{
+			logStream << APPNAME << ": can't kill X server" << std::endl;
 			exit (ERR_EXIT);
 		}
 		if (errno == ESRCH)
@@ -1129,14 +1181,15 @@ App::StopServer ()
 	}
 
 	/* Wait for server to shut down */
-	if (!ServerTimeout (10, (char *)"X server to shut down")) {
-		logStream << endl;
+	if (!ServerTimeout (10, (char *)"X server to shut down"))
+	{
+		logStream << std::endl;
 		return;
 	}
 
-	logStream << endl
+	logStream << std::endl
 			  << APPNAME
-			  << ":  X server slow to shut down, sending KILL signal." << endl;
+			  << ":  X server slow to shut down, sending KILL signal." << std::endl;
 
 	/* Send KILL to server */
 	errno = 0;
@@ -1147,10 +1200,10 @@ App::StopServer ()
 
 	/* Wait for server to die */
 	if (ServerTimeout (3, (char *)"server to die")) {
-		logStream << endl << APPNAME << ": can't kill server" << endl;
+		logStream << std::endl << APPNAME << ": can't kill server" << std::endl;
 		exit (ERR_EXIT);
 	}
-	logStream << endl;
+	logStream << std::endl;
 }
 
 void
@@ -1166,33 +1219,37 @@ App::blankScreen ()
 }
 
 void
-App::setBackground (const string & themedir)
+App::setBackground (const std::string & themedir)
 {
-	string filename;
+	std::string filename;
 	filename = themedir + "/background.png";
 	image = new Image;
 	bool loaded = image->Read (filename.c_str ());
-	if (!loaded) { /* try jpeg if png failed */
+
+	if (!loaded)
+	{ /* try jpeg if png failed */
 		filename = themedir + "/background.jpg";
 		loaded = image->Read (filename.c_str ());
 	}
 
 	if (loaded) {
-		string bgstyle = cfg.getOption ("background_style");
-		if (bgstyle == "stretch") {
+		std::string bgstyle = cfg.getOption ("background_style");
+		
+		if (bgstyle == "stretch")
+		{
 			image->Resize (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
 		} else if (bgstyle == "tile") {
 			image->Tile (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
 		} else if (bgstyle == "center") {
-			string hexvalue = cfg.getOption ("background_color");
+			std::string hexvalue = cfg.getOption ("background_color");
 			hexvalue = hexvalue.substr (1, 6);
 			image->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				hexvalue.c_str ());
 		} else { /* plain color or error */
-			string hexvalue = cfg.getOption ("background_color");
+			std::string hexvalue = cfg.getOption ("background_color");
 			hexvalue = hexvalue.substr (1, 6);
 			image->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
@@ -1217,7 +1274,7 @@ App::GetLock ()
 	if (!lockfile) {
 		/* no lockfile present, create one */
 		std::ofstream lockfile (
-			cfg.getOption ("lockfile").c_str (), ios_base::out);
+			cfg.getOption ("lockfile").c_str (), std::ios_base::out);
 		if (!lockfile) {
 			logStream << APPNAME << ": Could not create lock file: "
 					  << cfg.getOption ("lockfile").c_str () << std::endl;
@@ -1243,7 +1300,7 @@ App::GetLock ()
 				logStream << APPNAME << ": Stale lockfile found, removing it"
 						  << std::endl;
 				std::ofstream lockfile (
-					cfg.getOption ("lockfile").c_str (), ios_base::out);
+					cfg.getOption ("lockfile").c_str (), std::ios_base::out);
 				if (!lockfile) {
 					logStream << APPNAME
 							  << ": Could not create new lock file: "
@@ -1277,7 +1334,7 @@ App::OpenLog ()
 {
 	if (!logStream.openLog (cfg.getOption ("logfile").c_str ())) {
 		logStream << APPNAME << ": Could not accesss log file: "
-				  << cfg.getOption ("logfile") << endl;
+				  << cfg.getOption ("logfile") << std::endl;
 		RemoveLock ();
 		exit (ERR_EXIT);
 	}
@@ -1293,11 +1350,11 @@ App::CloseLog ()
 	logStream.closeLog ();
 }
 
-string
-App::findValidRandomTheme (const string & set)
+std::string
+App::findValidRandomTheme (const std::string & set)
 {
 	/* extract random theme from theme set; return empty string on error */
-	string name = set;
+	std::string name = set;
 	struct stat buf;
 
 	if (name[name.length () - 1] == ',') {
@@ -1306,8 +1363,8 @@ App::findValidRandomTheme (const string & set)
 
 	Util::srandom (Util::makeseed ());
 
-	vector<string> themes;
-	string themefile;
+	std::vector<std::string> themes;
+	std::string themefile;
 	Cfg::split (themes, name, ',');
 	do {
 		int sel = Util::random () % themes.size ();
@@ -1317,7 +1374,7 @@ App::findValidRandomTheme (const string & set)
 		if (stat (themefile.c_str (), &buf) != 0) {
 			themes.erase (find (themes.begin (), themes.end (), name));
 			logStream << APPNAME << ": Invalid theme in config: " << name
-					  << endl;
+					  << std::endl;
 			name = "";
 		}
 	} while (name == "" && themes.size ());
@@ -1326,11 +1383,11 @@ App::findValidRandomTheme (const string & set)
 
 void
 App::replaceVariables (
-	string & input, const string & var, const string & value)
+	std::string & input, const std::string & var, const std::string & value)
 {
-	string::size_type pos = 0;
+	std::string::size_type pos = 0;
 	int len = var.size ();
-	while ((pos = input.find (var, pos)) != string::npos) {
+	while ((pos = input.find (var, pos)) != std::string::npos) {
 		input = input.substr (0, pos) + value + input.substr (pos + len);
 	}
 }
@@ -1346,7 +1403,7 @@ App::CreateServerAuth ()
 	uint16_t word;
 	uint8_t hi, lo;
 	int i;
-	string authfile;
+	std::string authfile;
 	const char * digits = "0123456789abcdef";
 	Util::srandom (Util::makeseed ());
 	for (i = 0; i < MCOOKIESIZE; i += 4) {
@@ -1377,13 +1434,14 @@ App::StrConcat (const char * str1, const char * str2)
 void
 App::UpdatePid ()
 {
-	std::ofstream lockfile (
-		cfg.getOption ("lockfile").c_str (), ios_base::out);
-	if (!lockfile) {
+	std::ofstream lockfile (cfg.getOption ("lockfile").c_str (), std::ios_base::out);
+	
+	if (!lockfile)
+	{
 		logStream << APPNAME << ": Could not update lock file: "
-				  << cfg.getOption ("lockfile").c_str () << endl;
+				  << cfg.getOption ("lockfile").c_str () << std::endl;
 		exit (ERR_EXIT);
 	}
-	lockfile << getpid () << endl;
+	lockfile << getpid () << std::endl;
 	lockfile.close ();
 }

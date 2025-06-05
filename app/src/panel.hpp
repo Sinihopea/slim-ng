@@ -83,7 +83,7 @@ private:
 	void Cursor (int visible);
 	unsigned long GetColor (const char * colorname);
 	void OnExpose (void);
-	void EraseLastChar (string & formerString);
+	void EraseLastChar (std::string & formerString);
 	bool OnKeyPress (XEvent & event);
 	void ShowText ();
 	void ShowSession ();

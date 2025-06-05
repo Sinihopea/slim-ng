@@ -23,9 +23,7 @@
 
 #include "cfg.hpp"
 
-using namespace std;
-
-typedef pair<string, string> option;
+using option = std::pair<std::string, std::string>;
 
 Cfg::Cfg () : currentSession (-1)
 {
@@ -156,20 +154,20 @@ Cfg::~Cfg () { options.clear (); }
  * known options from the given configfile / themefile
  */
 bool
-Cfg::readConf (string configfile)
+Cfg::readConf (std::string configfile)
 {
 	int n = -1;
 	size_t pos = 0;
-	string line, next, op, fn (configfile);
-	map<string, string>::iterator it;
-	ifstream cfgfile (fn.c_str ());
+	std::string line, next, op, fn (configfile);
+	std::map<std::string, std::string>::iterator it;
+	std::ifstream cfgfile (fn.c_str ());
 
 	if (!cfgfile) {
 		error = "Cannot read configuration file: " + configfile;
 		return false;
 	}
 	while (getline (cfgfile, line)) {
-		if ((pos = line.find ('\\')) != string::npos) {
+		if ((pos = line.find ('\\')) != std::string::npos) {
 			if (line.length () == pos + 1) {
 				line.replace (pos, 1, " ");
 				next = next + line;
@@ -199,33 +197,33 @@ Cfg::readConf (string configfile)
 }
 
 /* Returns the option value, trimmed */
-string
-Cfg::parseOption (string line, string option)
+std::string
+Cfg::parseOption (std::string line, std::string option)
 {
 	return Trim (line.substr (option.size (), line.size () - option.size ()));
 }
 
-const string &
+const std::string &
 Cfg::getError () const
 {
 	return error;
 }
 
-string &
-Cfg::getOption (string option)
+std::string &
+Cfg::getOption (std::string option)
 {
 	return options[option];
 }
 
 /* return a trimmed string */
-string
-Cfg::Trim (const string & s)
+std::string
+Cfg::Trim (const std::string & s)
 {
 	if (s.empty ()) {
 		return s;
 	}
 	int pos = 0;
-	string line = s;
+	std::string line = s;
 	int len = line.length ();
 	while (pos < len && isspace (line[pos])) {
 		++pos;
@@ -242,13 +240,13 @@ Cfg::Trim (const string & s)
 }
 
 /* Return the welcome message with replaced vars */
-string
+std::string
 Cfg::getWelcomeMessage ()
 {
-	string s = getOption ("welcome_msg");
+	std::string s = getOption ("welcome_msg");
 	int n = s.find ("%host");
 	if (n >= 0) {
-		string tmp = s.substr (0, n);
+		std::string tmp = s.substr (0, n);
 		char host[40];
 		gethostname (host, 40);
 		tmp = tmp + host;
@@ -257,7 +255,7 @@ Cfg::getWelcomeMessage ()
 	}
 	n = s.find ("%domain");
 	if (n >= 0) {
-		string tmp = s.substr (0, n);
+		std::string tmp = s.substr (0, n);
 		;
 		char domain[40];
 		getdomainname (domain, 40);
@@ -287,7 +285,7 @@ Cfg::getIntOption (std::string option)
 
 /* Get absolute position */
 int
-Cfg::absolutepos (const string & position, int max, int width)
+Cfg::absolutepos (const std::string & position, int max, int width)
 {
 	int n = position.find ("%");
 	if (n > 0) { /* X Position expressed in percentage */
@@ -301,17 +299,17 @@ Cfg::absolutepos (const string & position, int max, int width)
 
 /* split a comma separated string into a vector of strings */
 void
-Cfg::split (vector<string> & v, const string & str, char c, bool useEmpty)
+Cfg::split (std::vector<std::string> & v, const std::string & str, char c, bool useEmpty)
 {
 	v.clear ();
-	string::const_iterator s = str.begin ();
-	string tmp;
+	std::string::const_iterator s = str.begin ();
+	std::string tmp;
 	while (true) {
-		string::const_iterator begin = s;
+		std::string::const_iterator begin = s;
 		while (*s != c && s != str.end ()) {
 			++s;
 		}
-		tmp = string (begin, s);
+		tmp = std::string (begin, s);
 		if (useEmpty || tmp.size () > 0)
 			v.push_back (tmp);
 		if (s == str.end ()) {
@@ -328,8 +326,8 @@ Cfg::split (vector<string> & v, const string & str, char c, bool useEmpty)
 void
 Cfg::fillSessionList ()
 {
-	string strSessionList = getOption ("sessions");
-	string strSessionDir = getOption ("sessiondir");
+	std::string strSessionList = getOption ("sessions");
+	std::string strSessionDir = getOption ("sessiondir");
 
 	sessions.clear ();
 
@@ -340,7 +338,7 @@ Cfg::fillSessionList ()
 			struct dirent * pDirent = NULL;
 
 			while ((pDirent = readdir (pDir)) != NULL) {
-				string strFile (strSessionDir);
+				std::string strFile (strSessionDir);
 				strFile += "/";
 				strFile += pDirent->d_name;
 
@@ -349,9 +347,9 @@ Cfg::fillSessionList ()
 				if (stat (strFile.c_str (), &oFileStat) == 0) {
 					if (S_ISREG (oFileStat.st_mode)
 						&& access (strFile.c_str (), R_OK) == 0) {
-						ifstream desktop_file (strFile.c_str ());
+						std::ifstream desktop_file (strFile.c_str ());
 						if (desktop_file) {
-							string line, session_name = "", session_exec = "";
+							std::string line, session_name = "", session_exec = "";
 							while (getline (desktop_file, line)) {
 								if (line.substr (0, 5) == "Name=") {
 									session_name = line.substr (5);
@@ -366,12 +364,10 @@ Cfg::fillSessionList ()
 							desktop_file.close ();
 							if (!session_name.empty ()
 								&& !session_exec.empty ()) {
-								pair<string, string> session (
-									session_name, session_exec);
+								std::pair<std::string, std::string> session (session_name, session_exec);
 								sessions.push_back (session);
 							} else if (access (strFile.c_str (), X_OK) == 0) {
-								pair<string, string> session (
-									string (pDirent->d_name), strFile);
+								std::pair<std::string, std::string> session (std::string (pDirent->d_name), strFile);
 								sessions.push_back (session);
 							}
 						}
@@ -383,28 +379,28 @@ Cfg::fillSessionList ()
 	}
 
 	std::sort (sessions.begin (), sessions.end (),
-		[] (pair<string, string> & a, pair<string, string> & b) -> bool {
+		[] (std::pair<std::string, std::string> & a, std::pair<std::string, std::string> & b) -> bool {
 			return a.first < b.first;
 		});
 
 	if (sessions.empty ()) {
 		if (strSessionList.empty ()) {
-			pair<string, string> session ("", "");
+			std::pair<std::string, std::string> session ("", "");
 			sessions.push_back (session);
 		} else {
 			// iterate through the split of the session list
-			vector<string> sessit;
+			std::vector<std::string> sessit;
 			split (sessit, strSessionList, ',', false);
-			for (vector<string>::iterator it = sessit.begin ();
+			for (std::vector<std::string>::iterator it = sessit.begin ();
 				it != sessit.end (); ++it) {
-				pair<string, string> session (*it, *it);
+				std::pair<std::string, std::string> session (*it, *it);
 				sessions.push_back (session);
 			}
 		}
 	}
 }
 
-pair<string, string>
+std::pair<std::string, std::string>
 Cfg::nextSession ()
 {
 	currentSession = (currentSession + 1) % sessions.size ();

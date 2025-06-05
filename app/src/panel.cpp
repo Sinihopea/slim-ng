@@ -16,10 +16,8 @@
 #include <poll.h>
 #include <sstream>
 
-using namespace std;
-
 Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
-	const string & themedir, PanelType panel_mode)
+	const std::string & themedir, PanelType panel_mode)
 	: Dpy (dpy), Scr (scr), Root (root), cfg (config), mode (panel_mode),
 	  session_name (""), session_exec ("")
 {
@@ -103,7 +101,7 @@ Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
 	}
 
 	/* Load panel and background image */
-	string panelpng = "";
+	std::string panelpng = "";
 	panelpng = panelpng + themedir + "/panel.png";
 	image = new Image;
 	bool loaded = image->Read (panelpng.c_str ());
@@ -113,13 +111,13 @@ Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
 		loaded = image->Read (panelpng.c_str ());
 		if (!loaded) {
 			logStream << APPNAME << ": could not load panel image for theme '"
-					  << basename ((char *)themedir.c_str ()) << "'" << endl;
+					  << basename ((char *)themedir.c_str ()) << "'" << std::endl;
 			exit (ERR_EXIT);
 		}
 	}
 
 	Image * bg = new Image ();
-	string bgstyle = cfg.getOption ("background_style");
+	std::string bgstyle = cfg.getOption ("background_style");
 
 	if (bgstyle != "color") {
 		panelpng = themedir + "/background.png";
@@ -131,7 +129,7 @@ Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
 				logStream << APPNAME
 						  << ": could not load background image for theme '"
 						  << basename ((char *)themedir.c_str ()) << "'"
-						  << endl;
+						  << std::endl;
 				exit (ERR_EXIT);
 			}
 		}
@@ -145,11 +143,11 @@ Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
 		else if (bgstyle == "tile")
 			bg->Tile (viewport.width, viewport.height);
 		else if (bgstyle == "center") {
-			string hexvalue = cfg.getOption ("background_color");
+			std::string hexvalue = cfg.getOption ("background_color");
 			hexvalue = hexvalue.substr (1, 6);
 			bg->Center (viewport.width, viewport.height, hexvalue.c_str ());
 		} else { // plain color or error
-			string hexvalue = cfg.getOption ("background_color");
+			std::string hexvalue = cfg.getOption ("background_color");
 			hexvalue = hexvalue.substr (1, 6);
 			bg->Center (viewport.width, viewport.height, hexvalue.c_str ());
 		}
@@ -161,13 +159,13 @@ Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
 			bg->Tile (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
 		} else if (bgstyle == "center") {
-			string hexvalue = cfg.getOption ("background_color");
+			std::string hexvalue = cfg.getOption ("background_color");
 			hexvalue = hexvalue.substr (1, 6);
 			bg->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				hexvalue.c_str ());
 		} else { /* plain color or error */
-			string hexvalue = cfg.getOption ("background_color");
+			std::string hexvalue = cfg.getOption ("background_color");
 			hexvalue = hexvalue.substr (1, 6);
 			bg->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
@@ -175,8 +173,8 @@ Panel::Panel (Display * dpy, int scr, Window root, Cfg & config,
 		}
 	}
 
-	string cfgX = cfg.getOption ("input_panel_x");
-	string cfgY = cfg.getOption ("input_panel_y");
+	std::string cfgX = cfg.getOption ("input_panel_x");
+	std::string cfgY = cfg.getOption ("input_panel_y");
 
 	if (mode == Mode_Lock) {
 		X = Cfg::absolutepos (cfgX, viewport.width, image->Width ());
@@ -293,7 +291,7 @@ Panel::ClearPanel ()
 void
 Panel::WrongPassword (int timeout)
 {
-	string message;
+	std::string message;
 	XGlyphInfo extents;
 
 #if 0
@@ -309,8 +307,8 @@ Panel::WrongPassword (int timeout)
 		reinterpret_cast<const XftChar8 *> (message.c_str ()),
 		message.length (), &extents);
 
-	string cfgX = cfg.getOption ("passwd_feedback_x");
-	string cfgY = cfg.getOption ("passwd_feedback_y");
+	std::string cfgX = cfg.getOption ("passwd_feedback_x");
+	std::string cfgY = cfg.getOption ("passwd_feedback_y");
 	int shadowXOffset = cfg.getIntOption ("msg_shadow_xoffset");
 	int shadowYOffset = cfg.getIntOption ("msg_shadow_yoffset");
 	int msg_x = Cfg::absolutepos (
@@ -338,9 +336,9 @@ Panel::WrongPassword (int timeout)
 }
 
 void
-Panel::Message (const string & text)
+Panel::Message (const std::string & text)
 {
-	string cfgX, cfgY;
+	std::string cfgX, cfgY;
 	XGlyphInfo extents;
 	XftDraw * draw;
 
@@ -377,7 +375,7 @@ Panel::Message (const string & text)
 }
 
 void
-Panel::Error (const string & text)
+Panel::Error (const std::string & text)
 {
 	ClosePanel ();
 	Message (text);
@@ -400,9 +398,9 @@ Panel::GetColor (const char * colorname)
 	color.pixel = 0;
 
 	if (!XParseColor (Dpy, attributes.colormap, colorname, &color))
-		logStream << APPNAME << ": can't parse color " << colorname << endl;
+		logStream << APPNAME << ": can't parse color " << colorname << std::endl;
 	else if (!XAllocColor (Dpy, attributes.colormap, &color))
-		logStream << APPNAME << ": can't allocate color " << colorname << endl;
+		logStream << APPNAME << ": can't allocate color " << colorname << std::endl;
 
 	return color.pixel;
 }
@@ -534,7 +532,7 @@ Panel::OnExpose (void)
 }
 
 void
-Panel::EraseLastChar (string & formerString)
+Panel::EraseLastChar (std::string & formerString)
 {
 	switch (field) {
 	case GET_NAME:
@@ -562,8 +560,8 @@ Panel::OnKeyPress (XEvent & event)
 	XComposeStatus compstatus;
 	int xx = 0;
 	int yy = 0;
-	string text;
-	string formerString = "";
+	std::string text;
+	std::string formerString = "";
 
 	XLookupString (&event.xkey, &ascii, 1, &keysym, &compstatus);
 	switch (keysym) {
@@ -710,7 +708,7 @@ Panel::OnKeyPress (XEvent & event)
 void
 Panel::ShowText ()
 {
-	string cfgX, cfgY;
+	std::string cfgX, cfgY;
 	XGlyphInfo extents;
 
 	bool singleInputMode
@@ -735,7 +733,8 @@ Panel::ShowText ()
 	}
 
 	/* Enter username-password message */
-	string msg;
+	std::string msg;
+
 	if ((!singleInputMode || field == Get_Passwd) && mode == Mode_DM) {
 		msg = cfg.getOption ("password_msg");
 		XftTextExtentsUtf8 (Dpy, enterfont, (XftChar8 *)msg.c_str (),
@@ -774,7 +773,7 @@ Panel::ShowText ()
 	if (mode == Mode_Lock) {
 		// If only the password box is visible, draw the user name somewhere
 		// too
-		string user_msg = "User: " + GetName ();
+		std::string user_msg = "User: " + GetName ();
 		int show_username = cfg.getIntOption ("show_username");
 		if (singleInputMode && show_username) {
 			Message (user_msg);
@@ -782,7 +781,7 @@ Panel::ShowText ()
 	}
 }
 
-string
+std::string
 Panel::getSession ()
 {
 	return session_exec;
@@ -792,7 +791,7 @@ Panel::getSession ()
 void
 Panel::SwitchSession ()
 {
-	pair<string, string> ses = cfg.nextSession ();
+	std::pair<std::string, std::string> ses = cfg.nextSession ();
 	session_name = ses.first;
 	session_exec = ses.second;
 	if (session_name.size () > 0) {
@@ -804,9 +803,9 @@ Panel::SwitchSession ()
 void
 Panel::ShowSession ()
 {
-	string msg_x, msg_y;
+	std::string msg_x, msg_y;
 	XClearWindow (Dpy, Root);
-	string currsession = cfg.getOption ("session_msg") + " " + session_name;
+	std::string currsession = cfg.getOption ("session_msg") + " " + session_name;
 	XGlyphInfo extents;
 
 	sessionfont
@@ -834,7 +833,7 @@ Panel::ShowSession ()
 
 void
 Panel::SlimDrawString8 (XftDraw * d, XftColor * color, XftFont * font, int x,
-	int y, const string & str, XftColor * shadowColor, int xOffset,
+	int y, const std::string & str, XftColor * shadowColor, int xOffset,
 	int yOffset)
 {
 	int calc_x = 0;
@@ -881,7 +880,7 @@ Panel::ResetPasswd (void)
 }
 
 void
-Panel::SetName (const string & name)
+Panel::SetName (const std::string & name)
 {
 	NameBuffer = name;
 	if (mode == Mode_DM)
@@ -890,13 +889,13 @@ Panel::SetName (const string & name)
 		action = Lock;
 }
 
-const string &
+const std::string &
 Panel::GetName (void) const
 {
 	return NameBuffer;
 }
 
-const string &
+const std::string &
 Panel::GetPasswd (void) const
 {
 	return PasswdBuffer;
@@ -940,7 +939,7 @@ Panel::GetPrimaryViewport ()
 		if (primary_info->ncrtc > 0) {
 			crtc = primary_info->crtcs[0];
 		} else {
-			cerr << "Cannot get crtc from xrandr.\n";
+			std::cerr << "Cannot get crtc from xrandr.\n";
 			exit (EXIT_FAILURE);
 		}
 	} else {
@@ -983,5 +982,5 @@ Panel::ApplyBackground (Rectangle rect)
 		rect.height, viewport.x + rect.x, viewport.y + rect.y);
 
 	if (!ret)
-		cerr << APPNAME << ": failed to put pixmap on the screen\n.";
+		std::cerr << APPNAME << ": failed to put pixmap on the screen\n.";
 }

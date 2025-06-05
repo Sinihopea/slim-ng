@@ -11,15 +11,13 @@
 #include <fstream>
 #include <iostream>
 
-using namespace std;
-
 static class LogUnit
 {
-	ofstream logFile;
-	inline ostream &
+	std::ofstream logFile;
+	inline std::ostream &
 	getStream ()
 	{
-		return logFile.is_open () ? logFile : cerr;
+		return logFile.is_open () ? logFile : std::cerr;
 	}
 
 public:
@@ -38,7 +36,7 @@ public:
 	}
 
 	LogUnit &
-	operator<< (ostream & (*fp) (ostream &))
+	operator<< (std::ostream & (*fp) (std::ostream &))
 	{
 		getStream () << fp;
 		getStream ().flush ();
@@ -46,7 +44,7 @@ public:
 	}
 
 	LogUnit &
-	operator<< (ios_base & (*fp) (ios_base &))
+	operator<< (std::ios_base & (*fp) (std::ios_base &))
 	{
 		getStream () << fp;
 		getStream ().flush ();

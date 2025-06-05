@@ -6,9 +6,9 @@ bool
 LogUnit::openLog (const char * filename)
 {
 	if (logFile.is_open ()) {
-		cerr << APPNAME
+		std::cerr << APPNAME
 			 << ": opening a new Log file, while another is already open"
-			 << endl;
+			 << std::endl;
 		logFile.close ();
 	}
 
@@ -16,7 +16,7 @@ LogUnit::openLog (const char * filename)
 	if (strcmp (filename, "/dev/stderr") == 0)
 		return true;
 
-	logFile.open (filename, ios_base::app);
+	logFile.open (filename, std::ios_base::app);
 	return !(logFile.fail ());
 }
 

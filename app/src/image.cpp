@@ -20,8 +20,6 @@
 #include <cstring>
 #include <iostream>
 
-using namespace std;
-
 #include "image.hpp"
 
 extern "C" {
@@ -713,7 +711,7 @@ Image::createPixmap (Display * dpy, int scr, Window win)
 		}
 	} break;
 	default: {
-		logStream << "Login.app: could not load image" << endl;
+		logStream << "Login.app: could not load image" << std::endl;
 		return (tmp);
 	}
 	}
@@ -745,7 +743,7 @@ Image::readJpeg (
 
 	FILE * infile = fopen (filename, "rb");
 	if (infile == NULL) {
-		logStream << APPNAME << "Cannot fopen file: " << filename << endl;
+		logStream << APPNAME << "Cannot fopen file: " << filename << std::endl;
 		return ret;
 	}
 
@@ -760,7 +758,7 @@ Image::readJpeg (
 		|| cinfo.output_height >= MAX_DIMENSION) {
 		logStream << APPNAME
 				  << "Unreasonable dimension found in file: " << filename
-				  << endl;
+				  << std::endl;
 		goto close_file;
 	}
 
@@ -771,7 +769,7 @@ Image::readJpeg (
 		3 * cinfo.output_width * cinfo.output_height);
 	if (rgb[0] == NULL) {
 		logStream << APPNAME << ": Can't allocate memory for JPEG file."
-				  << endl;
+				  << std::endl;
 		goto close_file;
 	}
 
@@ -785,7 +783,7 @@ Image::readJpeg (
 		ptr = (unsigned char *)malloc (cinfo.output_width);
 		if (ptr == NULL) {
 			logStream << APPNAME << ": Can't allocate memory for JPEG file."
-					  << endl;
+					  << std::endl;
 			goto rgb_free;
 		}
 
@@ -834,7 +832,7 @@ Image::readPng (const char * filename, int * width, int * height,
 
 	FILE * infile = fopen (filename, "rb");
 	if (infile == NULL) {
-		logStream << APPNAME << "Can not fopen file: " << filename << endl;
+		logStream << APPNAME << "Can not fopen file: " << filename << std::endl;
 		return ret;
 	}
 
@@ -867,7 +865,7 @@ Image::readPng (const char * filename, int * width, int * height,
 	if (w >= MAX_DIMENSION || h >= MAX_DIMENSION) {
 		logStream << APPNAME
 				  << "Unreasonable dimension found in file: " << filename
-				  << endl;
+				  << std::endl;
 		goto png_destroy;
 	}
 
@@ -881,7 +879,7 @@ Image::readPng (const char * filename, int * width, int * height,
 			logStream
 				<< APPNAME
 				<< ": Can't allocate memory for alpha channel in PNG file."
-				<< endl;
+				<< std::endl;
 			goto png_destroy;
 		}
 	}
@@ -908,7 +906,7 @@ Image::readPng (const char * filename, int * width, int * height,
 	row_pointers = (png_byte **)malloc (*height * sizeof (png_bytep));
 	if (row_pointers == NULL) {
 		logStream << APPNAME << ": Can't allocate memory for PNG file."
-				  << endl;
+				  << std::endl;
 		goto png_destroy;
 	}
 
@@ -916,7 +914,7 @@ Image::readPng (const char * filename, int * width, int * height,
 		row_pointers[i] = (png_byte *)malloc (4 * *width);
 		if (row_pointers == NULL) {
 			logStream << APPNAME << ": Can't allocate memory for PNG file."
-					  << endl;
+					  << std::endl;
 			goto rows_free;
 		}
 	}
@@ -926,7 +924,7 @@ Image::readPng (const char * filename, int * width, int * height,
 	rgb[0] = (unsigned char *)malloc (3 * (*width) * (*height));
 	if (rgb[0] == NULL) {
 		logStream << APPNAME << ": Can't allocate memory for PNG file."
-				  << endl;
+				  << std::endl;
 		goto rows_free;
 	}
 
