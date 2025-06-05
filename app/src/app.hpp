@@ -79,7 +79,7 @@ class App
 	int WaitForServer ();
 
 	/* Private data */
-	Window Root;
+	Window m_window_root;
 	Display *Dpy;
 	int Scr;
 	Panel *LoginPanel;
@@ -90,6 +90,7 @@ class App
 #ifdef USE_PAM
 	PAM::Authenticator pam;
 #endif
+
 #ifdef USE_CONSOLEKIT
 	Ck::Session ck;
 	bool consolekit_support_enabled;
@@ -110,6 +111,7 @@ class App
 	bool firstlogin;
 	bool daemonmode;
 	bool force_nodaemon;
+
 	/* For testing themes */
 	char *testtheme;
 	bool testing;

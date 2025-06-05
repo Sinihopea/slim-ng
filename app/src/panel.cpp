@@ -18,7 +18,7 @@
 
 Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 			  const std::string &themedir, PanelType panel_mode)
-	: Dpy (dpy), Scr (scr), Root (root), cfg (config), mode (panel_mode),
+	: Dpy (dpy), Scr (scr), m_window_root (root), cfg (config), mode (panel_mode),
 	  session_name (""), session_exec ("")
 {
 	if (mode == Mode_Lock)
@@ -38,7 +38,7 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 	if (mode == Mode_Lock)
 		TextGC = XCreateGC (Dpy, Win, gcm, &gcv);
 	else
-		TextGC = XCreateGC (Dpy, Root, gcm, &gcv);
+		TextGC = XCreateGC (Dpy, m_window_root, gcm, &gcv);
 
 	if (mode == Mode_Lock)
 		{
@@ -239,7 +239,7 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			/* Merge image into background */
 			image->Merge (bg, X, Y);
-			PanelPixmap = image->createPixmap (Dpy, Scr, Root);
+			PanelPixmap = image->createPixmap (Dpy, Scr, m_window_root);
 		}
 	delete bg;
 
@@ -289,7 +289,7 @@ void
 Panel::OpenPanel ()
 {
 	/* Create window */
-	Win = XCreateSimpleWindow (Dpy, Root, X, Y, image->Width (),
+	Win = XCreateSimpleWindow (Dpy, m_window_root, X, Y, image->Width (),
 							   image->Height (), 0, GetColor ("white"),
 							   GetColor ("white"));
 
@@ -324,7 +324,7 @@ Panel::ClearPanel ()
 	session_name = "";
 	session_exec = "";
 	Reset ();
-	XClearWindow (Dpy, Root);
+	XClearWindow (Dpy, m_window_root);
 	XClearWindow (Dpy, Win);
 	Cursor (SHOW);
 	ShowText ();
@@ -389,7 +389,7 @@ Panel::Message (const std::string &text)
 		draw = XftDrawCreate (Dpy, Win, DefaultVisual (Dpy, Scr),
 							  DefaultColormap (Dpy, Scr));
 	else
-		draw = XftDrawCreate (Dpy, Root, DefaultVisual (Dpy, Scr),
+		draw = XftDrawCreate (Dpy, m_window_root, DefaultVisual (Dpy, Scr),
 							  DefaultColormap (Dpy, Scr));
 
 	XftTextExtentsUtf8 (Dpy, msgfont,
@@ -441,7 +441,7 @@ Panel::GetColor (const char *colorname)
 	if (mode == Mode_Lock)
 		XGetWindowAttributes (Dpy, Win, &attributes);
 	else
-		XGetWindowAttributes (Dpy, Root, &attributes);
+		XGetWindowAttributes (Dpy, m_window_root, &attributes);
 
 	color.pixel = 0;
 
@@ -920,7 +920,7 @@ void
 Panel::ShowSession ()
 {
 	std::string msg_x, msg_y;
-	XClearWindow (Dpy, Root);
+	XClearWindow (Dpy, m_window_root);
 	std::string currsession
 		= cfg.getOption ("session_msg") + " " + session_name;
 	XGlyphInfo extents;
@@ -928,7 +928,7 @@ Panel::ShowSession ()
 	sessionfont
 		= XftFontOpenName (Dpy, Scr, cfg.getOption ("session_font").c_str ());
 
-	XftDraw *draw = XftDrawCreate (Dpy, Root, DefaultVisual (Dpy, Scr),
+	XftDraw *draw = XftDrawCreate (Dpy, m_window_root, DefaultVisual (Dpy, Scr),
 								   DefaultColormap (Dpy, Scr));
 	XftTextExtentsUtf8 (
 		Dpy, sessionfont,

@@ -117,7 +117,7 @@ class Panel
 	PanelType mode; /* work mode */
 	Cfg &cfg;
 	Window Win;
-	Window Root;
+	Window m_window_root;
 	Display *Dpy;
 	int Scr;
 	int X, Y;

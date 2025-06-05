@@ -400,7 +400,7 @@ App::Run ()
 
 	/* Get screen and root window */
 	Scr = DefaultScreen (Dpy);
-	Root = RootWindow (Dpy, Scr);
+	m_window_root = RootWindow (Dpy, Scr);
 
 	// Intern _XROOTPMAP_ID property
 	BackgroundPixmapId = XInternAtom (Dpy, "_XROOTPMAP_ID", False);
@@ -409,9 +409,9 @@ App::Run ()
 	if (testing)
 		{
 			Window RealRoot = RootWindow (Dpy, Scr);
-			Root = XCreateSimpleWindow (Dpy, RealRoot, 0, 0, 1280, 1024, 0, 0,
+			m_window_root = XCreateSimpleWindow (Dpy, RealRoot, 0, 0, 1280, 1024, 0, 0,
 										0);
-			XMapWindow (Dpy, Root);
+			XMapWindow (Dpy, m_window_root);
 			XFlush (Dpy);
 		}
 	else
@@ -422,7 +422,7 @@ App::Run ()
 	HideCursor ();
 
 	/* Create panel */
-	LoginPanel = new Panel (Dpy, Scr, Root, cfg, themedir, Panel::Mode_DM);
+	LoginPanel = new Panel (Dpy, Scr, m_window_root, cfg, themedir, Panel::Mode_DM);
 	bool firstloop
 		= true; /* 1st time panel is shown (for automatic username) */
 	bool focuspass = cfg.getOption ("focus_password") == "yes";
@@ -643,13 +643,13 @@ App::HideCursor ()
 			Pixmap cursorpixmap;
 			Cursor cursor;
 			cursordata[0] = 0;
-			cursorpixmap = XCreateBitmapFromData (Dpy, Root, cursordata, 1, 1);
+			cursorpixmap = XCreateBitmapFromData (Dpy, m_window_root, cursordata, 1, 1);
 			black.red = 0;
 			black.green = 0;
 			black.blue = 0;
 			cursor = XCreatePixmapCursor (Dpy, cursorpixmap, cursorpixmap,
 										  &black, &black, 0, 0);
-			XDefineCursor (Dpy, Root, cursor);
+			XDefineCursor (Dpy, m_window_root, cursor);
 		}
 }
 
@@ -1056,7 +1056,7 @@ App::KillAllClients (Bool top)
 	XSetErrorHandler (CatchErrors);
 
 	nchildren = 0;
-	XQueryTree (Dpy, Root, &dummywindow, &dummywindow, &children, &nchildren);
+	XQueryTree (Dpy, m_window_root, &dummywindow, &dummywindow, &children, &nchildren);
 	if (!top)
 		{
 			for (i = 0; i < nchildren; i++)
@@ -1324,9 +1324,9 @@ App::StopServer ()
 void
 App::blankScreen ()
 {
-	GC gc = XCreateGC (Dpy, Root, 0, 0);
+	GC gc = XCreateGC (Dpy, m_window_root, 0, 0);
 	XSetForeground (Dpy, gc, BlackPixel (Dpy, Scr));
-	XFillRectangle (Dpy, Root, gc, 0, 0,
+	XFillRectangle (Dpy, m_window_root, gc, 0, 0,
 					XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
 					XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
 	XFlush (Dpy);
@@ -1380,12 +1380,12 @@ App::setBackground (const std::string &themedir)
 						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
 						hexvalue.c_str ());
 				}
-			Pixmap p = image->createPixmap (Dpy, Scr, Root);
-			XSetWindowBackgroundPixmap (Dpy, Root, p);
-			XChangeProperty (Dpy, Root, BackgroundPixmapId, XA_PIXMAP, 32,
+			Pixmap p = image->createPixmap (Dpy, Scr, m_window_root);
+			XSetWindowBackgroundPixmap (Dpy, m_window_root, p);
+			XChangeProperty (Dpy, m_window_root, BackgroundPixmapId, XA_PIXMAP, 32,
 							 PropModeReplace, (unsigned char *)&p, 1);
 		}
-	XClearWindow (Dpy, Root);
+	XClearWindow (Dpy, m_window_root);
 
 	XFlush (Dpy);
 	delete image;
@@ -1504,10 +1504,10 @@ App::findValidRandomTheme (const std::string &set)
 		}
 
 	Util::srandom (Util::makeseed ());
-
 	std::vector<std::string> themes;
 	std::string themefile;
 	Cfg::split (themes, name, ',');
+
 	do
 		{
 			int sel = Util::random () % themes.size ();
@@ -1533,6 +1533,7 @@ App::replaceVariables (std::string &input, const std::string &var,
 {
 	std::string::size_type pos = 0;
 	int len = var.size ();
+
 	while ((pos = input.find (var, pos)) != std::string::npos)
 		{
 			input = input.substr (0, pos) + value + input.substr (pos + len);
@@ -1553,6 +1554,7 @@ App::CreateServerAuth ()
 	std::string authfile;
 	const char *digits = "0123456789abcdef";
 	Util::srandom (Util::makeseed ());
+
 	for (i = 0; i < MCOOKIESIZE; i += 4)
 		{
 			word = Util::random () & 0xffff;
@@ -1563,6 +1565,7 @@ App::CreateServerAuth ()
 			mcookie[i + 2] = digits[hi & 0x0f];
 			mcookie[i + 3] = digits[hi >> 4];
 		}
+
 	/* reinitialize auth file */
 	authfile = cfg.getOption ("authfile");
 	remove (authfile.c_str ());
@@ -1576,6 +1579,7 @@ App::StrConcat (const char *str1, const char *str2)
 	char *tmp = new char[strlen (str1) + strlen (str2) + 1];
 	strcpy (tmp, str1);
 	strcat (tmp, str2);
+
 	return tmp;
 }
 
