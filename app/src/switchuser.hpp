@@ -15,12 +15,12 @@
 #include "cfg.hpp"
 #include "log.hpp"
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <grp.h>
 #include <iostream>
 #include <paths.h>
 #include <pwd.h>
-#include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 class SwitchUser
@@ -38,7 +38,6 @@ class SwitchUser
 	void SetClientAuth (const char *mcookie);
 	Cfg &m_config_switchuser;
 	struct passwd *Pw;
-
 	std::string displayName;
 	char **env;
 };

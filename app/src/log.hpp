@@ -4,9 +4,11 @@
 #ifdef USE_CONSOLEKIT
 #include "ck.hpp"
 #endif
+
 #ifdef USE_PAM
 #include "pam.hpp"
 #endif
+
 #include "const.hpp"
 #include <fstream>
 #include <iostream>
@@ -14,6 +16,7 @@
 static class LogUnit
 {
 	std::ofstream logFile;
+
 	inline std::ostream &
 	getStream ()
 	{
@@ -32,6 +35,7 @@ static class LogUnit
 	{
 		getStream () << text;
 		getStream ().flush ();
+
 		return *this;
 	}
 
@@ -40,6 +44,7 @@ static class LogUnit
 	{
 		getStream () << fp;
 		getStream ().flush ();
+
 		return *this;
 	}
 
@@ -48,6 +53,7 @@ static class LogUnit
 	{
 		getStream () << fp;
 		getStream ().flush ();
+
 		return *this;
 	}
 } logStream;

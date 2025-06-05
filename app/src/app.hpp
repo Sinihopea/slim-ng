@@ -14,14 +14,14 @@
 #define _APP_H_
 
 #include <X11/Xatom.h>
-#include <X11/Xlib.h>
-#include <errno.h>
-#include <iostream>
-#include <setjmp.h>
-#include <signal.h>
-#include <stdlib.h>
-#include <sys/wait.h>
-#include <unistd.h>
+// #include <X11/Xlib.h>
+// #include <errno.h>
+// #include <iostream>
+// #include <setjmp.h>
+// #include <signal.h>
+// #include <stdlib.h>
+// #include <sys/wait.h>
+// #include <unistd.h>
 
 #include "cfg.hpp"
 #include "image.hpp"

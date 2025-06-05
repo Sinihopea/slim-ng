@@ -10,10 +10,9 @@
 #ifndef _CK_H_
 #define _CK_H_
 
-#include <string>
-
 #include <ck-connector.h>
 #include <dbus/dbus.h>
+#include <string>
 
 namespace Ck
 {

@@ -13,9 +13,12 @@ LogUnit::openLog (const char *filename)
 
 	// cerr is the default
 	if (strcmp (filename, "/dev/stderr") == 0)
+	{
 		return true;
+	}
 
 	logFile.open (filename, std::ios_base::app);
+
 	return !(logFile.fail ());
 }
 
@@ -23,5 +26,7 @@ void
 LogUnit::closeLog ()
 {
 	if (logFile.is_open ())
+	{
 		logFile.close ();
+	}
 }

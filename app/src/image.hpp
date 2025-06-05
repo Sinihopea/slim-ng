@@ -24,7 +24,6 @@ class Image
   public:
 	Image ();
 	Image (const int w, const int h, const unsigned char *rgb, const unsigned char *alpha);
-
 	~Image ();
 
 	const unsigned char *
@@ -32,6 +31,7 @@ class Image
 	{
 		return (png_alpha);
 	};
+
 	const unsigned char *
 	getRGBData () const
 	{
@@ -51,6 +51,7 @@ class Image
 	{
 		return (height);
 	};
+
 	void
 	Quality (const int q)
 	{
@@ -58,7 +59,6 @@ class Image
 	};
 
 	bool Read (const char *filename);
-
 	void Reduce (const int factor);
 	void Resize (const int w, const int h);
 	void Merge (Image *background, const int x, const int y);
@@ -67,16 +67,15 @@ class Image
 	void Tile (const int w, const int h);
 	void Center (const int w, const int h, const char *hex);
 	void Plain (const int w, const int h, const char *hex);
-
 	void computeShift (unsigned long mask, unsigned char &left_shift, unsigned char &right_shift);
-
 	Pixmap createPixmap (Display *dpy, int scr, Window win);
 
   private:
-	int width, height, area;
+	int width;
+	int height;
+	int area;
 	unsigned char *rgb_data;
 	unsigned char *png_alpha;
-
 	int quality_;
 
 	int readJpeg (const char *filename, int *width, int *height, unsigned char **rgb);

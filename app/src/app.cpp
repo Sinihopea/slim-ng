@@ -11,17 +11,18 @@
  */
 
 #include <algorithm>
-#include <cstdio>
-#include <cstring>
-#include <fcntl.h>
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <stdint.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <unistd.h>
-#include <vector>
+#include <cstdint>
+// #include <cstdio>
+// #include <cstring>
+// #include <fcntl.h>
+// #include <fstream>
+// #include <iostream>
+// #include <sstream>
+// #include <string>
+// #include <sys/stat.h>
+// #include <sys/types.h>
+// #include <unistd.h>
+// #include <vector>
 
 #include "app.hpp"
 #include "numlock.hpp"
@@ -32,7 +33,6 @@
 #endif
 
 #ifdef USE_PAM
-#include <string>
 
 int
 conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
@@ -40,9 +40,8 @@ conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, v
 	*resp = (struct pam_response *)calloc (num_msg, sizeof (struct pam_response));
 	Panel *panel = *static_cast<Panel **> (appdata_ptr);
 	int result = PAM_SUCCESS;
-	int i;
 
-	for (i = 0; i < num_msg; i++)
+	for (int i = 0; i < num_msg; i++)
 	{
 		(*resp)[i].resp = 0;
 		(*resp)[i].resp_retcode = 0;
@@ -103,7 +102,7 @@ conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, v
 
 	if (result != PAM_SUCCESS)
 	{
-		for (i = 0; i < num_msg; i++)
+		for (int i = 0; i < num_msg; i++)
 		{
 			if ((*resp)[i].resp == 0)
 				continue;
@@ -421,7 +420,9 @@ App::Run ()
 
 	/* Create panel */
 	LoginPanel = new Panel (m_display, m_screen, m_window_root, m_config_app, themedir, Panel::Mode_DM);
-	bool firstloop = true; /* 1st time panel is shown (for automatic username) */
+
+	/* 1st time panel is shown (for automatic username) */
+	bool firstloop = true;
 	bool focuspass = m_config_app.getOption ("focus_password") == "yes";
 	bool autologin = m_config_app.getOption ("auto_login") == "yes";
 
@@ -432,6 +433,7 @@ App::Run ()
 		pam.set_item (PAM::Authenticator::User, m_config_app.getOption ("default_user").c_str ());
 #endif
 		m_first_login = false;
+
 		if (autologin)
 		{
 			Login ();
@@ -499,11 +501,13 @@ App::Run ()
 		}
 
 		firstloop = false;
-
 		Action = LoginPanel->getAction ();
+
 		/* for themes test we just quit */
 		if (m_testing)
+		{
 			Action = Panel::Exit;
+		}
 
 		panelclosed = 1;
 		LoginPanel->ClosePanel ();
@@ -663,6 +667,7 @@ App::Login ()
 	{
 		/* Credentials couldn't be established */
 		logStream << APPNAME << ": " << e << std::endl;
+
 		return;
 	}
 	catch (PAM::Exception &e)
@@ -674,8 +679,12 @@ App::Login ()
 	pw = getpwnam (LoginPanel->GetName ().c_str ());
 #endif
 	endpwent ();
+
 	if (pw == 0)
+	{
 		return;
+	}
+
 	if (pw->pw_shell[0] == '\0')
 	{
 		setusershell ();
@@ -732,6 +741,7 @@ App::Login ()
 
 	/* Create new process */
 	pid = fork ();
+
 	if (pid == 0)
 	{
 #ifdef USE_PAM
@@ -963,7 +973,10 @@ void
 App::Exit ()
 {
 	if (m_config_app.getOption ("allow_exit") == "false")
+	{
 		return;
+	}
+
 #ifdef USE_PAM
 	try
 	{
@@ -1035,17 +1048,16 @@ App::KillAllClients (Bool top)
 	Window dummywindow;
 	Window *children;
 	unsigned int nchildren;
-	unsigned int i;
+	// unsigned int i;
 	XWindowAttributes attr;
-
 	XSync (m_display, 0);
 	XSetErrorHandler (CatchErrors);
-
 	nchildren = 0;
 	XQueryTree (m_display, m_window_root, &dummywindow, &dummywindow, &children, &nchildren);
+
 	if (!top)
 	{
-		for (i = 0; i < nchildren; i++)
+		for (unsigned int i = 0; i < nchildren; i++)
 		{
 			if (XGetWindowAttributes (m_display, children[i], &attr) && (attr.map_state == IsViewable))
 				children[i] = XmuClientWindow (m_display, children[i]);
@@ -1054,13 +1066,15 @@ App::KillAllClients (Bool top)
 		}
 	}
 
-	for (i = 0; i < nchildren; i++)
+	for (unsigned int i = 0; i < nchildren; i++)
 	{
 		if (children[i])
+		{
 			XKillClient (m_display, children[i]);
+		}
 	}
-	XFree ((char *)children);
 
+	XFree ((char *)children);
 	XSync (m_display, 0);
 	XSetErrorHandler (nullptr);
 }
@@ -1075,23 +1089,40 @@ App::ServerTimeout (int timeout, char *text)
 	while (1)
 	{
 		pidfound = waitpid (m_server_pid, nullptr, WNOHANG);
+
 		if (pidfound == m_server_pid)
+		{
 			break;
+		}
+
 		if (timeout)
 		{
 			if (i == 0 && text != lasttext)
+			{
 				logStream << std::endl << APPNAME << ": waiting for " << text;
+			}
 			else
+			{
 				logStream << ".";
+			}
 		}
+
 		if (timeout)
+		{
 			sleep (1);
+		}
+
 		if (++i > timeout)
+		{
 			break;
+		}
 	}
 
 	if (i > 0)
+	{
 		logStream << std::endl;
+	}
+
 	lasttext = text;
 
 	return (m_server_pid != pidfound);
@@ -1108,12 +1139,15 @@ App::WaitForServer ()
 		if ((m_display = XOpenDisplay (m_display_name)))
 		{
 			XSetIOErrorHandler (xioerror);
+
 			return 1;
 		}
 		else
 		{
 			if (!ServerTimeout (1, (char *)"X server to begin accepting connections"))
+			{
 				break;
+			}
 		}
 	}
 
@@ -1126,7 +1160,6 @@ int
 App::StartServer ()
 {
 	m_server_pid = fork ();
-
 	int argc = 1, pos = 0, i;
 	static const int MAX_XSERVER_ARGS = 256;
 	static char *server[MAX_XSERVER_ARGS + 2] = { nullptr };
@@ -1135,7 +1168,9 @@ App::StartServer ()
 
 	/* Add mandatory -xauth option */
 	argOption = argOption + " -auth " + m_config_app.getOption ("authfile");
-	char *args = new char[argOption.length () + 2]; /* nullptr plus vt */
+
+	/* nullptr plus vt */
+	char *args = new char[argOption.length () + 2];
 	strcpy (args, argOption.c_str ());
 	m_server_started = false;
 	bool hasVtSet = false;
@@ -1151,13 +1186,12 @@ App::StartServer ()
 		{
 			server[argc++] = args + pos;
 		}
+
 		++pos;
 
+		/* ignore _all_ arguments to make sure the server starts at all */
 		if (argc + 1 >= MAX_XSERVER_ARGS)
 		{
-			/* ignore _all_ arguments to make sure the server starts at
-			 */
-			/* all */
 			argc = 1;
 			break;
 		}
@@ -1169,6 +1203,7 @@ App::StartServer ()
 		{
 			bool ok = false;
 			Cfg::string2int (server[i] + 2, &ok);
+
 			if (ok)
 			{
 				hasVtSet = true;
@@ -1180,6 +1215,7 @@ App::StartServer ()
 	{
 		server[argc++] = (char *)"vt07";
 	}
+
 	server[argc] = nullptr;
 
 	switch (m_server_pid)
@@ -1200,6 +1236,7 @@ App::StartServer ()
 
 	default:
 		errno = 0;
+
 		if (!ServerTimeout (0, (char *)""))
 		{
 			m_server_pid = -1;
@@ -1218,7 +1255,6 @@ App::StartServer ()
 	}
 
 	delete[] args;
-
 	m_server_started = true;
 
 	return m_server_pid;
@@ -1245,17 +1281,25 @@ App::StopServer ()
 
 	/* Catch X error */
 	XSetIOErrorHandler (IgnoreXIO);
+
 	if (!setjmp (CloseEnv) && m_display)
+	{
 		XCloseDisplay (m_display);
+	}
 
 	/* Send HUP to process group */
 	errno = 0;
+
 	if ((killpg (getpid (), SIGHUP) != 0) && (errno != ESRCH))
+	{
 		logStream << APPNAME << ": can't send HUP to process group " << getpid () << std::endl;
+	}
 
 	/* Send TERM to server */
 	if (m_server_pid < 0)
+	{
 		return;
+	}
 
 	errno = 0;
 
@@ -1266,14 +1310,18 @@ App::StopServer ()
 			logStream << APPNAME << ": can't kill X server" << std::endl;
 			exit (ERR_EXIT);
 		}
+
 		if (errno == ESRCH)
+		{
 			return;
+		}
 	}
 
 	/* Wait for server to shut down */
 	if (!ServerTimeout (10, (char *)"X server to shut down"))
 	{
 		logStream << std::endl;
+
 		return;
 	}
 
@@ -1281,10 +1329,13 @@ App::StopServer ()
 
 	/* Send KILL to server */
 	errno = 0;
+
 	if (killpg (m_server_pid, SIGKILL) < 0)
 	{
 		if (errno == ESRCH)
+		{
 			return;
+		}
 	}
 
 	/* Wait for server to die */
@@ -1315,8 +1366,9 @@ App::setBackground (const std::string &themedir)
 	image = new Image;
 	bool loaded = image->Read (filename.c_str ());
 
+	/* try jpeg if png failed */
 	if (!loaded)
-	{ /* try jpeg if png failed */
+	{
 		filename = themedir + "/background.jpg";
 		loaded = image->Read (filename.c_str ());
 	}
@@ -1354,9 +1406,10 @@ App::setBackground (const std::string &themedir)
 		XChangeProperty (m_display, m_window_root, BackgroundPixmapId, XA_PIXMAP, 32, PropModeReplace,
 						 (unsigned char *)&p, 1);
 	}
-	XClearWindow (m_display, m_window_root);
 
+	XClearWindow (m_display, m_window_root);
 	XFlush (m_display);
+
 	delete image;
 }
 
@@ -1365,10 +1418,12 @@ void
 App::GetLock ()
 {
 	std::ifstream lockfile (m_config_app.getOption ("lockfile").c_str ());
+
 	if (!lockfile)
 	{
 		/* no lockfile present, create one */
 		std::ofstream lockfile (m_config_app.getOption ("lockfile").c_str (), std::ios_base::out);
+
 		if (!lockfile)
 		{
 			logStream << APPNAME << ": Could not create lock file: " << m_config_app.getOption ("lockfile").c_str ()
@@ -1384,23 +1439,23 @@ App::GetLock ()
 		int pid = 0;
 		lockfile >> pid;
 		lockfile.close ();
+
 		if (pid > 0)
 		{
 			/* see if process with this pid exists */
 			int ret = kill (pid, 0);
+
 			if (ret == 0 || (ret == -1 && errno == EPERM))
 			{
-				logStream << APPNAME
-						  << ": Another instance of the program "
-							 "is already "
-							 "running with PID "
-						  << pid << std::endl;
+				logStream << APPNAME << ": Another instance of the program is already running with PID " << pid
+						  << std::endl;
 				exit (0);
 			}
 			else
 			{
 				logStream << APPNAME << ": Stale lockfile found, removing it" << std::endl;
 				std::ofstream lockfile (m_config_app.getOption ("lockfile").c_str (), std::ios_base::out);
+
 				if (!lockfile)
 				{
 					logStream << APPNAME << ": Could not create new lock file: " << m_config_app.getOption ("lockfile")
@@ -1438,8 +1493,7 @@ App::OpenLog ()
 		RemoveLock ();
 		exit (ERR_EXIT);
 	}
-	/* I should set the buffers to imediate write, but I just flush on every <<
-	 * operation. */
+	/* I should set the buffers to imediate write, but I just flush on every << operation. */
 }
 
 /* Relases stdout/err */
@@ -1480,6 +1534,7 @@ App::findValidRandomTheme (const std::string &set)
 			name = "";
 		}
 	} while (name == "" && themes.size ());
+
 	return name;
 }
 
@@ -1504,13 +1559,14 @@ App::CreateServerAuth ()
 {
 	/* create mit cookie */
 	uint16_t word;
-	uint8_t hi, lo;
-	int i;
+	uint8_t hi;
+	uint8_t lo;
+	// int i;
 	std::string authfile;
 	const char *digits = "0123456789abcdef";
 	Util::srandom (Util::makeseed ());
 
-	for (i = 0; i < MCOOKIESIZE; i += 4)
+	for (int i = 0; i < MCOOKIESIZE; i += 4)
 	{
 		word = Util::random () & 0xffff;
 		lo = word & 0xff;

@@ -64,7 +64,7 @@ Image::Read (const char *filename)
 	unsigned char *ubuf = (unsigned char *)buf;
 	int success = 0;
 	FILE *file;
-	file = fopen (filename, "rb");
+	file = std::fopen (filename, "rb");
 
 	if (file == nullptr)
 	{
@@ -73,8 +73,8 @@ Image::Read (const char *filename)
 
 	/* see what kind of file we have */
 
-	fread (buf, 1, 4, file);
-	fclose (file);
+	std::fread (buf, 1, 4, file);
+	std::fclose (file);
 
 	if ((ubuf[0] == 0x89) && !strncmp ("PNG", buf + 1, 3))
 	{
@@ -345,6 +345,7 @@ Image::Merge (Image *background, const int x, const int y)
  * background, the background must contain the image.
  */
 #define IMG_POS_RGB(p, x) (3 * p + x)
+
 void
 Image::Merge_non_crop (Image *background, const int x, const int y)
 {
@@ -352,7 +353,9 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 	int bg_h = background->Height ();
 
 	if (x + width > bg_w || y + height > bg_h)
+	{
 		return;
+	}
 
 	double tmp;
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * bg_w * bg_h);
@@ -373,10 +376,14 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 				for (int k = 0; k < 3; k++)
 				{
 					if (png_alpha != nullptr)
+					{
 						tmp = rgb_data[IMG_POS_RGB (pnl_pos, k)] * png_alpha[pnl_pos] / 255.0
 							  + bg_rgb[IMG_POS_RGB (bg_pos, k)] * (1 - png_alpha[pnl_pos] / 255.0);
+					}
 					else
+					{
 						tmp = rgb_data[IMG_POS_RGB (pnl_pos, k)];
+					}
 
 					new_rgb[IMG_POS_RGB (bg_pos, k)] = static_cast<unsigned char> (tmp);
 				}
@@ -388,7 +395,6 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 
 	width = bg_w;
 	height = bg_h;
-
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
@@ -403,23 +409,29 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 void
 Image::Tile (const int w, const int h)
 {
-
 	if (w < width || h < height)
+	{
 		return;
+	}
 
 	int nx = w / width;
+
 	if (w % width > 0)
+	{
 		nx++;
+	}
+
 	int ny = h / height;
+
 	if (h % height > 0)
+	{
 		ny++;
+	}
 
 	int newwidth = nx * width;
 	int newheight = ny * height;
-
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * newwidth * newheight);
 	memset (new_rgb, 0, 3 * width * height * nx * ny);
-
 	int ipos = 0;
 	int opos = 0;
 
@@ -433,6 +445,7 @@ Image::Tile (const int w, const int h)
 				{
 					opos = j * width + i;
 					ipos = r * width * height * nx + j * newwidth + c * width + i;
+
 					for (int k = 0; k < 3; k++)
 					{
 						new_rgb[3 * ipos + k] = static_cast<unsigned char> (rgb_data[3 * opos + k]);
@@ -468,6 +481,7 @@ Image::Crop (const int x, const int y, const int w, const int h)
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
 	memset (new_rgb, 0, 3 * w * h);
 	unsigned char *new_alpha = nullptr;
+
 	if (png_alpha != nullptr)
 	{
 		new_alpha = (unsigned char *)malloc (w * h);
@@ -487,10 +501,15 @@ Image::Crop (const int x, const int y, const int w, const int h)
 				{
 					new_rgb[3 * ipos + k] = static_cast<unsigned char> (rgb_data[3 * opos + k]);
 				}
+
 				if (png_alpha != nullptr)
+				{
 					new_alpha[ipos] = static_cast<unsigned char> (png_alpha[opos]);
+				}
+
 				ipos++;
 			}
+
 			opos++;
 		}
 	}
@@ -498,8 +517,12 @@ Image::Crop (const int x, const int y, const int w, const int h)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
+
 	if (png_alpha != nullptr)
+	{
 		png_alpha = new_alpha;
+	}
+
 	width = w;
 	height = h;
 	area = w * h;
@@ -511,17 +534,13 @@ Image::Crop (const int x, const int y, const int w, const int h)
 void
 Image::Center (const int w, const int h, const char *hex)
 {
-
 	unsigned long packed_rgb;
 	sscanf (hex, "%lx", &packed_rgb);
-
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
 	memset (new_rgb, 0, 3 * w * h);
-
 	int x = (w - width) / 2;
 	int y = (h - height) / 2;
 
@@ -530,19 +549,20 @@ Image::Center (const int w, const int h, const char *hex)
 		Crop ((width - w) / 2, 0, w, height);
 		x = 0;
 	}
+
 	if (y < 0)
 	{
 		Crop (0, (height - h) / 2, width, h);
 		y = 0;
 	}
+
 	int x2 = x + width;
 	int y2 = y + height;
-
 	int ipos = 0;
 	int opos = 0;
 	double tmp;
-
 	area = w * h;
+
 	for (int i = 0; i < area; i++)
 	{
 		new_rgb[3 * i] = r;
@@ -559,12 +579,14 @@ Image::Center (const int w, const int h, const char *hex)
 				if (j >= y && i >= x && j < y2 && i < x2)
 				{
 					ipos = j * w + i;
+
 					for (int k = 0; k < 3; k++)
 					{
 						tmp = rgb_data[3 * opos + k] * png_alpha[opos] / 255.0
 							  + new_rgb[k] * (1 - png_alpha[opos] / 255.0);
 						new_rgb[3 * ipos + k] = static_cast<unsigned char> (tmp);
 					}
+
 					opos++;
 				}
 			}
@@ -579,11 +601,13 @@ Image::Center (const int w, const int h, const char *hex)
 				if (j >= y && i >= x && j < y2 && i < x2)
 				{
 					ipos = j * w + i;
+
 					for (int k = 0; k < 3; k++)
 					{
 						tmp = rgb_data[3 * opos + k];
 						new_rgb[3 * ipos + k] = static_cast<unsigned char> (tmp);
 					}
+
 					opos++;
 				}
 			}
@@ -607,15 +631,13 @@ Image::Plain (const int w, const int h, const char *hex)
 
 	unsigned long packed_rgb;
 	sscanf (hex, "%lx", &packed_rgb);
-
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
 	memset (new_rgb, 0, 3 * w * h);
-
 	area = w * h;
+
 	for (int i = 0; i < area; i++)
 	{
 		new_rgb[3 * i] = r;
@@ -636,6 +658,7 @@ Image::computeShift (unsigned long mask, unsigned char &left_shift, unsigned cha
 {
 	left_shift = 0;
 	right_shift = 8;
+
 	if (mask != 0)
 	{
 		while ((mask & 0x01) == 0)
@@ -643,6 +666,7 @@ Image::computeShift (unsigned long mask, unsigned char &left_shift, unsigned cha
 			left_shift++;
 			mask >>= 1;
 		}
+
 		while ((mask & 0x01) == 1)
 		{
 			right_shift--;
@@ -654,15 +678,16 @@ Image::computeShift (unsigned long mask, unsigned char &left_shift, unsigned cha
 Pixmap
 Image::createPixmap (Display *dpy, int scr, Window win)
 {
-	int i, j; /* loop variables */
+	/* loop variables */
+	int i;
+	int j;
 
 	const int depth = DefaultDepth (dpy, scr);
 	Visual *visual = DefaultVisual (dpy, scr);
 	Colormap colormap = DefaultColormap (dpy, scr);
-
 	Pixmap tmp = XCreatePixmap (dpy, win, width, height, depth);
-
 	char *pixmap_data = nullptr;
+
 	switch (depth)
 	{
 	case 32:
@@ -681,36 +706,43 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 	}
 
 	XImage *ximage = XCreateImage (dpy, visual, depth, ZPixmap, 0, pixmap_data, width, height, 8, 0);
-
 	int entries;
 	XVisualInfo v_template;
 	v_template.visualid = XVisualIDFromVisual (visual);
 	XVisualInfo *visual_info = XGetVisualInfo (dpy, VisualIDMask, &v_template, &entries);
-
 	unsigned long ipos = 0;
+
 	switch (visual_info->c_class)
 	{
 	case PseudoColor:
 	{
 		XColor xc;
 		xc.flags = DoRed | DoGreen | DoBlue;
-
 		int num_colors = 256;
 		XColor *colors = new XColor[num_colors];
-		for (i = 0; i < num_colors; i++)
-			colors[i].pixel = (unsigned long)i;
-		XQueryColors (dpy, colormap, colors, num_colors);
 
+		for (i = 0; i < num_colors; i++)
+		{
+			colors[i].pixel = (unsigned long)i;
+		}
+
+		XQueryColors (dpy, colormap, colors, num_colors);
 		int *closest_color = new int[num_colors];
 
 		for (i = 0; i < num_colors; i++)
 		{
-			xc.red = (i & 0xe0) << 8;	 /* highest 3 bits */
-			xc.green = (i & 0x1c) << 11; /* middle 3 bits */
-			xc.blue = (i & 0x03) << 14;	 /* lowest 2 bits */
+			/* highest 3 bits */
+			xc.red = (i & 0xe0) << 8;
+
+			/* middle 3 bits */
+			xc.green = (i & 0x1c) << 11;
+
+			/* lowest 2 bits */
+			xc.blue = (i & 0x03) << 14;
 
 			/* find the closest color in the colormap */
 			double distance, distance_squared, min_distance = 0;
+
 			for (int ii = 0; ii < num_colors; ii++)
 			{
 				distance = colors[ii].red - xc.red;
@@ -735,11 +767,11 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 				xc.red = (unsigned short)(rgb_data[ipos++] & 0xe0);
 				xc.green = (unsigned short)(rgb_data[ipos++] & 0xe0);
 				xc.blue = (unsigned short)(rgb_data[ipos++] & 0xc0);
-
 				xc.pixel = xc.red | (xc.green >> 3) | (xc.blue >> 6);
 				XPutPixel (ximage, i, j, colors[closest_color[xc.pixel]].pixel);
 			}
 		}
+
 		delete[] colors;
 		delete[] closest_color;
 	}
@@ -759,6 +791,7 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 
 		unsigned long pixel;
 		unsigned long red, green, blue;
+
 		for (j = 0; j < height; j++)
 		{
 			for (i = 0; i < width; i++)
@@ -785,9 +818,7 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 
 	GC gc = XCreateGC (dpy, win, 0, nullptr);
 	XPutImage (dpy, tmp, gc, ximage, 0, 0, 0, 0, width, height);
-
 	XFreeGC (dpy, gc);
-
 	XFree (visual_info);
 
 	delete[] pixmap_data;
@@ -806,8 +837,8 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	unsigned char *ptr = nullptr;
+	FILE *infile = std::fopen (filename, "rb");
 
-	FILE *infile = fopen (filename, "rb");
 	if (infile == nullptr)
 	{
 		logStream << APPNAME << "Cannot fopen file: " << filename << std::endl;
@@ -829,8 +860,8 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
-
 	rgb[0] = (unsigned char *)malloc (3 * cinfo.output_width * cinfo.output_height);
+
 	if (rgb[0] == nullptr)
 	{
 		logStream << APPNAME << ": Can't allocate memory for JPEG file." << std::endl;
@@ -840,6 +871,7 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	if (cinfo.output_components == 3)
 	{
 		ptr = rgb[0];
+
 		while (cinfo.output_scanline < cinfo.output_height)
 		{
 			jpeg_read_scanlines (&cinfo, &ptr, 1);
@@ -849,13 +881,16 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	else if (cinfo.output_components == 1)
 	{
 		ptr = (unsigned char *)malloc (cinfo.output_width);
+
 		if (ptr == nullptr)
 		{
 			logStream << APPNAME << ": Can't allocate memory for JPEG file." << std::endl;
+
 			goto rgb_free;
 		}
 
 		unsigned int ipos = 0;
+
 		while (cinfo.output_scanline < cinfo.output_height)
 		{
 			jpeg_read_scanlines (&cinfo, &ptr, 1);
@@ -871,7 +906,6 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	}
 
 	jpeg_finish_decompress (&cinfo);
-
 	ret = 1;
 	goto close_file;
 
@@ -889,33 +923,33 @@ int
 Image::readPng (const char *filename, int *width, int *height, unsigned char **rgb, unsigned char **alpha)
 {
 	int ret = 0;
-
 	png_structp png_ptr;
 	png_infop info_ptr;
 	png_bytepp row_pointers;
-
 	unsigned char *ptr = nullptr;
 	png_uint_32 w, h;
 	int bit_depth, color_type, interlace_type;
 	int i;
+	FILE *infile = std::fopen (filename, "rb");
 
-	FILE *infile = fopen (filename, "rb");
 	if (infile == nullptr)
 	{
 		logStream << APPNAME << "Can not fopen file: " << filename << std::endl;
 		return ret;
 	}
 
-	png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, (png_error_ptr)nullptr, (png_error_ptr)nullptr);
+	png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, (png_voidp) nullptr, (png_error_ptr) nullptr,
+									  (png_error_ptr) nullptr);
 	if (!png_ptr)
 	{
 		goto file_close;
 	}
 
 	info_ptr = png_create_info_struct (png_ptr);
+
 	if (!info_ptr)
 	{
-		png_destroy_read_struct (&png_ptr, (png_infopp)nullptr, (png_infopp)nullptr);
+		png_destroy_read_struct (&png_ptr, (png_infopp) nullptr, (png_infopp) nullptr);
 	}
 
 #if PNG_LIBPNG_VER_MAJOR >= 1 && PNG_LIBPNG_VER_MINOR >= 4
@@ -946,12 +980,10 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	if (color_type == PNG_COLOR_TYPE_RGB_ALPHA || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
 		alpha[0] = (unsigned char *)malloc (*width * *height);
+
 		if (alpha[0] == nullptr)
 		{
-			logStream << APPNAME
-					  << ": Can't allocate memory for alpha channel "
-						 "in PNG file."
-					  << std::endl;
+			logStream << APPNAME << ": Can't allocate memory for alpha channel in PNG file." << std::endl;
 			goto png_destroy;
 		}
 	}
@@ -976,27 +1008,30 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 
 	/* use 1 byte per pixel */
 	png_set_packing (png_ptr);
-
 	row_pointers = (png_byte **)malloc (*height * sizeof (png_bytep));
+
 	if (row_pointers == nullptr)
 	{
 		logStream << APPNAME << ": Can't allocate memory for PNG file." << std::endl;
+
 		goto png_destroy;
 	}
 
 	for (i = 0; i < *height; i++)
 	{
 		row_pointers[i] = (png_byte *)malloc (4 * *width);
+
 		if (row_pointers == nullptr)
 		{
 			logStream << APPNAME << ": Can't allocate memory for PNG file." << std::endl;
+
 			goto rows_free;
 		}
 	}
 
 	png_read_image (png_ptr, row_pointers);
-
 	rgb[0] = (unsigned char *)malloc (3 * (*width) * (*height));
+
 	if (rgb[0] == nullptr)
 	{
 		logStream << APPNAME << ": Can't allocate memory for PNG file." << std::endl;
@@ -1006,6 +1041,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	if (alpha[0] == nullptr)
 	{
 		ptr = rgb[0];
+
 		for (i = 0; i < *height; i++)
 		{
 			memcpy (ptr, row_pointers[i], 3 * (*width));
@@ -1015,9 +1051,11 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	else
 	{
 		ptr = rgb[0];
+
 		for (i = 0; i < *height; i++)
 		{
 			unsigned int ipos = 0;
+
 			for (int j = 0; j < *width; j++)
 			{
 				*ptr++ = row_pointers[i][ipos++];
@@ -1042,9 +1080,10 @@ rows_free:
 	free (row_pointers);
 
 png_destroy:
-	png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)nullptr);
+	png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp) nullptr);
 
 file_close:
 	fclose (infile);
+
 	return (ret);
 }

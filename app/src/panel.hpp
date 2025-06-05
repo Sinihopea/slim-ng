@@ -19,8 +19,8 @@
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 #include <iostream>
-#include <signal.h>
-#include <stdlib.h>
+#include <csignal>
+#include <cstdlib>
 #include <string>
 #include <sys/wait.h>
 
@@ -85,7 +85,6 @@ class Panel
 	void EventHandler (const FieldType &curfield);
 	std::string getSession ();
 	ActionType getAction (void) const;
-
 	void Reset (void);
 	void ResetName (void);
 	void ResetPasswd (void);
@@ -176,7 +175,6 @@ class Panel
 
 	/* Pixmap data */
 	Pixmap PanelPixmap;
-
 	Image *image;
 
 	/* For thesting themes */

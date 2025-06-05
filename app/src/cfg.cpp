@@ -12,14 +12,14 @@
 
 #include <algorithm>
 #include <fstream>
-#include <iostream>
-#include <stdlib.h>
-#include <string>
+// #include <iostream>
+// #include <cstdlib>
+// #include <string>
 #include <unistd.h>
 
 #include <dirent.h>
 #include <sys/stat.h>
-#include <sys/types.h>
+// #include <sys/types.h>
 
 #include "cfg.hpp"
 
@@ -372,22 +372,30 @@ Cfg::fillSessionList ()
 					if (S_ISREG (oFileStat.st_mode) && access (strFile.c_str (), R_OK) == 0)
 					{
 						std::ifstream desktop_file (strFile.c_str ());
+
 						if (desktop_file)
 						{
 							std::string line, session_name = "", session_exec = "";
+
 							while (getline (desktop_file, line))
 							{
 								if (line.substr (0, 5) == "Name=")
 								{
 									session_name = line.substr (5);
+
 									if (!session_exec.empty ())
+									{
 										break;
+									}
 								}
 								else if (line.substr (0, 5) == "Exec=")
 								{
 									session_exec = line.substr (5);
+
 									if (!session_name.empty ())
+									{
 										break;
+									}
 								}
 							}
 

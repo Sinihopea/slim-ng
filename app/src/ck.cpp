@@ -8,12 +8,11 @@
  * (at your option) any later version.
  */
 
-#include <cstdio>
-#include <iostream>
-
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <ck-connector.h>
+#include <cstdio>
+#include <iostream>
 #include <stdarg.h>
 
 #include "ck.hpp"

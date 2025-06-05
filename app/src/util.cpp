@@ -10,9 +10,9 @@
 
 #include <sys/types.h>
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 
 #include "util.hpp"
@@ -27,15 +27,18 @@ Util::add_mcookie (const std::string &mcookie, const char *display, const std::s
 {
 	FILE *fp;
 	std::string cmd = xauth_cmd + " -f " + authfile + " -q";
-
 	fp = popen (cmd.c_str (), "w");
-	if (!fp)
-		return false;
-	fprintf (fp, "remove %s\n", display);
-	fprintf (fp, "add %s %s %s\n", display, ".", mcookie.c_str ());
-	fprintf (fp, "exit\n");
 
+	if (!fp)
+	{
+		return false;
+	}
+
+	std::fprintf (fp, "remove %s\n", display);
+	std::fprintf (fp, "add %s %s %s\n", display, ".", mcookie.c_str ());
+	std::fprintf (fp, "exit\n");
 	pclose (fp);
+
 	return true;
 }
 
