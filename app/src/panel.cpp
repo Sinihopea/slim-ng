@@ -18,7 +18,7 @@
 
 Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 			  const std::string &themedir, PanelType panel_mode)
-	: Dpy (dpy), Scr (scr), m_window_root (root), cfg (config), mode (panel_mode),
+	: m_display (dpy), Scr (scr), m_window_root (root), cfg (config), mode (panel_mode),
 	  session_name (""), session_exec ("")
 {
 	if (mode == Mode_Lock)
@@ -36,15 +36,15 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 	gcv.graphics_exposures = False;
 
 	if (mode == Mode_Lock)
-		TextGC = XCreateGC (Dpy, Win, gcm, &gcv);
+		TextGC = XCreateGC (m_display, Win, gcm, &gcv);
 	else
-		TextGC = XCreateGC (Dpy, m_window_root, gcm, &gcv);
+		TextGC = XCreateGC (m_display, m_window_root, gcm, &gcv);
 
 	if (mode == Mode_Lock)
 		{
 			gcm = GCGraphicsExposures;
 			gcv.graphics_exposures = False;
-			WinGC = XCreateGC (Dpy, Win, gcm, &gcv);
+			WinGC = XCreateGC (m_display, Win, gcm, &gcv);
 
 			/* TODO
 			if (WinGC < 0) {
@@ -53,46 +53,46 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 			}*/
 		}
 
-	font = XftFontOpenName (Dpy, Scr, cfg.getOption ("input_font").c_str ());
+	font = XftFontOpenName (m_display, Scr, cfg.getOption ("input_font").c_str ());
 	welcomefont
-		= XftFontOpenName (Dpy, Scr, cfg.getOption ("welcome_font").c_str ());
+		= XftFontOpenName (m_display, Scr, cfg.getOption ("welcome_font").c_str ());
 	introfont
-		= XftFontOpenName (Dpy, Scr, cfg.getOption ("intro_font").c_str ());
+		= XftFontOpenName (m_display, Scr, cfg.getOption ("intro_font").c_str ());
 	enterfont
-		= XftFontOpenName (Dpy, Scr, cfg.getOption ("username_font").c_str ());
-	msgfont = XftFontOpenName (Dpy, Scr, cfg.getOption ("msg_font").c_str ());
+		= XftFontOpenName (m_display, Scr, cfg.getOption ("username_font").c_str ());
+	msgfont = XftFontOpenName (m_display, Scr, cfg.getOption ("msg_font").c_str ());
 
-	Visual *visual = DefaultVisual (Dpy, Scr);
-	Colormap colormap = DefaultColormap (Dpy, Scr);
+	Visual *visual = DefaultVisual (m_display, Scr);
+	Colormap colormap = DefaultColormap (m_display, Scr);
 
 	/* NOTE: using XftColorAllocValue() would be a better solution. Lazy me. */
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("input_color").c_str (), &inputcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("input_shadow_color").c_str (),
 					   &inputshadowcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("welcome_color").c_str (),
 					   &welcomecolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("welcome_shadow_color").c_str (),
 					   &welcomeshadowcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("username_color").c_str (), &entercolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("username_shadow_color").c_str (),
 					   &entershadowcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("msg_color").c_str (), &msgcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("msg_shadow_color").c_str (),
 					   &msgshadowcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("intro_color").c_str (), &introcolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("session_color").c_str (),
 					   &sessioncolor);
-	XftColorAllocName (Dpy, visual, colormap,
+	XftColorAllocName (m_display, visual, colormap,
 					   cfg.getOption ("session_shadow_color").c_str (),
 					   &sessionshadowcolor);
 
@@ -157,8 +157,8 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			if (bgstyle == "stretch")
 				bg->Resize (viewport.width, viewport.height);
-			// bg->Resize(XWidthOfScreen(ScreenOfDisplay(Dpy, Scr)),
-			//			XHeightOfScreen(ScreenOfDisplay(Dpy, Scr)));
+			// bg->Resize(XWidthOfScreen(ScreenOfDisplay(m_display, Scr)),
+			//			XHeightOfScreen(ScreenOfDisplay(m_display, Scr)));
 			else if (bgstyle == "tile")
 				bg->Tile (viewport.width, viewport.height);
 			else if (bgstyle == "center")
@@ -180,28 +180,28 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			if (bgstyle == "stretch")
 				{
-					bg->Resize (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-								XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+					bg->Resize (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+								XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
 				}
 			else if (bgstyle == "tile")
 				{
-					bg->Tile (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-							  XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+					bg->Tile (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+							  XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
 				}
 			else if (bgstyle == "center")
 				{
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
-					bg->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-								XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+					bg->Center (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+								XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
 								hexvalue.c_str ());
 				}
 			else
 				{ /* plain color or error */
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
-					bg->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-								XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+					bg->Center (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+								XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
 								hexvalue.c_str ());
 				}
 		}
@@ -222,10 +222,10 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 	else
 		{
 			X = Cfg::absolutepos (cfgX,
-								  XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+								  XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
 								  image->Width ());
 			Y = Cfg::absolutepos (cfgY,
-								  XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+								  XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
 								  image->Height ());
 		}
 
@@ -233,13 +233,13 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			/* Merge image into background without crop */
 			image->Merge_non_crop (bg, X, Y);
-			PanelPixmap = image->createPixmap (Dpy, Scr, Win);
+			PanelPixmap = image->createPixmap (m_display, Scr, Win);
 		}
 	else
 		{
 			/* Merge image into background */
 			image->Merge (bg, X, Y);
-			PanelPixmap = image->createPixmap (Dpy, Scr, m_window_root);
+			PanelPixmap = image->createPixmap (m_display, Scr, m_window_root);
 		}
 	delete bg;
 
@@ -257,30 +257,30 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 
 Panel::~Panel ()
 {
-	Visual *visual = DefaultVisual (Dpy, Scr);
-	Colormap colormap = DefaultColormap (Dpy, Scr);
+	Visual *visual = DefaultVisual (m_display, Scr);
+	Colormap colormap = DefaultColormap (m_display, Scr);
 
-	XftColorFree (Dpy, visual, colormap, &inputcolor);
-	XftColorFree (Dpy, visual, colormap, &inputshadowcolor);
-	XftColorFree (Dpy, visual, colormap, &welcomecolor);
-	XftColorFree (Dpy, visual, colormap, &welcomeshadowcolor);
-	XftColorFree (Dpy, visual, colormap, &entercolor);
-	XftColorFree (Dpy, visual, colormap, &entershadowcolor);
-	XftColorFree (Dpy, visual, colormap, &msgcolor);
-	XftColorFree (Dpy, visual, colormap, &msgshadowcolor);
-	XftColorFree (Dpy, visual, colormap, &introcolor);
-	XftColorFree (Dpy, visual, colormap, &sessioncolor);
-	XftColorFree (Dpy, visual, colormap, &sessionshadowcolor);
+	XftColorFree (m_display, visual, colormap, &inputcolor);
+	XftColorFree (m_display, visual, colormap, &inputshadowcolor);
+	XftColorFree (m_display, visual, colormap, &welcomecolor);
+	XftColorFree (m_display, visual, colormap, &welcomeshadowcolor);
+	XftColorFree (m_display, visual, colormap, &entercolor);
+	XftColorFree (m_display, visual, colormap, &entershadowcolor);
+	XftColorFree (m_display, visual, colormap, &msgcolor);
+	XftColorFree (m_display, visual, colormap, &msgshadowcolor);
+	XftColorFree (m_display, visual, colormap, &introcolor);
+	XftColorFree (m_display, visual, colormap, &sessioncolor);
+	XftColorFree (m_display, visual, colormap, &sessionshadowcolor);
 
-	XFreeGC (Dpy, TextGC);
-	XftFontClose (Dpy, font);
-	XftFontClose (Dpy, msgfont);
-	XftFontClose (Dpy, introfont);
-	XftFontClose (Dpy, welcomefont);
-	XftFontClose (Dpy, enterfont);
+	XFreeGC (m_display, TextGC);
+	XftFontClose (m_display, font);
+	XftFontClose (m_display, msgfont);
+	XftFontClose (m_display, introfont);
+	XftFontClose (m_display, welcomefont);
+	XftFontClose (m_display, enterfont);
 
 	if (mode == Mode_Lock)
-		XFreeGC (Dpy, WinGC);
+		XFreeGC (m_display, WinGC);
 
 	delete image;
 }
@@ -289,33 +289,33 @@ void
 Panel::OpenPanel ()
 {
 	/* Create window */
-	Win = XCreateSimpleWindow (Dpy, m_window_root, X, Y, image->Width (),
+	Win = XCreateSimpleWindow (m_display, m_window_root, X, Y, image->Width (),
 							   image->Height (), 0, GetColor ("white"),
 							   GetColor ("white"));
 
 	/* Events */
-	XSelectInput (Dpy, Win, ExposureMask | KeyPressMask);
+	XSelectInput (m_display, Win, ExposureMask | KeyPressMask);
 
 	/* Set background */
-	XSetWindowBackgroundPixmap (Dpy, Win, PanelPixmap);
+	XSetWindowBackgroundPixmap (m_display, Win, PanelPixmap);
 
 	/* Show window */
-	XMapWindow (Dpy, Win);
-	XMoveWindow (Dpy, Win, X, Y); /* override wm positioning (for tests) */
+	XMapWindow (m_display, Win);
+	XMoveWindow (m_display, Win, X, Y); /* override wm positioning (for tests) */
 
 	/* Grab keyboard */
-	XGrabKeyboard (Dpy, Win, False, GrabModeAsync, GrabModeAsync, CurrentTime);
+	XGrabKeyboard (m_display, Win, False, GrabModeAsync, GrabModeAsync, CurrentTime);
 
-	XFlush (Dpy);
+	XFlush (m_display);
 }
 
 void
 Panel::ClosePanel ()
 {
-	XUngrabKeyboard (Dpy, CurrentTime);
-	XUnmapWindow (Dpy, Win);
-	XDestroyWindow (Dpy, Win);
-	XFlush (Dpy);
+	XUngrabKeyboard (m_display, CurrentTime);
+	XUnmapWindow (m_display, Win);
+	XDestroyWindow (m_display, Win);
+	XFlush (m_display);
 }
 
 void
@@ -324,11 +324,11 @@ Panel::ClearPanel ()
 	session_name = "";
 	session_exec = "";
 	Reset ();
-	XClearWindow (Dpy, m_window_root);
-	XClearWindow (Dpy, Win);
+	XClearWindow (m_display, m_window_root);
+	XClearWindow (m_display, Win);
 	Cursor (SHOW);
 	ShowText ();
-	XFlush (Dpy);
+	XFlush (m_display);
 }
 
 void
@@ -344,9 +344,9 @@ Panel::WrongPassword (int timeout)
 #endif
 	message = cfg.getOption ("passwd_feedback_msg");
 
-	XftDraw *draw = XftDrawCreate (Dpy, Win, DefaultVisual (Dpy, Scr),
-								   DefaultColormap (Dpy, Scr));
-	XftTextExtentsUtf8 (Dpy, msgfont,
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
+								   DefaultColormap (m_display, Scr));
+	XftTextExtentsUtf8 (m_display, msgfont,
 						reinterpret_cast<const XftChar8 *> (message.c_str ()),
 						message.length (), &extents);
 
@@ -355,18 +355,18 @@ Panel::WrongPassword (int timeout)
 	int shadowXOffset = cfg.getIntOption ("msg_shadow_xoffset");
 	int shadowYOffset = cfg.getIntOption ("msg_shadow_yoffset");
 	int msg_x = Cfg::absolutepos (
-		cfgX, XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)), extents.width);
+		cfgX, XWidthOfScreen (ScreenOfDisplay (m_display, Scr)), extents.width);
 	int msg_y = Cfg::absolutepos (
-		cfgY, XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)), extents.height);
+		cfgY, XHeightOfScreen (ScreenOfDisplay (m_display, Scr)), extents.height);
 
 	OnExpose ();
 	SlimDrawString8 (draw, &msgcolor, msgfont, msg_x, msg_y, message,
 					 &msgshadowcolor, shadowXOffset, shadowYOffset);
 
 	if (cfg.getOption ("bell") == "1")
-		XBell (Dpy, 100);
+		XBell (m_display, 100);
 
-	XFlush (Dpy);
+	XFlush (m_display);
 	sleep (timeout);
 	ResetPasswd ();
 	OnExpose ();
@@ -374,7 +374,7 @@ Panel::WrongPassword (int timeout)
 	// cleared, methinks. I don't like this solution, but it works.
 	SlimDrawString8 (draw, &msgcolor, msgfont, msg_x, msg_y, message,
 					 &msgshadowcolor, shadowXOffset, shadowYOffset);
-	XSync (Dpy, True);
+	XSync (m_display, True);
 	XftDrawDestroy (draw);
 }
 
@@ -386,13 +386,13 @@ Panel::Message (const std::string &text)
 	XftDraw *draw;
 
 	if (mode == Mode_Lock)
-		draw = XftDrawCreate (Dpy, Win, DefaultVisual (Dpy, Scr),
-							  DefaultColormap (Dpy, Scr));
+		draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
+							  DefaultColormap (m_display, Scr));
 	else
-		draw = XftDrawCreate (Dpy, m_window_root, DefaultVisual (Dpy, Scr),
-							  DefaultColormap (Dpy, Scr));
+		draw = XftDrawCreate (m_display, m_window_root, DefaultVisual (m_display, Scr),
+							  DefaultColormap (m_display, Scr));
 
-	XftTextExtentsUtf8 (Dpy, msgfont,
+	XftTextExtentsUtf8 (m_display, msgfont,
 						reinterpret_cast<const XftChar8 *> (text.c_str ()),
 						text.length (), &extents);
 	cfgX = cfg.getOption ("msg_x");
@@ -409,16 +409,16 @@ Panel::Message (const std::string &text)
 	else
 		{
 			msg_x = Cfg::absolutepos (
-				cfgX, XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+				cfgX, XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
 				extents.width);
 			msg_y = Cfg::absolutepos (
-				cfgY, XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+				cfgY, XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
 				extents.height);
 		}
 
 	SlimDrawString8 (draw, &msgcolor, msgfont, msg_x, msg_y, text,
 					 &msgshadowcolor, shadowXOffset, shadowYOffset);
-	XFlush (Dpy);
+	XFlush (m_display);
 	XftDrawDestroy (draw);
 }
 
@@ -439,16 +439,16 @@ Panel::GetColor (const char *colorname)
 	XWindowAttributes attributes;
 
 	if (mode == Mode_Lock)
-		XGetWindowAttributes (Dpy, Win, &attributes);
+		XGetWindowAttributes (m_display, Win, &attributes);
 	else
-		XGetWindowAttributes (Dpy, m_window_root, &attributes);
+		XGetWindowAttributes (m_display, m_window_root, &attributes);
 
 	color.pixel = 0;
 
-	if (!XParseColor (Dpy, attributes.colormap, colorname, &color))
+	if (!XParseColor (m_display, attributes.colormap, colorname, &color))
 		logStream << APPNAME << ": can't parse color " << colorname
 				  << std::endl;
-	else if (!XAllocColor (Dpy, attributes.colormap, &color))
+	else if (!XAllocColor (m_display, attributes.colormap, &color))
 		logStream << APPNAME << ": can't allocate color " << colorname
 				  << std::endl;
 
@@ -487,10 +487,10 @@ Panel::Cursor (int visible)
 		}
 
 	XGlyphInfo extents;
-	XftTextExtentsUtf8 (Dpy, font, (XftChar8 *)txth, strlen (txth), &extents);
+	XftTextExtentsUtf8 (m_display, font, (XftChar8 *)txth, strlen (txth), &extents);
 	cheight = extents.height;
 	y2 = yy - extents.y + extents.height;
-	XftTextExtentsUtf8 (Dpy, font, (XftChar8 *)text, strlen (text), &extents);
+	XftTextExtentsUtf8 (m_display, font, (XftChar8 *)text, strlen (text), &extents);
 	xx += extents.width;
 
 	if (visible == SHOW)
@@ -501,10 +501,10 @@ Panel::Cursor (int visible)
 					yy += viewport.y;
 					y2 += viewport.y;
 				}
-			XSetForeground (Dpy, TextGC,
+			XSetForeground (m_display, TextGC,
 							GetColor (cfg.getOption ("input_color").c_str ()));
 
-			XDrawLine (Dpy, Win, TextGC, xx + 1, yy - cheight, xx + 1, y2);
+			XDrawLine (m_display, Win, TextGC, xx + 1, yy - cheight, xx + 1, y2);
 		}
 	else
 		{
@@ -512,7 +512,7 @@ Panel::Cursor (int visible)
 				ApplyBackground (Rectangle (xx + 1, yy - cheight, 1,
 											y2 - (yy - cheight) + 1));
 			else
-				XClearArea (Dpy, Win, xx + 1, yy - cheight, 1,
+				XClearArea (m_display, Win, xx + 1, yy - cheight, 1,
 							y2 - (yy - cheight) + 1, false);
 		}
 }
@@ -528,16 +528,16 @@ Panel::EventHandler (const Panel::FieldType &curfield)
 		OnExpose ();
 
 	struct pollfd x11_pfd = { 0 };
-	x11_pfd.fd = ConnectionNumber (Dpy);
+	x11_pfd.fd = ConnectionNumber (m_display);
 	x11_pfd.events = POLLIN;
 
 	while (loop)
 		{
-			if (XPending (Dpy) || poll (&x11_pfd, 1, -1) > 0)
+			if (XPending (m_display) || poll (&x11_pfd, 1, -1) > 0)
 				{
-					while (XPending (Dpy))
+					while (XPending (m_display))
 						{
-							XNextEvent (Dpy, &event);
+							XNextEvent (m_display, &event);
 							switch (event.type)
 								{
 								case Expose:
@@ -558,13 +558,13 @@ Panel::EventHandler (const Panel::FieldType &curfield)
 void
 Panel::OnExpose (void)
 {
-	XftDraw *draw = XftDrawCreate (Dpy, Win, DefaultVisual (Dpy, Scr),
-								   DefaultColormap (Dpy, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
+								   DefaultColormap (m_display, Scr));
 
 	if (mode == Mode_Lock)
 		ApplyBackground ();
 	else
-		XClearWindow (Dpy, Win);
+		XClearWindow (m_display, Win);
 
 	if (input_pass_x != input_name_x || input_pass_y != input_name_y)
 		{
@@ -755,8 +755,8 @@ Panel::OnKeyPress (XEvent &event)
 		};
 
 	XGlyphInfo extents;
-	XftDraw *draw = XftDrawCreate (Dpy, Win, DefaultVisual (Dpy, Scr),
-								   DefaultColormap (Dpy, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
+								   DefaultColormap (m_display, Scr));
 
 	switch (field)
 		{
@@ -776,13 +776,13 @@ Panel::OnKeyPress (XEvent &event)
 	if (!formerString.empty ())
 		{
 			const char *txth = "Wj"; /* get proper maximum height ? */
-			XftTextExtentsUtf8 (Dpy, font,
+			XftTextExtentsUtf8 (m_display, font,
 								reinterpret_cast<const XftChar8 *> (txth),
 								strlen (txth), &extents);
 			int maxHeight = extents.height;
 
 			XftTextExtentsUtf8 (
-				Dpy, font,
+				m_display, font,
 				reinterpret_cast<const XftChar8 *> (formerString.c_str ()),
 				formerString.length (), &extents);
 			int maxLength = extents.width;
@@ -792,7 +792,7 @@ Panel::OnKeyPress (XEvent &event)
 											input_pass_y - maxHeight - 3,
 											maxLength + 6, maxHeight + 6));
 			else
-				XClearArea (Dpy, Win, xx - 3, yy - maxHeight - 3,
+				XClearArea (m_display, Win, xx - 3, yy - maxHeight - 3,
 							maxLength + 6, maxHeight + 6, false);
 		}
 
@@ -818,10 +818,10 @@ Panel::ShowText ()
 	bool singleInputMode
 		= input_name_x == input_pass_x && input_name_y == input_pass_y;
 
-	XftDraw *draw = XftDrawCreate (Dpy, Win, DefaultVisual (Dpy, Scr),
-								   DefaultColormap (Dpy, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
+								   DefaultColormap (m_display, Scr));
 	/* welcome message */
-	XftTextExtentsUtf8 (Dpy, welcomefont, (XftChar8 *)welcome_message.c_str (),
+	XftTextExtentsUtf8 (m_display, welcomefont, (XftChar8 *)welcome_message.c_str (),
 						strlen (welcome_message.c_str ()), &extents);
 	cfgX = cfg.getOption ("welcome_x");
 	cfgY = cfg.getOption ("welcome_y");
@@ -843,7 +843,7 @@ Panel::ShowText ()
 	if ((!singleInputMode || field == Get_Passwd) && mode == Mode_DM)
 		{
 			msg = cfg.getOption ("password_msg");
-			XftTextExtentsUtf8 (Dpy, enterfont, (XftChar8 *)msg.c_str (),
+			XftTextExtentsUtf8 (m_display, enterfont, (XftChar8 *)msg.c_str (),
 								strlen (msg.c_str ()), &extents);
 			cfgX = cfg.getOption ("password_x");
 			cfgY = cfg.getOption ("password_y");
@@ -864,7 +864,7 @@ Panel::ShowText ()
 	if (!singleInputMode || field == Get_Name)
 		{
 			msg = cfg.getOption ("username_msg");
-			XftTextExtentsUtf8 (Dpy, enterfont, (XftChar8 *)msg.c_str (),
+			XftTextExtentsUtf8 (m_display, enterfont, (XftChar8 *)msg.c_str (),
 								strlen (msg.c_str ()), &extents);
 			cfgX = cfg.getOption ("username_x");
 			cfgY = cfg.getOption ("username_y");
@@ -920,32 +920,32 @@ void
 Panel::ShowSession ()
 {
 	std::string msg_x, msg_y;
-	XClearWindow (Dpy, m_window_root);
+	XClearWindow (m_display, m_window_root);
 	std::string currsession
 		= cfg.getOption ("session_msg") + " " + session_name;
 	XGlyphInfo extents;
 
 	sessionfont
-		= XftFontOpenName (Dpy, Scr, cfg.getOption ("session_font").c_str ());
+		= XftFontOpenName (m_display, Scr, cfg.getOption ("session_font").c_str ());
 
-	XftDraw *draw = XftDrawCreate (Dpy, m_window_root, DefaultVisual (Dpy, Scr),
-								   DefaultColormap (Dpy, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, m_window_root, DefaultVisual (m_display, Scr),
+								   DefaultColormap (m_display, Scr));
 	XftTextExtentsUtf8 (
-		Dpy, sessionfont,
+		m_display, sessionfont,
 		reinterpret_cast<const XftChar8 *> (currsession.c_str ()),
 		currsession.length (), &extents);
 	msg_x = cfg.getOption ("session_x");
 	msg_y = cfg.getOption ("session_y");
 	int x = Cfg::absolutepos (
-		msg_x, XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)), extents.width);
+		msg_x, XWidthOfScreen (ScreenOfDisplay (m_display, Scr)), extents.width);
 	int y = Cfg::absolutepos (
-		msg_y, XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)), extents.height);
+		msg_y, XHeightOfScreen (ScreenOfDisplay (m_display, Scr)), extents.height);
 	int shadowXOffset = cfg.getIntOption ("session_shadow_xoffset");
 	int shadowYOffset = cfg.getIntOption ("session_shadow_yoffset");
 
 	SlimDrawString8 (draw, &sessioncolor, sessionfont, x, y, currsession,
 					 &sessionshadowcolor, shadowXOffset, shadowYOffset);
-	XFlush (Dpy);
+	XFlush (m_display);
 	XftDrawDestroy (draw);
 }
 
@@ -1039,19 +1039,19 @@ Panel::GetPrimaryViewport ()
 
 	fallback.x = 0;
 	fallback.y = 0;
-	fallback.width = DisplayWidth (Dpy, Scr);
-	fallback.height = DisplayHeight (Dpy, Scr);
+	fallback.width = DisplayWidth (m_display, Scr);
+	fallback.height = DisplayHeight (m_display, Scr);
 
-	primary = XRRGetOutputPrimary (Dpy, Win);
+	primary = XRRGetOutputPrimary (m_display, Win);
 	if (!primary)
 		{
 			return fallback;
 		}
-	resources = XRRGetScreenResources (Dpy, Win);
+	resources = XRRGetScreenResources (m_display, Win);
 	if (!resources)
 		return fallback;
 
-	primary_info = XRRGetOutputInfo (Dpy, resources, primary);
+	primary_info = XRRGetOutputInfo (m_display, resources, primary);
 	if (!primary_info)
 		{
 			XRRFreeScreenResources (resources);
@@ -1077,7 +1077,7 @@ Panel::GetPrimaryViewport ()
 			crtc = primary_info->crtc;
 		}
 
-	crtc_info = XRRGetCrtcInfo (Dpy, resources, crtc);
+	crtc_info = XRRGetCrtcInfo (m_display, resources, crtc);
 
 	if (!crtc_info)
 		{
@@ -1111,7 +1111,7 @@ Panel::ApplyBackground (Rectangle rect)
 			rect.height = viewport.height;
 		}
 
-	ret = XCopyArea (Dpy, PanelPixmap, Win, WinGC, rect.x, rect.y, rect.width,
+	ret = XCopyArea (m_display, PanelPixmap, Win, WinGC, rect.x, rect.y, rect.width,
 					 rect.height, viewport.x + rect.x, viewport.y + rect.y);
 
 	if (!ret)

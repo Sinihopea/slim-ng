@@ -159,7 +159,7 @@ App::App (int argc, char **argv)
 #ifdef USE_CONSOLEKIT
 	  consolekit_support_enabled (true),
 #endif
-	  firstlogin (true), Dpy (NULL)
+	  firstlogin (true), m_display (NULL)
 {
 	int tmp;
 	bool configLoaded = false;
@@ -389,7 +389,7 @@ App::Run ()
 		}
 
 	/* Open display */
-	if ((Dpy = XOpenDisplay (DisplayName)) == 0)
+	if ((m_display = XOpenDisplay (DisplayName)) == 0)
 		{
 			logStream << APPNAME << ": could not open display '" << DisplayName
 					  << "'" << std::endl;
@@ -399,20 +399,20 @@ App::Run ()
 		}
 
 	/* Get screen and root window */
-	Scr = DefaultScreen (Dpy);
-	m_window_root = RootWindow (Dpy, Scr);
+	Scr = DefaultScreen (m_display);
+	m_window_root = RootWindow (m_display, Scr);
 
 	// Intern _XROOTPMAP_ID property
-	BackgroundPixmapId = XInternAtom (Dpy, "_XROOTPMAP_ID", False);
+	BackgroundPixmapId = XInternAtom (m_display, "_XROOTPMAP_ID", False);
 
 	/* for tests we use a standard window */
 	if (testing)
 		{
-			Window RealRoot = RootWindow (Dpy, Scr);
-			m_window_root = XCreateSimpleWindow (Dpy, RealRoot, 0, 0, 1280, 1024, 0, 0,
+			Window RealRoot = RootWindow (m_display, Scr);
+			m_window_root = XCreateSimpleWindow (m_display, RealRoot, 0, 0, 1280, 1024, 0, 0,
 										0);
-			XMapWindow (Dpy, m_window_root);
-			XFlush (Dpy);
+			XMapWindow (m_display, m_window_root);
+			XFlush (m_display);
 		}
 	else
 		{
@@ -422,7 +422,7 @@ App::Run ()
 	HideCursor ();
 
 	/* Create panel */
-	LoginPanel = new Panel (Dpy, Scr, m_window_root, cfg, themedir, Panel::Mode_DM);
+	LoginPanel = new Panel (m_display, Scr, m_window_root, cfg, themedir, Panel::Mode_DM);
 	bool firstloop
 		= true; /* 1st time panel is shown (for automatic username) */
 	bool focuspass = cfg.getOption ("focus_password") == "yes";
@@ -447,11 +447,11 @@ App::Run ()
 
 	if (numlock == "on")
 		{
-			NumLock::setOn (Dpy);
+			NumLock::setOn (m_display);
 		}
 	else if (numlock == "off")
 		{
-			NumLock::setOff (Dpy);
+			NumLock::setOff (m_display);
 		}
 
 	/* Start looping */
@@ -496,7 +496,7 @@ App::Run ()
 					panelclosed = 0;
 					firstloop = false;
 					LoginPanel->ClearPanel ();
-					XBell (Dpy, 100);
+					XBell (m_display, 100);
 					sleep (1); // Just in case, to prevent infinite loops
 							   // without pauses
 					continue;
@@ -643,13 +643,13 @@ App::HideCursor ()
 			Pixmap cursorpixmap;
 			Cursor cursor;
 			cursordata[0] = 0;
-			cursorpixmap = XCreateBitmapFromData (Dpy, m_window_root, cursordata, 1, 1);
+			cursorpixmap = XCreateBitmapFromData (m_display, m_window_root, cursordata, 1, 1);
 			black.red = 0;
 			black.green = 0;
 			black.blue = 0;
-			cursor = XCreatePixmapCursor (Dpy, cursorpixmap, cursorpixmap,
+			cursor = XCreatePixmapCursor (m_display, cursorpixmap, cursorpixmap,
 										  &black, &black, 0, 0);
-			XDefineCursor (Dpy, m_window_root, cursor);
+			XDefineCursor (m_display, m_window_root, cursor);
 		}
 }
 
@@ -830,7 +830,7 @@ App::Login ()
 		{
 			wpid = wait (&status);
 			if (wpid == ServerPID)
-				xioerror (Dpy); /* Server died, simulate IO error */
+				xioerror (m_display); /* Server died, simulate IO error */
 		}
 
 	if (WIFEXITED (status) && WEXITSTATUS (status))
@@ -961,9 +961,9 @@ App::Console ()
 	int fontx = 9;
 	int fonty = 15;
 	int width
-		= (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)) - (posx * 2)) / fontx;
+		= (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)) - (posx * 2)) / fontx;
 	int height
-		= (XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)) - (posy * 2)) / fonty;
+		= (XHeightOfScreen (ScreenOfDisplay (m_display, Scr)) - (posy * 2)) / fonty;
 
 	/* Execute console */
 	const char *cmd = cfg.getOption ("console_cmd").c_str ();
@@ -995,7 +995,7 @@ App::Exit ()
 			LoginPanel->Message (testmsg);
 			sleep (3);
 			delete LoginPanel;
-			XCloseDisplay (Dpy);
+			XCloseDisplay (m_display);
 		}
 	else
 		{
@@ -1052,18 +1052,18 @@ App::KillAllClients (Bool top)
 	unsigned int i;
 	XWindowAttributes attr;
 
-	XSync (Dpy, 0);
+	XSync (m_display, 0);
 	XSetErrorHandler (CatchErrors);
 
 	nchildren = 0;
-	XQueryTree (Dpy, m_window_root, &dummywindow, &dummywindow, &children, &nchildren);
+	XQueryTree (m_display, m_window_root, &dummywindow, &dummywindow, &children, &nchildren);
 	if (!top)
 		{
 			for (i = 0; i < nchildren; i++)
 				{
-					if (XGetWindowAttributes (Dpy, children[i], &attr)
+					if (XGetWindowAttributes (m_display, children[i], &attr)
 						&& (attr.map_state == IsViewable))
-						children[i] = XmuClientWindow (Dpy, children[i]);
+						children[i] = XmuClientWindow (m_display, children[i]);
 					else
 						children[i] = 0;
 				}
@@ -1072,11 +1072,11 @@ App::KillAllClients (Bool top)
 	for (i = 0; i < nchildren; i++)
 		{
 			if (children[i])
-				XKillClient (Dpy, children[i]);
+				XKillClient (m_display, children[i]);
 		}
 	XFree ((char *)children);
 
-	XSync (Dpy, 0);
+	XSync (m_display, 0);
 	XSetErrorHandler (NULL);
 }
 
@@ -1121,7 +1121,7 @@ App::WaitForServer ()
 
 	for (cycles = 0; cycles < ncycles; cycles++)
 		{
-			if ((Dpy = XOpenDisplay (DisplayName)))
+			if ((m_display = XOpenDisplay (DisplayName)))
 				{
 					XSetIOErrorHandler (xioerror);
 					return 1;
@@ -1264,8 +1264,8 @@ App::StopServer ()
 
 	/* Catch X error */
 	XSetIOErrorHandler (IgnoreXIO);
-	if (!setjmp (CloseEnv) && Dpy)
-		XCloseDisplay (Dpy);
+	if (!setjmp (CloseEnv) && m_display)
+		XCloseDisplay (m_display);
 
 	/* Send HUP to process group */
 	errno = 0;
@@ -1324,13 +1324,13 @@ App::StopServer ()
 void
 App::blankScreen ()
 {
-	GC gc = XCreateGC (Dpy, m_window_root, 0, 0);
-	XSetForeground (Dpy, gc, BlackPixel (Dpy, Scr));
-	XFillRectangle (Dpy, m_window_root, gc, 0, 0,
-					XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-					XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
-	XFlush (Dpy);
-	XFreeGC (Dpy, gc);
+	GC gc = XCreateGC (m_display, m_window_root, 0, 0);
+	XSetForeground (m_display, gc, BlackPixel (m_display, Scr));
+	XFillRectangle (m_display, m_window_root, gc, 0, 0,
+					XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+					XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
+	XFlush (m_display);
+	XFreeGC (m_display, gc);
 }
 
 void
@@ -1354,21 +1354,21 @@ App::setBackground (const std::string &themedir)
 			if (bgstyle == "stretch")
 				{
 					image->Resize (
-						XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+						XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+						XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
 				}
 			else if (bgstyle == "tile")
 				{
-					image->Tile (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-								 XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+					image->Tile (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+								 XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
 				}
 			else if (bgstyle == "center")
 				{
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
 					image->Center (
-						XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+						XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
 						hexvalue.c_str ());
 				}
 			else
@@ -1376,18 +1376,18 @@ App::setBackground (const std::string &themedir)
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
 					image->Center (
-						XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+						XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
 						hexvalue.c_str ());
 				}
-			Pixmap p = image->createPixmap (Dpy, Scr, m_window_root);
-			XSetWindowBackgroundPixmap (Dpy, m_window_root, p);
-			XChangeProperty (Dpy, m_window_root, BackgroundPixmapId, XA_PIXMAP, 32,
+			Pixmap p = image->createPixmap (m_display, Scr, m_window_root);
+			XSetWindowBackgroundPixmap (m_display, m_window_root, p);
+			XChangeProperty (m_display, m_window_root, BackgroundPixmapId, XA_PIXMAP, 32,
 							 PropModeReplace, (unsigned char *)&p, 1);
 		}
-	XClearWindow (Dpy, m_window_root);
+	XClearWindow (m_display, m_window_root);
 
-	XFlush (Dpy);
+	XFlush (m_display);
 	delete image;
 }
 

@@ -80,7 +80,7 @@ class App
 
 	/* Private data */
 	Window m_window_root;
-	Display *Dpy;
+	Display *m_display;
 	int Scr;
 	Panel *LoginPanel;
 	int ServerPID;

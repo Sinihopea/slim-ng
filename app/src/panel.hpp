@@ -118,7 +118,7 @@ class Panel
 	Cfg &cfg;
 	Window Win;
 	Window m_window_root;
-	Display *Dpy;
+	Display *m_display;
 	int Scr;
 	int X, Y;
 	GC TextGC;
