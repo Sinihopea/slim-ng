@@ -9,7 +9,9 @@
             "defines": [
                 "APPNAME=\"slim\"",
                 "VERSION=\"1.3.6\"",
-                "SYSCONFDIR=\"/etc\""
+                "SYSCONFDIR=\"/etc\"",
+                "PKGDATADIR=\"/usr/share/slim\"",
+                "USE_PAM"
             ],
             "intelliSenseMode": "linux-clang-x64",
             "cStandard": "gnu11",
