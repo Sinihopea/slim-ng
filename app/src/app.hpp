@@ -13,9 +13,6 @@
 #ifndef _APP_H_
 #define _APP_H_
 
-#include "cfg.hpp"
-#include "image.hpp"
-#include "panel.hpp"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <errno.h>
@@ -26,9 +23,14 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "cfg.hpp"
+#include "image.hpp"
+#include "panel.hpp"
+
 #ifdef USE_PAM
 #include "pam.hpp"
 #endif
+
 #ifdef USE_CONSOLEKIT
 #include "ck.hpp"
 #endif
@@ -38,8 +40,9 @@
 class App
 {
   public:
-	App (int argc, char **argv);
-	~App ();
+	explicit App (int argc, char **argv);
+	~App () = default;
+
 	void Run ();
 	int GetServerPID ();
 	void RestartServer ();
@@ -59,16 +62,14 @@ class App
 	void Console ();
 	void Exit ();
 	void KillAllClients (Bool top);
-	void ReadConfig ();
+	// void ReadConfig ();
 	void OpenLog ();
 	void CloseLog ();
 	void HideCursor ();
 	void CreateServerAuth ();
 	char *StrConcat (const char *str1, const char *str2);
 	void UpdatePid ();
-
 	bool AuthenticateUser (bool focuspass);
-
 	std::string findValidRandomTheme (const std::string &set);
 	static void replaceVariables (std::string &input, const std::string &var, const std::string &value);
 
@@ -78,13 +79,13 @@ class App
 	int WaitForServer ();
 
 	/* Private data */
-	Window m_window_root;
 	Display *m_display;
 	int m_screen;
+	Window m_window_root;
 	Panel *LoginPanel;
-	int ServerPID;
+	int m_server_pid;
 	const char *m_display_name;
-	bool serverStarted;
+	bool m_server_started;
 
 #ifdef USE_PAM
 	PAM::Authenticator pam;
@@ -96,25 +97,21 @@ class App
 #endif
 
 	/* Options */
-	char *DispName;
-
-	Cfg m_config_app;
-
-	Pixmap BackgroundPixmap;
-
 	void blankScreen ();
-	Image *image;
-	Atom BackgroundPixmapId;
 	void setBackground (const std::string &themedir);
 
-	bool firstlogin;
-	bool daemonmode;
-	bool force_nodaemon;
+	// char *DispName;
+	Cfg m_config_app;
+	// Pixmap BackgroundPixmap;
+	Image *image;
+	Atom BackgroundPixmapId;
+	bool m_first_login;
+	bool m_daemon_mode;
+	bool m_force_no_daemon;
 
 	/* For testing themes */
-	char *testtheme;
-	bool testing;
-
+	char *m_test_theme;
+	bool m_testing;
 	std::string themeName;
 	std::string mcookie;
 };

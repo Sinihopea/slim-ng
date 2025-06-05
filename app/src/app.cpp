@@ -46,6 +46,7 @@ conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, v
 	{
 		(*resp)[i].resp = 0;
 		(*resp)[i].resp_retcode = 0;
+
 		switch (msg[i]->msg_style)
 		{
 		case PAM_PROMPT_ECHO_ON:
@@ -120,7 +121,7 @@ conv (int num_msg, const struct pam_message **msg, struct pam_response **resp, v
 extern App *LoginApp;
 
 int
-xioerror (Display *disp)
+xioerror (Display *)
 {
 	LoginApp->RestartServer ();
 	return 0;
@@ -147,18 +148,19 @@ User1Signal (int sig)
 }
 
 App::App (int argc, char **argv)
-	:
+	: m_display (nullptr), m_server_pid (-1), m_server_started (false),
+
 #ifdef USE_PAM
 	  pam (conv, static_cast<void *> (&LoginPanel)),
 #endif
 
-	  ServerPID (-1), testing (false), serverStarted (false), mcookie (std::string (MCOOKIESIZE, 'a')),
-	  daemonmode (false), force_nodaemon (false),
+	  m_first_login (true), m_daemon_mode (false),
 
 #ifdef USE_CONSOLEKIT
 	  consolekit_support_enabled (true),
 #endif
-	  firstlogin (true), m_display (nullptr)
+
+	  m_force_no_daemon (false), m_testing (false), mcookie (std::string (MCOOKIESIZE, 'a'))
 {
 	int tmp;
 	bool configLoaded = false;
@@ -172,6 +174,7 @@ App::App (int argc, char **argv)
 	{
 		switch (tmp)
 		{
+
 		/* Config */
 		case 'c':
 			if (optarg == nullptr)
@@ -182,58 +185,69 @@ App::App (int argc, char **argv)
 			m_config_app.readConf (optarg);
 			configLoaded = true;
 			break;
+
 		/* Test theme */
 		case 'p':
-			testtheme = optarg;
-			testing = true;
+			m_test_theme = optarg;
+			m_testing = true;
 
-			if (testtheme == nullptr)
+			if (m_test_theme == nullptr)
 			{
 				logStream << "The -p option requires an argument" << std::endl;
 				exit (ERR_EXIT);
 			}
 			break;
+
 		/* Daemon mode */
 		case 'd':
-			daemonmode = true;
+			m_daemon_mode = true;
 			break;
+
 		/* Daemon mode */
 		case 'n':
-			daemonmode = false;
-			force_nodaemon = true;
+			m_daemon_mode = false;
+			m_force_no_daemon = true;
 			break;
+
 		/* Version */
 		case 'v':
 			std::cout << APPNAME << " version " << VERSION << std::endl;
 			exit (OK_EXIT);
 			break;
+
 #ifdef USE_CONSOLEKIT
+
 		/* Disable consolekit support */
 		case 's':
 			consolekit_support_enabled = false;
 			break;
+
 #endif
-		case '?': /* Illegal */
+
+		/* Illegal */
+		case '?':
 			logStream << std::endl;
-		case 'h': /* Help */
+
+		/* Help */
+		case 'h':
 			logStream << "usage:  " << APPNAME << " [option ...]" << std::endl
 					  << "options:" << std::endl
-					  << "	-c file: configuration file" << std::endl
-					  << "	-d: daemon mode" << std::endl
-					  << "	-n: no-daemon mode" << std::endl
-					  << "	-v: show version" << std::endl
+					  << "\t-c file: configuration file" << std::endl
+					  << "\t-d: daemon mode" << std::endl
+					  << "\t-n: no-daemon mode" << std::endl
+					  << "\t-v: show version" << std::endl
 #ifdef USE_CONSOLEKIT
-					  << "	-s: start for systemd, disable consolekit "
-						 "support"
-					  << endl
+					  << "\t-s: start for systemd, disable consolekit support" << std::endl
 #endif
-					  << "	-p /path/to/theme/dir: preview theme" << std::endl;
+					  << "\t-p /path/to/theme/dir: preview theme" << std::endl;
+
 			exit (OK_EXIT);
+
 			break;
 		}
 	}
 #ifndef XNEST_DEBUG
-	if (getuid () != 0 && !testing)
+	if (getuid () != 0 && !m_testing)
 	{
 		logStream << APPNAME << ": only root can run this program" << std::endl;
 		exit (ERR_EXIT);
@@ -262,9 +276,9 @@ App::Run ()
 	std::string themedir = "";
 	themeName = "";
 
-	if (testing)
+	if (m_testing)
 	{
-		themeName = testtheme;
+		themeName = m_test_theme;
 	}
 	else
 	{
@@ -324,7 +338,7 @@ App::Run ()
 		}
 	}
 
-	if (!testing)
+	if (!m_testing)
 	{
 		/* Create lock file */
 		LoginApp->GetLock ();
@@ -340,13 +354,13 @@ App::Run ()
 		signal (SIGUSR1, User1Signal);
 
 #ifndef XNEST_DEBUG
-		if (!force_nodaemon && m_config_app.getOption ("daemon") == "yes")
+		if (!m_force_no_daemon && m_config_app.getOption ("daemon") == "yes")
 		{
-			daemonmode = true;
+			m_daemon_mode = true;
 		}
 
 		/* Daemonize */
-		if (daemonmode)
+		if (m_daemon_mode)
 		{
 			if (daemon (0, 0) == -1)
 			{
@@ -357,7 +371,7 @@ App::Run ()
 
 		OpenLog ();
 
-		if (daemonmode)
+		if (m_daemon_mode)
 			UpdatePid ();
 
 		CreateServerAuth ();
@@ -378,7 +392,7 @@ App::Run ()
 	if ((m_display = XOpenDisplay (m_display_name)) == 0)
 	{
 		logStream << APPNAME << ": could not open display '" << m_display_name << "'" << std::endl;
-		if (!testing)
+		if (!m_testing)
 			StopServer ();
 		exit (ERR_EXIT);
 	}
@@ -391,7 +405,7 @@ App::Run ()
 	BackgroundPixmapId = XInternAtom (m_display, "_XROOTPMAP_ID", False);
 
 	/* for tests we use a standard window */
-	if (testing)
+	if (m_testing)
 	{
 		Window RealRoot = RootWindow (m_display, m_screen);
 		m_window_root = XCreateSimpleWindow (m_display, RealRoot, 0, 0, 1280, 1024, 0, 0, 0);
@@ -411,13 +425,13 @@ App::Run ()
 	bool focuspass = m_config_app.getOption ("focus_password") == "yes";
 	bool autologin = m_config_app.getOption ("auto_login") == "yes";
 
-	if (firstlogin && m_config_app.getOption ("default_user") != "")
+	if (m_first_login && m_config_app.getOption ("default_user") != "")
 	{
 		LoginPanel->SetName (m_config_app.getOption ("default_user"));
 #ifdef USE_PAM
 		pam.set_item (PAM::Authenticator::User, m_config_app.getOption ("default_user").c_str ());
 #endif
-		firstlogin = false;
+		m_first_login = false;
 		if (autologin)
 		{
 			Login ();
@@ -448,7 +462,7 @@ App::Run ()
 			setBackground (themedir);
 
 			/* Close all clients */
-			if (!testing)
+			if (!m_testing)
 			{
 				KillAllClients (False);
 				KillAllClients (True);
@@ -468,7 +482,7 @@ App::Run ()
 			LoginPanel->SwitchSession ();
 		}
 
-		if (testing)
+		if (m_testing)
 		{
 			LoginPanel->EventHandler (Panel::Get_Name);
 			LoginPanel->EventHandler (Panel::Get_Passwd);
@@ -488,7 +502,7 @@ App::Run ()
 
 		Action = LoginPanel->getAction ();
 		/* for themes test we just quit */
-		if (testing)
+		if (m_testing)
 			Action = Panel::Exit;
 
 		panelclosed = 1;
@@ -610,7 +624,7 @@ App::AuthenticateUser (bool focuspass)
 int
 App::GetServerPID ()
 {
-	return ServerPID;
+	return m_server_pid;
 }
 
 /* Hide the cursor */
@@ -803,7 +817,7 @@ App::Login ()
 	while (wpid != pid)
 	{
 		wpid = wait (&status);
-		if (wpid == ServerPID)
+		if (wpid == m_server_pid)
 			xioerror (m_display); /* Server died, simulate IO error */
 	}
 
@@ -961,7 +975,7 @@ App::Exit ()
 	}
 #endif
 
-	if (testing)
+	if (m_testing)
 	{
 		const char *testmsg = "¥·£·€·$·¢·₡·₢·₣·₤·₥·₦·₧·₨·₩·₪·₫·₭·₮·₯·₹";
 		LoginPanel->Message (testmsg);
@@ -979,7 +993,7 @@ App::Exit ()
 }
 
 int
-CatchErrors (Display *dpy, XErrorEvent *ev)
+CatchErrors (Display *, XErrorEvent *)
 {
 	return 0;
 }
@@ -1001,7 +1015,7 @@ App::RestartServer ()
 	StopServer ();
 	RemoveLock ();
 
-	if (force_nodaemon)
+	if (m_force_no_daemon)
 	{
 		delete LoginPanel;
 		/* use ERR_EXIT so that systemd's RESTART=on-failure works */
@@ -1060,8 +1074,8 @@ App::ServerTimeout (int timeout, char *text)
 
 	while (1)
 	{
-		pidfound = waitpid (ServerPID, nullptr, WNOHANG);
-		if (pidfound == ServerPID)
+		pidfound = waitpid (m_server_pid, nullptr, WNOHANG);
+		if (pidfound == m_server_pid)
 			break;
 		if (timeout)
 		{
@@ -1080,7 +1094,7 @@ App::ServerTimeout (int timeout, char *text)
 		logStream << std::endl;
 	lasttext = text;
 
-	return (ServerPID != pidfound);
+	return (m_server_pid != pidfound);
 }
 
 int
@@ -1111,7 +1125,7 @@ App::WaitForServer ()
 int
 App::StartServer ()
 {
-	ServerPID = fork ();
+	m_server_pid = fork ();
 
 	int argc = 1, pos = 0, i;
 	static const int MAX_XSERVER_ARGS = 256;
@@ -1123,7 +1137,7 @@ App::StartServer ()
 	argOption = argOption + " -auth " + m_config_app.getOption ("authfile");
 	char *args = new char[argOption.length () + 2]; /* nullptr plus vt */
 	strcpy (args, argOption.c_str ());
-	serverStarted = false;
+	m_server_started = false;
 	bool hasVtSet = false;
 
 	while (args[pos] != '\0')
@@ -1162,13 +1176,13 @@ App::StartServer ()
 		}
 	}
 
-	if (!hasVtSet && daemonmode)
+	if (!hasVtSet && m_daemon_mode)
 	{
 		server[argc++] = (char *)"vt07";
 	}
 	server[argc] = nullptr;
 
-	switch (ServerPID)
+	switch (m_server_pid)
 	{
 	case 0:
 		signal (SIGTTIN, SIG_IGN);
@@ -1188,7 +1202,7 @@ App::StartServer ()
 		errno = 0;
 		if (!ServerTimeout (0, (char *)""))
 		{
-			ServerPID = -1;
+			m_server_pid = -1;
 			break;
 		}
 
@@ -1197,7 +1211,7 @@ App::StartServer ()
 		{
 			logStream << APPNAME << ": unable to connect to X server" << std::endl;
 			StopServer ();
-			ServerPID = -1;
+			m_server_pid = -1;
 			exit (ERR_EXIT);
 		}
 		break;
@@ -1205,14 +1219,15 @@ App::StartServer ()
 
 	delete[] args;
 
-	serverStarted = true;
+	m_server_started = true;
 
-	return ServerPID;
+	return m_server_pid;
 }
 
 jmp_buf CloseEnv;
+
 int
-IgnoreXIO (Display *d)
+IgnoreXIO (Display *)
 {
 	logStream << APPNAME << ": connection to X server lost." << std::endl;
 	longjmp (CloseEnv, 1);
@@ -1239,12 +1254,12 @@ App::StopServer ()
 		logStream << APPNAME << ": can't send HUP to process group " << getpid () << std::endl;
 
 	/* Send TERM to server */
-	if (ServerPID < 0)
+	if (m_server_pid < 0)
 		return;
 
 	errno = 0;
 
-	if (killpg (ServerPID, SIGTERM) < 0)
+	if (killpg (m_server_pid, SIGTERM) < 0)
 	{
 		if (errno == EPERM)
 		{
@@ -1266,7 +1281,7 @@ App::StopServer ()
 
 	/* Send KILL to server */
 	errno = 0;
-	if (killpg (ServerPID, SIGKILL) < 0)
+	if (killpg (m_server_pid, SIGKILL) < 0)
 	{
 		if (errno == ESRCH)
 			return;
@@ -1410,7 +1425,7 @@ App::RemoveLock ()
 bool
 App::isServerStarted ()
 {
-	return serverStarted;
+	return m_server_started;
 }
 
 /* Redirect stdout and stderr to log file */

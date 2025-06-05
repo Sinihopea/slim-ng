@@ -180,7 +180,7 @@ class Panel
 	Image *image;
 
 	/* For thesting themes */
-	bool testing;
+	bool m_testing;
 	std::string themedir;
 
 	/* Session handling */
