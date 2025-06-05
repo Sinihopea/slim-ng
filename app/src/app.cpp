@@ -399,8 +399,8 @@ App::Run ()
 		}
 
 	/* Get screen and root window */
-	Scr = DefaultScreen (m_display);
-	m_window_root = RootWindow (m_display, Scr);
+	m_screen = DefaultScreen (m_display);
+	m_window_root = RootWindow (m_display, m_screen);
 
 	// Intern _XROOTPMAP_ID property
 	BackgroundPixmapId = XInternAtom (m_display, "_XROOTPMAP_ID", False);
@@ -408,7 +408,7 @@ App::Run ()
 	/* for tests we use a standard window */
 	if (testing)
 		{
-			Window RealRoot = RootWindow (m_display, Scr);
+			Window RealRoot = RootWindow (m_display, m_screen);
 			m_window_root = XCreateSimpleWindow (m_display, RealRoot, 0, 0, 1280, 1024, 0, 0,
 										0);
 			XMapWindow (m_display, m_window_root);
@@ -422,7 +422,7 @@ App::Run ()
 	HideCursor ();
 
 	/* Create panel */
-	LoginPanel = new Panel (m_display, Scr, m_window_root, cfg, themedir, Panel::Mode_DM);
+	LoginPanel = new Panel (m_display, m_screen, m_window_root, cfg, themedir, Panel::Mode_DM);
 	bool firstloop
 		= true; /* 1st time panel is shown (for automatic username) */
 	bool focuspass = cfg.getOption ("focus_password") == "yes";
@@ -961,9 +961,9 @@ App::Console ()
 	int fontx = 9;
 	int fonty = 15;
 	int width
-		= (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)) - (posx * 2)) / fontx;
+		= (XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)) - (posx * 2)) / fontx;
 	int height
-		= (XHeightOfScreen (ScreenOfDisplay (m_display, Scr)) - (posy * 2)) / fonty;
+		= (XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)) - (posy * 2)) / fonty;
 
 	/* Execute console */
 	const char *cmd = cfg.getOption ("console_cmd").c_str ();
@@ -1325,10 +1325,10 @@ void
 App::blankScreen ()
 {
 	GC gc = XCreateGC (m_display, m_window_root, 0, 0);
-	XSetForeground (m_display, gc, BlackPixel (m_display, Scr));
+	XSetForeground (m_display, gc, BlackPixel (m_display, m_screen));
 	XFillRectangle (m_display, m_window_root, gc, 0, 0,
-					XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-					XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
+					XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+					XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)));
 	XFlush (m_display);
 	XFreeGC (m_display, gc);
 }
@@ -1354,21 +1354,21 @@ App::setBackground (const std::string &themedir)
 			if (bgstyle == "stretch")
 				{
 					image->Resize (
-						XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-						XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
+						XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+						XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)));
 				}
 			else if (bgstyle == "tile")
 				{
-					image->Tile (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-								 XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
+					image->Tile (XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+								 XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)));
 				}
 			else if (bgstyle == "center")
 				{
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
 					image->Center (
-						XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-						XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
+						XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+						XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)),
 						hexvalue.c_str ());
 				}
 			else
@@ -1376,11 +1376,11 @@ App::setBackground (const std::string &themedir)
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
 					image->Center (
-						XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-						XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
+						XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+						XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)),
 						hexvalue.c_str ());
 				}
-			Pixmap p = image->createPixmap (m_display, Scr, m_window_root);
+			Pixmap p = image->createPixmap (m_display, m_screen, m_window_root);
 			XSetWindowBackgroundPixmap (m_display, m_window_root, p);
 			XChangeProperty (m_display, m_window_root, BackgroundPixmapId, XA_PIXMAP, 32,
 							 PropModeReplace, (unsigned char *)&p, 1);

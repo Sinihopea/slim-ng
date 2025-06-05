@@ -18,7 +18,7 @@
 
 Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 			  const std::string &themedir, PanelType panel_mode)
-	: m_display (dpy), Scr (scr), m_window_root (root), cfg (config), mode (panel_mode),
+	: m_display (dpy), m_screen (scr), m_window_root (root), cfg (config), mode (panel_mode),
 	  session_name (""), session_exec ("")
 {
 	if (mode == Mode_Lock)
@@ -53,17 +53,17 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 			}*/
 		}
 
-	font = XftFontOpenName (m_display, Scr, cfg.getOption ("input_font").c_str ());
+	font = XftFontOpenName (m_display, m_screen, cfg.getOption ("input_font").c_str ());
 	welcomefont
-		= XftFontOpenName (m_display, Scr, cfg.getOption ("welcome_font").c_str ());
+		= XftFontOpenName (m_display, m_screen, cfg.getOption ("welcome_font").c_str ());
 	introfont
-		= XftFontOpenName (m_display, Scr, cfg.getOption ("intro_font").c_str ());
+		= XftFontOpenName (m_display, m_screen, cfg.getOption ("intro_font").c_str ());
 	enterfont
-		= XftFontOpenName (m_display, Scr, cfg.getOption ("username_font").c_str ());
-	msgfont = XftFontOpenName (m_display, Scr, cfg.getOption ("msg_font").c_str ());
+		= XftFontOpenName (m_display, m_screen, cfg.getOption ("username_font").c_str ());
+	msgfont = XftFontOpenName (m_display, m_screen, cfg.getOption ("msg_font").c_str ());
 
-	Visual *visual = DefaultVisual (m_display, Scr);
-	Colormap colormap = DefaultColormap (m_display, Scr);
+	Visual *visual = DefaultVisual (m_display, m_screen);
+	Colormap colormap = DefaultColormap (m_display, m_screen);
 
 	/* NOTE: using XftColorAllocValue() would be a better solution. Lazy me. */
 	XftColorAllocName (m_display, visual, colormap,
@@ -157,8 +157,8 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			if (bgstyle == "stretch")
 				bg->Resize (viewport.width, viewport.height);
-			// bg->Resize(XWidthOfScreen(ScreenOfDisplay(m_display, Scr)),
-			//			XHeightOfScreen(ScreenOfDisplay(m_display, Scr)));
+			// bg->Resize(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
+			//			XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
 			else if (bgstyle == "tile")
 				bg->Tile (viewport.width, viewport.height);
 			else if (bgstyle == "center")
@@ -180,28 +180,28 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			if (bgstyle == "stretch")
 				{
-					bg->Resize (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-								XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
+					bg->Resize (XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+								XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)));
 				}
 			else if (bgstyle == "tile")
 				{
-					bg->Tile (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-							  XHeightOfScreen (ScreenOfDisplay (m_display, Scr)));
+					bg->Tile (XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+							  XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)));
 				}
 			else if (bgstyle == "center")
 				{
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
-					bg->Center (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-								XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
+					bg->Center (XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+								XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)),
 								hexvalue.c_str ());
 				}
 			else
 				{ /* plain color or error */
 					std::string hexvalue = cfg.getOption ("background_color");
 					hexvalue = hexvalue.substr (1, 6);
-					bg->Center (XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
-								XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
+					bg->Center (XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
+								XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)),
 								hexvalue.c_str ());
 				}
 		}
@@ -222,10 +222,10 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 	else
 		{
 			X = Cfg::absolutepos (cfgX,
-								  XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+								  XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
 								  image->Width ());
 			Y = Cfg::absolutepos (cfgY,
-								  XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
+								  XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)),
 								  image->Height ());
 		}
 
@@ -233,13 +233,13 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 		{
 			/* Merge image into background without crop */
 			image->Merge_non_crop (bg, X, Y);
-			PanelPixmap = image->createPixmap (m_display, Scr, Win);
+			PanelPixmap = image->createPixmap (m_display, m_screen, Win);
 		}
 	else
 		{
 			/* Merge image into background */
 			image->Merge (bg, X, Y);
-			PanelPixmap = image->createPixmap (m_display, Scr, m_window_root);
+			PanelPixmap = image->createPixmap (m_display, m_screen, m_window_root);
 		}
 	delete bg;
 
@@ -257,8 +257,8 @@ Panel::Panel (Display *dpy, int scr, Window root, Cfg &config,
 
 Panel::~Panel ()
 {
-	Visual *visual = DefaultVisual (m_display, Scr);
-	Colormap colormap = DefaultColormap (m_display, Scr);
+	Visual *visual = DefaultVisual (m_display, m_screen);
+	Colormap colormap = DefaultColormap (m_display, m_screen);
 
 	XftColorFree (m_display, visual, colormap, &inputcolor);
 	XftColorFree (m_display, visual, colormap, &inputshadowcolor);
@@ -344,8 +344,8 @@ Panel::WrongPassword (int timeout)
 #endif
 	message = cfg.getOption ("passwd_feedback_msg");
 
-	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
-								   DefaultColormap (m_display, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, m_screen),
+								   DefaultColormap (m_display, m_screen));
 	XftTextExtentsUtf8 (m_display, msgfont,
 						reinterpret_cast<const XftChar8 *> (message.c_str ()),
 						message.length (), &extents);
@@ -355,9 +355,9 @@ Panel::WrongPassword (int timeout)
 	int shadowXOffset = cfg.getIntOption ("msg_shadow_xoffset");
 	int shadowYOffset = cfg.getIntOption ("msg_shadow_yoffset");
 	int msg_x = Cfg::absolutepos (
-		cfgX, XWidthOfScreen (ScreenOfDisplay (m_display, Scr)), extents.width);
+		cfgX, XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)), extents.width);
 	int msg_y = Cfg::absolutepos (
-		cfgY, XHeightOfScreen (ScreenOfDisplay (m_display, Scr)), extents.height);
+		cfgY, XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)), extents.height);
 
 	OnExpose ();
 	SlimDrawString8 (draw, &msgcolor, msgfont, msg_x, msg_y, message,
@@ -386,11 +386,11 @@ Panel::Message (const std::string &text)
 	XftDraw *draw;
 
 	if (mode == Mode_Lock)
-		draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
-							  DefaultColormap (m_display, Scr));
+		draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, m_screen),
+							  DefaultColormap (m_display, m_screen));
 	else
-		draw = XftDrawCreate (m_display, m_window_root, DefaultVisual (m_display, Scr),
-							  DefaultColormap (m_display, Scr));
+		draw = XftDrawCreate (m_display, m_window_root, DefaultVisual (m_display, m_screen),
+							  DefaultColormap (m_display, m_screen));
 
 	XftTextExtentsUtf8 (m_display, msgfont,
 						reinterpret_cast<const XftChar8 *> (text.c_str ()),
@@ -409,10 +409,10 @@ Panel::Message (const std::string &text)
 	else
 		{
 			msg_x = Cfg::absolutepos (
-				cfgX, XWidthOfScreen (ScreenOfDisplay (m_display, Scr)),
+				cfgX, XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)),
 				extents.width);
 			msg_y = Cfg::absolutepos (
-				cfgY, XHeightOfScreen (ScreenOfDisplay (m_display, Scr)),
+				cfgY, XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)),
 				extents.height);
 		}
 
@@ -558,8 +558,8 @@ Panel::EventHandler (const Panel::FieldType &curfield)
 void
 Panel::OnExpose (void)
 {
-	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
-								   DefaultColormap (m_display, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, m_screen),
+								   DefaultColormap (m_display, m_screen));
 
 	if (mode == Mode_Lock)
 		ApplyBackground ();
@@ -755,8 +755,8 @@ Panel::OnKeyPress (XEvent &event)
 		};
 
 	XGlyphInfo extents;
-	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
-								   DefaultColormap (m_display, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, m_screen),
+								   DefaultColormap (m_display, m_screen));
 
 	switch (field)
 		{
@@ -818,8 +818,8 @@ Panel::ShowText ()
 	bool singleInputMode
 		= input_name_x == input_pass_x && input_name_y == input_pass_y;
 
-	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, Scr),
-								   DefaultColormap (m_display, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, Win, DefaultVisual (m_display, m_screen),
+								   DefaultColormap (m_display, m_screen));
 	/* welcome message */
 	XftTextExtentsUtf8 (m_display, welcomefont, (XftChar8 *)welcome_message.c_str (),
 						strlen (welcome_message.c_str ()), &extents);
@@ -926,10 +926,10 @@ Panel::ShowSession ()
 	XGlyphInfo extents;
 
 	sessionfont
-		= XftFontOpenName (m_display, Scr, cfg.getOption ("session_font").c_str ());
+		= XftFontOpenName (m_display, m_screen, cfg.getOption ("session_font").c_str ());
 
-	XftDraw *draw = XftDrawCreate (m_display, m_window_root, DefaultVisual (m_display, Scr),
-								   DefaultColormap (m_display, Scr));
+	XftDraw *draw = XftDrawCreate (m_display, m_window_root, DefaultVisual (m_display, m_screen),
+								   DefaultColormap (m_display, m_screen));
 	XftTextExtentsUtf8 (
 		m_display, sessionfont,
 		reinterpret_cast<const XftChar8 *> (currsession.c_str ()),
@@ -937,9 +937,9 @@ Panel::ShowSession ()
 	msg_x = cfg.getOption ("session_x");
 	msg_y = cfg.getOption ("session_y");
 	int x = Cfg::absolutepos (
-		msg_x, XWidthOfScreen (ScreenOfDisplay (m_display, Scr)), extents.width);
+		msg_x, XWidthOfScreen (ScreenOfDisplay (m_display, m_screen)), extents.width);
 	int y = Cfg::absolutepos (
-		msg_y, XHeightOfScreen (ScreenOfDisplay (m_display, Scr)), extents.height);
+		msg_y, XHeightOfScreen (ScreenOfDisplay (m_display, m_screen)), extents.height);
 	int shadowXOffset = cfg.getIntOption ("session_shadow_xoffset");
 	int shadowYOffset = cfg.getIntOption ("session_shadow_yoffset");
 
@@ -1039,8 +1039,8 @@ Panel::GetPrimaryViewport ()
 
 	fallback.x = 0;
 	fallback.y = 0;
-	fallback.width = DisplayWidth (m_display, Scr);
-	fallback.height = DisplayHeight (m_display, Scr);
+	fallback.width = DisplayWidth (m_display, m_screen);
+	fallback.height = DisplayHeight (m_display, m_screen);
 
 	primary = XRRGetOutputPrimary (m_display, Win);
 	if (!primary)

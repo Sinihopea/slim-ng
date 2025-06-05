@@ -119,7 +119,7 @@ class Panel
 	Window Win;
 	Window m_window_root;
 	Display *m_display;
-	int Scr;
+	int m_screen;
 	int X, Y;
 	GC TextGC;
 	GC WinGC;

@@ -81,7 +81,7 @@ class App
 	/* Private data */
 	Window m_window_root;
 	Display *m_display;
-	int Scr;
+	int m_screen;
 	Panel *LoginPanel;
 	int ServerPID;
 	const char *DisplayName;
