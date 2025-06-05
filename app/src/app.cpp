@@ -132,7 +132,9 @@ CatchSignal (int sig)
 	logStream << APPNAME << ": unexpected signal " << sig << std::endl;
 
 	if (LoginApp->isServerStarted ())
+	{
 		LoginApp->StopServer ();
+	}
 
 	LoginApp->RemoveLock ();
 	exit (ERR_EXIT);
@@ -149,12 +151,14 @@ App::App (int argc, char **argv)
 #ifdef USE_PAM
 	  pam (conv, static_cast<void *> (&LoginPanel)),
 #endif
+
 	  ServerPID (-1), testing (false), serverStarted (false), mcookie (std::string (MCOOKIESIZE, 'a')),
 	  daemonmode (false), force_nodaemon (false),
+
 #ifdef USE_CONSOLEKIT
 	  consolekit_support_enabled (true),
 #endif
-	  firstlogin (true), m_display (NULL)
+	  firstlogin (true), m_display (nullptr)
 {
 	int tmp;
 	bool configLoaded = false;
@@ -168,8 +172,9 @@ App::App (int argc, char **argv)
 	{
 		switch (tmp)
 		{
-		case 'c': /* Config */
-			if (optarg == NULL)
+		/* Config */
+		case 'c':
+			if (optarg == nullptr)
 			{
 				logStream << "The -c option requires an argument" << std::endl;
 				exit (ERR_EXIT);
@@ -182,7 +187,7 @@ App::App (int argc, char **argv)
 			testtheme = optarg;
 			testing = true;
 
-			if (testtheme == NULL)
+			if (testtheme == nullptr)
 			{
 				logStream << "The -p option requires an argument" << std::endl;
 				exit (ERR_EXIT);
@@ -203,7 +208,8 @@ App::App (int argc, char **argv)
 			exit (OK_EXIT);
 			break;
 #ifdef USE_CONSOLEKIT
-		case 's': /* Disable consolekit support */
+		/* Disable consolekit support */
+		case 's':
 			consolekit_support_enabled = false;
 			break;
 #endif
@@ -727,7 +733,7 @@ App::Login ()
 			/* Grow the copy of the environment for the session cookie
 			 */
 			int n;
-			for (n = 0; child_env[n] != NULL; n++)
+			for (n = 0; child_env[n] != nullptr; n++)
 				;
 
 			n++;
@@ -735,7 +741,7 @@ App::Login ()
 			child_env = static_cast<char **> (malloc (sizeof (char *) * (n + 1)));
 			memcpy (child_env, old_env, sizeof (char *) * n);
 			child_env[n - 1] = StrConcat ("XDG_SESSION_COOKIE=", ck.get_xdg_session_cookie ());
-			child_env[n] = NULL;
+			child_env[n] = nullptr;
 		}
 #endif /* USE_CONSOLEKIT */
 #else
@@ -1003,7 +1009,7 @@ App::RestartServer ()
 	}
 	else
 	{
-		while (waitpid (-1, NULL, WNOHANG) > 0)
+		while (waitpid (-1, nullptr, WNOHANG) > 0)
 			; // Collects all dead childrens
 		Run ();
 	}
@@ -1042,7 +1048,7 @@ App::KillAllClients (Bool top)
 	XFree ((char *)children);
 
 	XSync (m_display, 0);
-	XSetErrorHandler (NULL);
+	XSetErrorHandler (nullptr);
 }
 
 int
@@ -1054,7 +1060,7 @@ App::ServerTimeout (int timeout, char *text)
 
 	while (1)
 	{
-		pidfound = waitpid (ServerPID, NULL, WNOHANG);
+		pidfound = waitpid (ServerPID, nullptr, WNOHANG);
 		if (pidfound == ServerPID)
 			break;
 		if (timeout)
@@ -1109,13 +1115,13 @@ App::StartServer ()
 
 	int argc = 1, pos = 0, i;
 	static const int MAX_XSERVER_ARGS = 256;
-	static char *server[MAX_XSERVER_ARGS + 2] = { NULL };
+	static char *server[MAX_XSERVER_ARGS + 2] = { nullptr };
 	server[0] = (char *)m_config_app.getOption ("default_xserver").c_str ();
 	std::string argOption = m_config_app.getOption ("xserver_arguments");
 
 	/* Add mandatory -xauth option */
 	argOption = argOption + " -auth " + m_config_app.getOption ("authfile");
-	char *args = new char[argOption.length () + 2]; /* NULL plus vt */
+	char *args = new char[argOption.length () + 2]; /* nullptr plus vt */
 	strcpy (args, argOption.c_str ());
 	serverStarted = false;
 	bool hasVtSet = false;
@@ -1160,7 +1166,7 @@ App::StartServer ()
 	{
 		server[argc++] = (char *)"vt07";
 	}
-	server[argc] = NULL;
+	server[argc] = nullptr;
 
 	switch (ServerPID)
 	{

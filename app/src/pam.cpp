@@ -54,7 +54,7 @@ Authenticator::~Authenticator (void)
 void
 Authenticator::start (const std::string &service)
 {
-	switch ((last_result = pam_start (service.c_str (), NULL, &pam_conversation, &pam_handle)))
+	switch ((last_result = pam_start (service.c_str (), nullptr, &pam_conversation, &pam_handle)))
 	{
 	default:
 		throw Exception (pam_handle, "pam_start()", last_result);
@@ -108,7 +108,7 @@ Authenticator::get_item (const Authenticator::ItemType item)
 		_end ();
 		throw Exception (pam_handle, "pam_get_item()", last_result);
 
-	case PAM_PERM_DENIED: /* The value of item was NULL */
+	case PAM_PERM_DENIED: /* The value of item was nullptr */
 	case PAM_SUCCESS:
 		break;
 	}

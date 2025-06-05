@@ -52,7 +52,7 @@ Panel *loginPanel;
 std::string themeName = "";
 
 pam_handle_t *pam_handle;
-struct pam_conv conv = { ConvCallback, NULL };
+struct pam_conv conv = { ConvCallback, nullptr };
 
 CARD16 dpms_standby, dpms_suspend, dpms_off, dpms_level;
 BOOL dpms_state, using_dpms;
@@ -218,7 +218,7 @@ main (int argc, char **argv)
 	cfg_passwd_timeout = cfg_passwd_timeout > 60 ? 60 : cfg_passwd_timeout;
 
 	pthread_t raise_thread;
-	pthread_create (&raise_thread, NULL, RaiseWindow, NULL);
+	pthread_create (&raise_thread, nullptr, RaiseWindow, nullptr);
 
 	// Main loop
 	while (true)
@@ -291,7 +291,7 @@ ConvCallback (int num_msgs, const struct pam_message **msg, struct pam_response 
 	loginPanel->EventHandler (Panel::Get_Passwd);
 
 	// PAM expects an array of responses, one for each message
-	if (num_msgs == 0 || (*resp = (pam_response *)calloc (num_msgs, sizeof (struct pam_message))) == NULL)
+	if (num_msgs == 0 || (*resp = (pam_response *)calloc (num_msgs, sizeof (struct pam_message))) == nullptr)
 		return PAM_BUF_ERR;
 
 	for (int i = 0; i < num_msgs; i++)
@@ -302,7 +302,7 @@ ConvCallback (int num_msgs, const struct pam_message **msg, struct pam_response 
 		// return code is currently not used but should be set to zero
 		resp[i]->resp_retcode = 0;
 
-		if ((resp[i]->resp = strdup (loginPanel->GetPasswd ().c_str ())) == NULL)
+		if ((resp[i]->resp = strdup (loginPanel->GetPasswd ().c_str ())) == nullptr)
 		{
 			free (*resp);
 			return PAM_BUF_ERR;

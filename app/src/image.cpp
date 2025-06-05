@@ -28,7 +28,7 @@ extern "C"
 #include <png.h>
 }
 
-Image::Image () : width (0), height (0), area (0), rgb_data (NULL), png_alpha (NULL), quality_ (80) {}
+Image::Image () : width (0), height (0), area (0), rgb_data (nullptr), png_alpha (nullptr), quality_ (80) {}
 
 Image::Image (const int w, const int h, const unsigned char *rgb, const unsigned char *alpha)
 	: width (w), height (h), area (w * h), quality_ (80)
@@ -40,9 +40,9 @@ Image::Image (const int w, const int h, const unsigned char *rgb, const unsigned
 	rgb_data = (unsigned char *)malloc (3 * area);
 	memcpy (rgb_data, rgb, 3 * area);
 
-	if (alpha == NULL)
+	if (alpha == nullptr)
 	{
-		png_alpha = NULL;
+		png_alpha = nullptr;
 	}
 	else
 	{
@@ -63,11 +63,13 @@ Image::Read (const char *filename)
 	char buf[4];
 	unsigned char *ubuf = (unsigned char *)buf;
 	int success = 0;
-
 	FILE *file;
 	file = fopen (filename, "rb");
-	if (file == NULL)
+
+	if (file == nullptr)
+	{
 		return (false);
+	}
 
 	/* see what kind of file we have */
 
@@ -75,14 +77,19 @@ Image::Read (const char *filename)
 	fclose (file);
 
 	if ((ubuf[0] == 0x89) && !strncmp ("PNG", buf + 1, 3))
+	{
 		success = readPng (filename, &width, &height, &rgb_data, &png_alpha);
+	}
 	else if ((ubuf[0] == 0xff) && (ubuf[1] == 0xd8))
+	{
 		success = readJpeg (filename, &width, &height, &rgb_data);
+	}
 	else
 	{
 		fprintf (stderr, "Unknown image format\n");
 		success = 0;
 	}
+
 	return (success == 1);
 }
 
@@ -90,40 +97,51 @@ void
 Image::Reduce (const int factor)
 {
 	if (factor < 1)
+	{
 		return;
+	}
 
 	int scale = 1;
+
 	for (int i = 0; i < factor; i++)
+	{
 		scale *= 2;
+	}
 
 	double scale2 = scale * scale;
-
 	int w = width / scale;
 	int h = height / scale;
 	int new_area = w * h;
-
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * new_area);
 	memset (new_rgb, 0, 3 * new_area);
+	unsigned char *new_alpha = nullptr;
 
-	unsigned char *new_alpha = NULL;
-	if (png_alpha != NULL)
+	if (png_alpha != nullptr)
 	{
 		new_alpha = (unsigned char *)malloc (new_area);
 		memset (new_alpha, 0, new_area);
 	}
 
 	int ipos = 0;
+
 	for (int j = 0; j < height; j++)
 	{
 		int js = j / scale;
+
 		for (int i = 0; i < width; i++)
 		{
 			int is = i / scale;
-			for (int k = 0; k < 3; k++)
-				new_rgb[3 * (js * w + is) + k] += static_cast<unsigned char> ((rgb_data[3 * ipos + k] + 0.5) / scale2);
 
-			if (png_alpha != NULL)
+			for (int k = 0; k < 3; k++)
+			{
+				new_rgb[3 * (js * w + is) + k] += static_cast<unsigned char> ((rgb_data[3 * ipos + k] + 0.5) / scale2);
+			}
+
+			if (png_alpha != nullptr)
+			{
 				new_alpha[js * w + is] += static_cast<unsigned char> (png_alpha[ipos] / scale2);
+			}
+
 			ipos++;
 		}
 	}
@@ -149,38 +167,45 @@ Image::Resize (const int w, const int h)
 	}
 
 	int new_area = w * h;
-
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * new_area);
-	unsigned char *new_alpha = NULL;
-	if (png_alpha != NULL)
+	unsigned char *new_alpha = nullptr;
+
+	if (png_alpha != nullptr)
+	{
 		new_alpha = (unsigned char *)malloc (new_area);
+	}
 
 	const double scale_x = ((double)w) / width;
 	const double scale_y = ((double)h) / height;
-
 	int ipos = 0;
+
 	for (int j = 0; j < h; j++)
 	{
 		const double y = j / scale_y;
+
 		for (int i = 0; i < w; i++)
 		{
 			const double x = i / scale_x;
-			if (new_alpha == NULL)
+
+			if (new_alpha == nullptr)
+			{
 				getPixel (x, y, new_rgb + 3 * ipos);
+			}
 			else
+			{
 				getPixel (x, y, new_rgb + 3 * ipos, new_alpha + ipos);
+			}
+
 			ipos++;
 		}
 	}
 
 	free (rgb_data);
 	free (png_alpha);
-
 	rgb_data = new_rgb;
 	png_alpha = new_alpha;
 	width = w;
 	height = h;
-
 	area = w * h;
 }
 
@@ -190,7 +215,7 @@ Image::Resize (const int w, const int h)
 void
 Image::getPixel (double x, double y, unsigned char *pixel)
 {
-	getPixel (x, y, pixel, NULL);
+	getPixel (x, y, pixel, nullptr);
 }
 
 void
@@ -242,7 +267,7 @@ Image::getPixel (double x, double y, unsigned char *pixel, unsigned char *alpha)
 			pixel[j] += (unsigned char)(weight[i] * pixels[i][j]);
 	}
 
-	if (alpha != NULL)
+	if (alpha != nullptr)
 	{
 		unsigned char pixels[4];
 		pixels[0] = png_alpha[iy0 * width + ix0];
@@ -276,7 +301,7 @@ Image::Merge (Image *background, const int x, const int y)
 	const unsigned char *bg_rgb = background->getRGBData ();
 
 	int ipos = 0;
-	if (png_alpha != NULL)
+	if (png_alpha != nullptr)
 	{
 		for (int j = 0; j < height; j++)
 		{
@@ -311,7 +336,7 @@ Image::Merge (Image *background, const int x, const int y)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
-	png_alpha = NULL;
+	png_alpha = nullptr;
 }
 
 /* Merge the image with a background, taking care of the
@@ -347,7 +372,7 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 			{
 				for (int k = 0; k < 3; k++)
 				{
-					if (png_alpha != NULL)
+					if (png_alpha != nullptr)
 						tmp = rgb_data[IMG_POS_RGB (pnl_pos, k)] * png_alpha[pnl_pos] / 255.0
 							  + bg_rgb[IMG_POS_RGB (bg_pos, k)] * (1 - png_alpha[pnl_pos] / 255.0);
 					else
@@ -367,7 +392,7 @@ Image::Merge_non_crop (Image *background, const int x, const int y)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
-	png_alpha = NULL;
+	png_alpha = nullptr;
 }
 
 /* Tile the image growing its size to the minimum entire
@@ -420,7 +445,7 @@ Image::Tile (const int w, const int h)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
-	png_alpha = NULL;
+	png_alpha = nullptr;
 	width = newwidth;
 	height = newheight;
 	area = width * height;
@@ -442,8 +467,8 @@ Image::Crop (const int x, const int y, const int w, const int h)
 	int y2 = y + h;
 	unsigned char *new_rgb = (unsigned char *)malloc (3 * w * h);
 	memset (new_rgb, 0, 3 * w * h);
-	unsigned char *new_alpha = NULL;
-	if (png_alpha != NULL)
+	unsigned char *new_alpha = nullptr;
+	if (png_alpha != nullptr)
 	{
 		new_alpha = (unsigned char *)malloc (w * h);
 		memset (new_alpha, 0, w * h);
@@ -462,7 +487,7 @@ Image::Crop (const int x, const int y, const int w, const int h)
 				{
 					new_rgb[3 * ipos + k] = static_cast<unsigned char> (rgb_data[3 * opos + k]);
 				}
-				if (png_alpha != NULL)
+				if (png_alpha != nullptr)
 					new_alpha[ipos] = static_cast<unsigned char> (png_alpha[opos]);
 				ipos++;
 			}
@@ -473,7 +498,7 @@ Image::Crop (const int x, const int y, const int w, const int h)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
-	if (png_alpha != NULL)
+	if (png_alpha != nullptr)
 		png_alpha = new_alpha;
 	width = w;
 	height = h;
@@ -525,7 +550,7 @@ Image::Center (const int w, const int h, const char *hex)
 		new_rgb[3 * i + 2] = b;
 	}
 
-	if (png_alpha != NULL)
+	if (png_alpha != nullptr)
 	{
 		for (int j = 0; j < h; j++)
 		{
@@ -568,7 +593,7 @@ Image::Center (const int w, const int h, const char *hex)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
-	png_alpha = NULL;
+	png_alpha = nullptr;
 	width = w;
 	height = h;
 }
@@ -601,7 +626,7 @@ Image::Plain (const int w, const int h, const char *hex)
 	free (rgb_data);
 	free (png_alpha);
 	rgb_data = new_rgb;
-	png_alpha = NULL;
+	png_alpha = nullptr;
 	width = w;
 	height = h;
 }
@@ -637,7 +662,7 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 
 	Pixmap tmp = XCreatePixmap (dpy, win, width, height, depth);
 
-	char *pixmap_data = NULL;
+	char *pixmap_data = nullptr;
 	switch (depth)
 	{
 	case 32:
@@ -758,7 +783,7 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 	}
 	}
 
-	GC gc = XCreateGC (dpy, win, 0, NULL);
+	GC gc = XCreateGC (dpy, win, 0, nullptr);
 	XPutImage (dpy, tmp, gc, ximage, 0, 0, 0, 0, width, height);
 
 	XFreeGC (dpy, gc);
@@ -767,8 +792,8 @@ Image::createPixmap (Display *dpy, int scr, Window win)
 
 	delete[] pixmap_data;
 
-	/* Set ximage data to NULL since pixmap data was deallocated above */
-	ximage->data = NULL;
+	/* Set ximage data to nullptr since pixmap data was deallocated above */
+	ximage->data = nullptr;
 	XDestroyImage (ximage);
 
 	return (tmp);
@@ -780,10 +805,10 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	int ret = 0;
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
-	unsigned char *ptr = NULL;
+	unsigned char *ptr = nullptr;
 
 	FILE *infile = fopen (filename, "rb");
-	if (infile == NULL)
+	if (infile == nullptr)
 	{
 		logStream << APPNAME << "Cannot fopen file: " << filename << std::endl;
 		return ret;
@@ -806,7 +831,7 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	*height = cinfo.output_height;
 
 	rgb[0] = (unsigned char *)malloc (3 * cinfo.output_width * cinfo.output_height);
-	if (rgb[0] == NULL)
+	if (rgb[0] == nullptr)
 	{
 		logStream << APPNAME << ": Can't allocate memory for JPEG file." << std::endl;
 		goto close_file;
@@ -824,7 +849,7 @@ Image::readJpeg (const char *filename, int *width, int *height, unsigned char **
 	else if (cinfo.output_components == 1)
 	{
 		ptr = (unsigned char *)malloc (cinfo.output_width);
-		if (ptr == NULL)
+		if (ptr == nullptr)
 		{
 			logStream << APPNAME << ": Can't allocate memory for JPEG file." << std::endl;
 			goto rgb_free;
@@ -869,19 +894,19 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	png_infop info_ptr;
 	png_bytepp row_pointers;
 
-	unsigned char *ptr = NULL;
+	unsigned char *ptr = nullptr;
 	png_uint_32 w, h;
 	int bit_depth, color_type, interlace_type;
 	int i;
 
 	FILE *infile = fopen (filename, "rb");
-	if (infile == NULL)
+	if (infile == nullptr)
 	{
 		logStream << APPNAME << "Can not fopen file: " << filename << std::endl;
 		return ret;
 	}
 
-	png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, (png_voidp)NULL, (png_error_ptr)NULL, (png_error_ptr)NULL);
+	png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, (png_voidp)nullptr, (png_error_ptr)nullptr, (png_error_ptr)nullptr);
 	if (!png_ptr)
 	{
 		goto file_close;
@@ -890,7 +915,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	info_ptr = png_create_info_struct (png_ptr);
 	if (!info_ptr)
 	{
-		png_destroy_read_struct (&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+		png_destroy_read_struct (&png_ptr, (png_infopp)nullptr, (png_infopp)nullptr);
 	}
 
 #if PNG_LIBPNG_VER_MAJOR >= 1 && PNG_LIBPNG_VER_MINOR >= 4
@@ -906,7 +931,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	png_init_io (png_ptr, infile);
 	png_read_info (png_ptr, info_ptr);
 
-	png_get_IHDR (png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, &interlace_type, (int *)NULL, (int *)NULL);
+	png_get_IHDR (png_ptr, info_ptr, &w, &h, &bit_depth, &color_type, &interlace_type, (int *)nullptr, (int *)nullptr);
 
 	/* Prevent against integer overflow */
 	if (w >= MAX_DIMENSION || h >= MAX_DIMENSION)
@@ -921,7 +946,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	if (color_type == PNG_COLOR_TYPE_RGB_ALPHA || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
 		alpha[0] = (unsigned char *)malloc (*width * *height);
-		if (alpha[0] == NULL)
+		if (alpha[0] == nullptr)
 		{
 			logStream << APPNAME
 					  << ": Can't allocate memory for alpha channel "
@@ -953,7 +978,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	png_set_packing (png_ptr);
 
 	row_pointers = (png_byte **)malloc (*height * sizeof (png_bytep));
-	if (row_pointers == NULL)
+	if (row_pointers == nullptr)
 	{
 		logStream << APPNAME << ": Can't allocate memory for PNG file." << std::endl;
 		goto png_destroy;
@@ -962,7 +987,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	for (i = 0; i < *height; i++)
 	{
 		row_pointers[i] = (png_byte *)malloc (4 * *width);
-		if (row_pointers == NULL)
+		if (row_pointers == nullptr)
 		{
 			logStream << APPNAME << ": Can't allocate memory for PNG file." << std::endl;
 			goto rows_free;
@@ -972,13 +997,13 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 	png_read_image (png_ptr, row_pointers);
 
 	rgb[0] = (unsigned char *)malloc (3 * (*width) * (*height));
-	if (rgb[0] == NULL)
+	if (rgb[0] == nullptr)
 	{
 		logStream << APPNAME << ": Can't allocate memory for PNG file." << std::endl;
 		goto rows_free;
 	}
 
-	if (alpha[0] == NULL)
+	if (alpha[0] == nullptr)
 	{
 		ptr = rgb[0];
 		for (i = 0; i < *height; i++)
@@ -1008,7 +1033,7 @@ Image::readPng (const char *filename, int *width, int *height, unsigned char **r
 rows_free:
 	for (i = 0; i < *height; i++)
 	{
-		if (row_pointers[i] != NULL)
+		if (row_pointers[i] != nullptr)
 		{
 			free (row_pointers[i]);
 		}
@@ -1017,7 +1042,7 @@ rows_free:
 	free (row_pointers);
 
 png_destroy:
-	png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)NULL);
+	png_destroy_read_struct (&png_ptr, &info_ptr, (png_infopp)nullptr);
 
 file_close:
 	fclose (infile);

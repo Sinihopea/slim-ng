@@ -416,7 +416,7 @@ Panel::GetColor (const char *colorname)
 void
 Panel::Cursor (int visible)
 {
-	const char *text = NULL;
+	const char *text = nullptr;
 	int xx = 0, yy = 0, y2 = 0, cheight = 0;
 	const char *txth = "Wj"; /* used to get cursor height */
 

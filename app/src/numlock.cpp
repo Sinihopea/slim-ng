@@ -39,7 +39,7 @@ NumLock::xkb_mask_modifier (XkbDescPtr xkb, const char *name)
 	for (i = 0; i < XkbNumVirtualMods; i++)
 	{
 		char *modStr = XGetAtomName (xkb->dpy, xkb->names->vmods[i]);
-		if (modStr != NULL && strcmp (name, modStr) == 0)
+		if (modStr != nullptr && strcmp (name, modStr) == 0)
 		{
 			unsigned int mask;
 			XkbVirtualModsToReal (xkb, 1 << i, &mask);
@@ -55,7 +55,7 @@ NumLock::xkb_numlock_mask (Display *dpy)
 	XkbDescPtr xkb;
 
 	xkb = XkbGetKeyboard (dpy, XkbAllComponentsMask, XkbUseCoreKbd);
-	if (xkb != NULL)
+	if (xkb != nullptr)
 	{
 		unsigned int mask = xkb_mask_modifier (xkb, "NumLock");
 		XkbFreeKeyboard (xkb, 0, True);

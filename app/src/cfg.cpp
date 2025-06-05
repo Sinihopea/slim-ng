@@ -355,11 +355,11 @@ Cfg::fillSessionList ()
 	{
 		DIR *pDir = opendir (strSessionDir.c_str ());
 
-		if (pDir != NULL)
+		if (pDir != nullptr)
 		{
-			struct dirent *pDirent = NULL;
+			struct dirent *pDirent = nullptr;
 
-			while ((pDirent = readdir (pDir)) != NULL)
+			while ((pDirent = readdir (pDir)) != nullptr)
 			{
 				std::string strFile (strSessionDir);
 				strFile += "/";

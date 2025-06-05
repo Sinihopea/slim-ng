@@ -57,14 +57,14 @@ Util::random (void)
 
 /*
  * Makes seed for the srandom() using "random" values obtained from
- * getpid(), time(NULL) and others.
+ * getpid(), time(nullptr) and others.
  */
 long
 Util::makeseed (void)
 {
 	struct timespec ts;
 	long pid = getpid ();
-	long tm = time (NULL);
+	long tm = time (nullptr);
 
 	if (clock_gettime (CLOCK_MONOTONIC, &ts) != 0)
 	{

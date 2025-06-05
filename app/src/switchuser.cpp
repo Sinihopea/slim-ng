@@ -45,7 +45,7 @@ void
 SwitchUser::Execute (const char *cmd)
 {
 	chdir (Pw->pw_dir);
-	execle (Pw->pw_shell, Pw->pw_shell, "-c", cmd, NULL, env);
+	execle (Pw->pw_shell, Pw->pw_shell, "-c", cmd, nullptr, env);
 	logStream << APPNAME << ": could not execute login command" << std::endl;
 }
 

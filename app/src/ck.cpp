@@ -35,7 +35,7 @@ Session::ck_connector_open_graphic_session (const std::string &display, uid_t ui
 	return ck_connector_open_session_with_parameters (ckc, &error, "unix-user", &uid, "session-type", &session_type,
 													  "x11-display", &x11_display, "x11-display-device", &x11_device,
 													  "display-device", &display_dev, "remote-host-name", &remote_host,
-													  "is-local", &local, NULL);
+													  "is-local", &local, nullptr);
 }
 
 const char *
