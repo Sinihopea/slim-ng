@@ -26,17 +26,17 @@
 class SwitchUser
 {
 public:
-	SwitchUser(
-		struct passwd * pw, Cfg & c, const std::string & display, char ** _env);
-	~SwitchUser();
-	void Login(const char * cmd, const char * mcookie);
+	SwitchUser (struct passwd * pw, Cfg & c, const std::string & display,
+		char ** _env);
+	~SwitchUser ();
+	void Login (const char * cmd, const char * mcookie);
 
 private:
-	SwitchUser();
-	void SetEnvironment();
-	void SetUserId();
-	void Execute(const char * cmd);
-	void SetClientAuth(const char * mcookie);
+	SwitchUser ();
+	void SetEnvironment ();
+	void SetUserId ();
+	void Execute (const char * cmd);
+	void SetClientAuth (const char * mcookie);
 	Cfg & cfg;
 	struct passwd * Pw;
 

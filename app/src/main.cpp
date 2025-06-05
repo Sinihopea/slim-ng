@@ -15,9 +15,10 @@
 
 App * LoginApp = 0;
 
-int main(int argc, char ** argv)
+int
+main (int argc, char ** argv)
 {
-	LoginApp = new App(argc, argv);
-	LoginApp->Run();
+	LoginApp = new App (argc, argv);
+	LoginApp->Run ();
 	return 0;
 }
