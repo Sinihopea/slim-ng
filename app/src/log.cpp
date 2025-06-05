@@ -6,13 +6,10 @@ bool
 LogUnit::openLog (const char *filename)
 {
 	if (logFile.is_open ())
-		{
-			std::cerr
-				<< APPNAME
-				<< ": opening a new Log file, while another is already open"
-				<< std::endl;
-			logFile.close ();
-		}
+	{
+		std::cerr << APPNAME << ": opening a new Log file, while another is already open" << std::endl;
+		logFile.close ();
+	}
 
 	// cerr is the default
 	if (strcmp (filename, "/dev/stderr") == 0)

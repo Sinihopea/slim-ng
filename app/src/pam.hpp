@@ -24,23 +24,20 @@ class Exception
 	int errnum;
 	std::string errstr;
 	std::string func_name;
-	Exception (pam_handle_t *_pam_handle, const std::string &_func_name,
-			   int _errnum);
+	Exception (pam_handle_t *_pam_handle, const std::string &_func_name, int _errnum);
 	virtual ~Exception (void);
 };
 
 class Auth_Exception : public Exception
 {
   public:
-	Auth_Exception (pam_handle_t *_pam_handle, const std::string &_func_name,
-					int _errnum);
+	Auth_Exception (pam_handle_t *_pam_handle, const std::string &_func_name, int _errnum);
 };
 
 class Cred_Exception : public Exception
 {
   public:
-	Cred_Exception (pam_handle_t *_pam_handle, const std::string &_func_name,
-					int _errnum);
+	Cred_Exception (pam_handle_t *_pam_handle, const std::string &_func_name, int _errnum);
 };
 
 class Authenticator
@@ -53,8 +50,8 @@ class Authenticator
 	int _end (void);
 
   public:
-	typedef int (conversation) (int num_msg, const struct pam_message **msg,
-								struct pam_response **resp, void *appdata_ptr);
+	typedef int (conversation) (int num_msg, const struct pam_message **msg, struct pam_response **resp,
+								void *appdata_ptr);
 
 	enum ItemType
 	{

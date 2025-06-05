@@ -20,14 +20,10 @@
 
 namespace Ck
 {
-Exception::Exception (const std::string &func, const std::string &errstr)
-	: func (func), errstr (errstr)
-{
-}
+Exception::Exception (const std::string &func, const std::string &errstr) : func (func), errstr (errstr) {}
 
 dbus_bool_t
-Session::ck_connector_open_graphic_session (const std::string &display,
-											uid_t uid)
+Session::ck_connector_open_graphic_session (const std::string &display, uid_t uid)
 {
 	dbus_bool_t local = true;
 	const char *session_type = "x11";
@@ -36,11 +32,10 @@ Session::ck_connector_open_graphic_session (const std::string &display,
 	const char *remote_host = "";
 	const char *display_dev = "";
 
-	return ck_connector_open_session_with_parameters (
-		ckc, &error, "unix-user", &uid, "session-type", &session_type,
-		"x11-display", &x11_display, "x11-display-device", &x11_device,
-		"display-device", &display_dev, "remote-host-name", &remote_host,
-		"is-local", &local, NULL);
+	return ck_connector_open_session_with_parameters (ckc, &error, "unix-user", &uid, "session-type", &session_type,
+													  "x11-display", &x11_display, "x11-display-device", &x11_device,
+													  "display-device", &display_dev, "remote-host-name", &remote_host,
+													  "is-local", &local, NULL);
 }
 
 const char *
@@ -69,9 +64,8 @@ Session::get_x11_device (const std::string &display)
 
 	root = DefaultRootWindow (xdisplay);
 
-	if (XGetWindowProperty (xdisplay, root, xfree86_vt_atom, 0L, 1L, false,
-							XA_INTEGER, &return_type_atom, &return_format,
-							&return_count, &bytes_left, &return_value)
+	if (XGetWindowProperty (xdisplay, root, xfree86_vt_atom, 0L, 1L, false, XA_INTEGER, &return_type_atom,
+							&return_format, &return_count, &bytes_left, &return_value)
 		!= Success)
 		throw Exception (__func__, "cannot get root window property");
 
@@ -103,19 +97,17 @@ Session::open_session (const std::string &display, uid_t uid)
 	ckc = ck_connector_new ();
 
 	if (!ckc)
-		throw Exception (__func__,
-						 "error setting up connection to ConsoleKit");
+		throw Exception (__func__, "error setting up connection to ConsoleKit");
 
 	if (!ck_connector_open_graphic_session (display, uid))
-		{
-			if (dbus_error_is_set (&error))
-				throw Exception (__func__, error.message);
-			else
-				throw Exception (
-					__func__, "cannot open ConsoleKit session: OOM,"
-							  " DBus system bus not available or insufficient"
-							  " privileges");
-		}
+	{
+		if (dbus_error_is_set (&error))
+			throw Exception (__func__, error.message);
+		else
+			throw Exception (__func__, "cannot open ConsoleKit session: OOM,"
+									   " DBus system bus not available or insufficient"
+									   " privileges");
+	}
 }
 
 const char *
@@ -128,15 +120,14 @@ void
 Session::close_session ()
 {
 	if (!ck_connector_close_session (ckc, &error))
-		{
-			if (dbus_error_is_set (&error))
-				throw Exception (__func__, error.message);
-			else
-				throw Exception (
-					__func__, "cannot close ConsoleKit session: OOM,"
-							  " DBus system bus not available or insufficient"
-							  " privileges");
-		}
+	{
+		if (dbus_error_is_set (&error))
+			throw Exception (__func__, error.message);
+		else
+			throw Exception (__func__, "cannot close ConsoleKit session: OOM,"
+									   " DBus system bus not available or insufficient"
+									   " privileges");
+	}
 }
 
 Session::Session () { dbus_error_init (&error); }

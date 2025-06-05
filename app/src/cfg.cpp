@@ -34,23 +34,20 @@ Cfg::Cfg () : currentSession (-1)
 	options.insert (option ("numlock", ""));
 	options.insert (option ("daemon", ""));
 	options.insert (option ("xauth_path", "/usr/bin/xauth"));
-	options.insert (
-		option ("login_cmd", "exec /bin/bash -login ~/.xinitrc %session"));
+	options.insert (option ("login_cmd", "exec /bin/bash -login ~/.xinitrc %session"));
 	options.insert (option ("halt_cmd", "/sbin/shutdown -h now"));
 	options.insert (option ("reboot_cmd", "/sbin/shutdown -r now"));
 	options.insert (option ("suspend_cmd", ""));
 	options.insert (option ("sessionstart_cmd", ""));
 	options.insert (option ("sessionstop_cmd", ""));
 	options.insert (option ("xsetup_script", ""));
-	options.insert (option ("console_cmd",
-							"/usr/bin/xterm -C -fg white -bg black +sb -g "
-							"%dx%d+%d+%d -fn %dx%d -T "
-							"Console login"
-							" -e /bin/sh -c "
-							"/bin/cat /etc/issue; exec /bin/login"
-							""));
-	options.insert (
-		option ("screenshot_cmd", "import -window root /slim.png"));
+	options.insert (option ("console_cmd", "/usr/bin/xterm -C -fg white -bg black +sb -g "
+										   "%dx%d+%d+%d -fn %dx%d -T "
+										   "Console login"
+										   " -e /bin/sh -c "
+										   "/bin/cat /etc/issue; exec /bin/login"
+										   ""));
+	options.insert (option ("screenshot_cmd", "import -window root /slim.png"));
 	options.insert (option ("welcome_msg", "Welcome to %host"));
 	options.insert (option ("session_msg", "Session:"));
 	options.insert (option ("default_user", ""));
@@ -73,8 +70,7 @@ Cfg::Cfg () : currentSession (-1)
 	options.insert (option ("input_panel_y", "40%"));
 	options.insert (option ("input_name_x", "200"));
 	options.insert (option ("input_name_y", "154"));
-	options.insert (
-		option ("input_pass_x", "-1")); /* default is single inputbox */
+	options.insert (option ("input_pass_x", "-1")); /* default is single inputbox */
 	options.insert (option ("input_pass_y", "-1"));
 	options.insert (option ("input_font", "Verdana:size=11"));
 	options.insert (option ("input_color", "#000000"));
@@ -138,8 +134,7 @@ Cfg::Cfg () : currentSession (-1)
 	options.insert (option ("passwd_feedback_x", "50%"));
 	options.insert (option ("passwd_feedback_y", "10%"));
 	options.insert (option ("passwd_feedback_msg", "Authentication failed"));
-	options.insert (option ("passwd_feedback_capslock",
-							"Authentication failed (CapsLock is on)"));
+	options.insert (option ("passwd_feedback_capslock", "Authentication failed (CapsLock is on)"));
 	options.insert (option ("show_username", "1"));
 	options.insert (option ("show_welcome_msg", "0"));
 	options.insert (option ("tty_lock", "1"));
@@ -163,39 +158,39 @@ Cfg::readConf (std::string configfile)
 	std::ifstream cfgfile (fn.c_str ());
 
 	if (!cfgfile)
-		{
-			error = "Cannot read configuration file: " + configfile;
-			return false;
-		}
+	{
+		error = "Cannot read configuration file: " + configfile;
+		return false;
+	}
 	while (getline (cfgfile, line))
+	{
+		if ((pos = line.find ('\\')) != std::string::npos)
 		{
-			if ((pos = line.find ('\\')) != std::string::npos)
-				{
-					if (line.length () == pos + 1)
-						{
-							line.replace (pos, 1, " ");
-							next = next + line;
-							continue;
-						}
-					else
-						line.replace (pos, line.length () - pos, " ");
-				}
-
-			if (!next.empty ())
-				{
-					line = next + line;
-					next = "";
-				}
-			it = options.begin ();
-			while (it != options.end ())
-				{
-					op = it->first;
-					n = line.find (op);
-					if (n == 0)
-						options[op] = parseOption (line, op);
-					++it;
-				}
+			if (line.length () == pos + 1)
+			{
+				line.replace (pos, 1, " ");
+				next = next + line;
+				continue;
+			}
+			else
+				line.replace (pos, line.length () - pos, " ");
 		}
+
+		if (!next.empty ())
+		{
+			line = next + line;
+			next = "";
+		}
+		it = options.begin ();
+		while (it != options.end ())
+		{
+			op = it->first;
+			n = line.find (op);
+			if (n == 0)
+				options[op] = parseOption (line, op);
+			++it;
+		}
+	}
 	cfgfile.close ();
 
 	fillSessionList ();
@@ -227,26 +222,26 @@ std::string
 Cfg::Trim (const std::string &s)
 {
 	if (s.empty ())
-		{
-			return s;
-		}
+	{
+		return s;
+	}
 	int pos = 0;
 	std::string line = s;
 	int len = line.length ();
 	while (pos < len && isspace (line[pos]))
-		{
-			++pos;
-		}
+	{
+		++pos;
+	}
 	line.erase (0, pos);
 	pos = line.length () - 1;
 	while (pos > -1 && isspace (line[pos]))
-		{
-			--pos;
-		}
+	{
+		--pos;
+	}
 	if (pos != -1)
-		{
-			line.erase (pos + 1);
-		}
+	{
+		line.erase (pos + 1);
+	}
 	return line;
 }
 
@@ -257,25 +252,25 @@ Cfg::getWelcomeMessage ()
 	std::string s = getOption ("welcome_msg");
 	int n = s.find ("%host");
 	if (n >= 0)
-		{
-			std::string tmp = s.substr (0, n);
-			char host[40];
-			gethostname (host, 40);
-			tmp = tmp + host;
-			tmp = tmp + s.substr (n + 5, s.size () - n);
-			s = tmp;
-		}
+	{
+		std::string tmp = s.substr (0, n);
+		char host[40];
+		gethostname (host, 40);
+		tmp = tmp + host;
+		tmp = tmp + s.substr (n + 5, s.size () - n);
+		s = tmp;
+	}
 	n = s.find ("%domain");
 	if (n >= 0)
-		{
-			std::string tmp = s.substr (0, n);
-			;
-			char domain[40];
-			getdomainname (domain, 40);
-			tmp = tmp + domain;
-			tmp = tmp + s.substr (n + 7, s.size () - n);
-			s = tmp;
-		}
+	{
+		std::string tmp = s.substr (0, n);
+		;
+		char domain[40];
+		getdomainname (domain, 40);
+		tmp = tmp + domain;
+		tmp = tmp + s.substr (n + 7, s.size () - n);
+		s = tmp;
+	}
 	return s;
 }
 
@@ -285,9 +280,9 @@ Cfg::string2int (const char *string, bool *ok)
 	char *err = 0;
 	int l = (int)strtol (string, &err, 10);
 	if (ok)
-		{
-			*ok = (*err == 0);
-		}
+	{
+		*ok = (*err == 0);
+	}
 	return (*err == 0) ? l : 0;
 }
 
@@ -302,48 +297,51 @@ int
 Cfg::absolutepos (const std::string &position, int max, int width)
 {
 	int n = position.find ("%");
+
 	if (n > 0)
-		{ /* X Position expressed in percentage */
-			int result
-				= (max * string2int (position.substr (0, n).c_str ()) / 100)
-				  - (width / 2);
-			return result < 0 ? 0 : result;
-		}
+	{ /* X Position expressed in percentage */
+		int result = (max * string2int (position.substr (0, n).c_str ()) / 100) - (width / 2);
+		return result < 0 ? 0 : result;
+	}
 	else
-		{ /* Absolute X position */
-			return string2int (position.c_str ());
-		}
+	{ /* Absolute X position */
+		return string2int (position.c_str ());
+	}
 }
 
 /* split a comma separated string into a vector of strings */
 void
-Cfg::split (std::vector<std::string> &v, const std::string &str, char c,
-			bool useEmpty)
+Cfg::split (std::vector<std::string> &v, const std::string &str, char c, bool useEmpty)
 {
 	v.clear ();
 	std::string::const_iterator s = str.begin ();
 	std::string tmp;
+
 	while (true)
+	{
+		std::string::const_iterator begin = s;
+
+		while (*s != c && s != str.end ())
 		{
-			std::string::const_iterator begin = s;
-			while (*s != c && s != str.end ())
-				{
-					++s;
-				}
-			tmp = std::string (begin, s);
-			if (useEmpty || tmp.size () > 0)
-				v.push_back (tmp);
-			if (s == str.end ())
-				{
-					break;
-				}
-			if (++s == str.end ())
-				{
-					if (useEmpty)
-						v.push_back ("");
-					break;
-				}
+			++s;
 		}
+		tmp = std::string (begin, s);
+
+		if (useEmpty || tmp.size () > 0)
+			v.push_back (tmp);
+
+		if (s == str.end ())
+		{
+			break;
+		}
+
+		if (++s == str.end ())
+		{
+			if (useEmpty)
+				v.push_back ("");
+			break;
+		}
+	}
 }
 
 void
@@ -351,134 +349,92 @@ Cfg::fillSessionList ()
 {
 	std::string strSessionList = getOption ("sessions");
 	std::string strSessionDir = getOption ("sessiondir");
-
 	sessions.clear ();
 
 	if (!strSessionDir.empty ())
+	{
+		DIR *pDir = opendir (strSessionDir.c_str ());
+
+		if (pDir != NULL)
 		{
-			DIR *pDir = opendir (strSessionDir.c_str ());
+			struct dirent *pDirent = NULL;
 
-			if (pDir != NULL)
+			while ((pDirent = readdir (pDir)) != NULL)
+			{
+				std::string strFile (strSessionDir);
+				strFile += "/";
+				strFile += pDirent->d_name;
+
+				struct stat oFileStat;
+
+				if (stat (strFile.c_str (), &oFileStat) == 0)
 				{
-					struct dirent *pDirent = NULL;
-
-					while ((pDirent = readdir (pDir)) != NULL)
+					if (S_ISREG (oFileStat.st_mode) && access (strFile.c_str (), R_OK) == 0)
+					{
+						std::ifstream desktop_file (strFile.c_str ());
+						if (desktop_file)
 						{
-							std::string strFile (strSessionDir);
-							strFile += "/";
-							strFile += pDirent->d_name;
-
-							struct stat oFileStat;
-
-							if (stat (strFile.c_str (), &oFileStat) == 0)
+							std::string line, session_name = "", session_exec = "";
+							while (getline (desktop_file, line))
+							{
+								if (line.substr (0, 5) == "Name=")
 								{
-									if (S_ISREG (oFileStat.st_mode)
-										&& access (strFile.c_str (), R_OK)
-											   == 0)
-										{
-											std::ifstream desktop_file (
-												strFile.c_str ());
-											if (desktop_file)
-												{
-													std::string line,
-														session_name = "",
-														session_exec = "";
-													while (getline (
-														desktop_file, line))
-														{
-															if (line.substr (0,
-																			 5)
-																== "Name=")
-																{
-																	session_name
-																		= line.substr (
-																			5);
-																	if (!session_exec
-																			 .empty ())
-																		break;
-																}
-															else if (
-																line.substr (0,
-																			 5)
-																== "Exec=")
-																{
-																	session_exec
-																		= line.substr (
-																			5);
-																	if (!session_name
-																			 .empty ())
-																		break;
-																}
-														}
-													desktop_file.close ();
-													if (!session_name.empty ()
-														&& !session_exec
-																.empty ())
-														{
-															std::pair<
-																std::string,
-																std::string>
-																session (
-																	session_name,
-																	session_exec);
-															sessions
-																.push_back (
-																	session);
-														}
-													else if (access (
-																 strFile
-																	 .c_str (),
-																 X_OK)
-															 == 0)
-														{
-															std::pair<
-																std::string,
-																std::string>
-																session (
-																	std::string (
-																		pDirent
-																			->d_name),
-																	strFile);
-															sessions
-																.push_back (
-																	session);
-														}
-												}
-										}
+									session_name = line.substr (5);
+									if (!session_exec.empty ())
+										break;
 								}
+								else if (line.substr (0, 5) == "Exec=")
+								{
+									session_exec = line.substr (5);
+									if (!session_name.empty ())
+										break;
+								}
+							}
+
+							desktop_file.close ();
+
+							if (!session_name.empty () && !session_exec.empty ())
+							{
+								std::pair<std::string, std::string> session (session_name, session_exec);
+								sessions.push_back (session);
+							}
+							else if (access (strFile.c_str (), X_OK) == 0)
+							{
+								std::pair<std::string, std::string> session (std::string (pDirent->d_name), strFile);
+								sessions.push_back (session);
+							}
 						}
-					closedir (pDir);
+					}
 				}
+			}
+			closedir (pDir);
 		}
+	}
 
 	std::sort (sessions.begin (), sessions.end (),
-			   [] (std::pair<std::string, std::string> &a,
-				   std::pair<std::string, std::string> &b) -> bool {
-				   return a.first < b.first;
-			   });
+			   [] (std::pair<std::string, std::string> &a, std::pair<std::string, std::string> &b) -> bool
+			   { return a.first < b.first; });
 
 	if (sessions.empty ())
+	{
+		if (strSessionList.empty ())
 		{
-			if (strSessionList.empty ())
-				{
-					std::pair<std::string, std::string> session ("", "");
-					sessions.push_back (session);
-				}
-			else
-				{
-					// iterate through the split of the session list
-					std::vector<std::string> sessit;
-					split (sessit, strSessionList, ',', false);
-					for (std::vector<std::string>::iterator it
-						 = sessit.begin ();
-						 it != sessit.end (); ++it)
-						{
-							std::pair<std::string, std::string> session (*it,
-																		 *it);
-							sessions.push_back (session);
-						}
-				}
+			std::pair<std::string, std::string> session ("", "");
+			sessions.push_back (session);
 		}
+		else
+		{
+			// iterate through the split of the session list
+			std::vector<std::string> sessit;
+			split (sessit, strSessionList, ',', false);
+
+			for (std::vector<std::string>::iterator it = sessit.begin (); it != sessit.end (); ++it)
+			{
+				std::pair<std::string, std::string> session (*it, *it);
+				sessions.push_back (session);
+			}
+		}
+	}
 }
 
 std::pair<std::string, std::string>

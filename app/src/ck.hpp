@@ -32,8 +32,7 @@ class Session
 	DBusError error;
 
 	const char *get_x11_device (const std::string &display);
-	dbus_bool_t ck_connector_open_graphic_session (const std::string &display,
-												   uid_t uid);
+	dbus_bool_t ck_connector_open_graphic_session (const std::string &display, uid_t uid);
 
   public:
 	const char *get_xdg_session_cookie ();

@@ -35,10 +35,10 @@ read_jpeg (const char *filename, int *width, int *height, unsigned char **rgb)
 
 	FILE *infile = fopen (filename, "rb");
 	if (infile == NULL)
-		{
-			fprintf (stderr, "Can not fopen file: %s\n", filename);
-			return ret;
-		}
+	{
+		fprintf (stderr, "Can not fopen file: %s\n", filename);
+		return ret;
+	}
 
 	cinfo.err = jpeg_std_error (&jerr);
 	jpeg_create_decompress (&cinfo);
@@ -47,56 +47,54 @@ read_jpeg (const char *filename, int *width, int *height, unsigned char **rgb)
 	jpeg_start_decompress (&cinfo);
 
 	/* Prevent against integer overflow */
-	if (cinfo.output_width >= MAX_DIMENSION
-		|| cinfo.output_height >= MAX_DIMENSION)
-		{
-			fprintf (stderr, "Unreasonable dimension found in file: %s\n",
-					 filename);
-			goto close_file;
-		}
+	if (cinfo.output_width >= MAX_DIMENSION || cinfo.output_height >= MAX_DIMENSION)
+	{
+		fprintf (stderr, "Unreasonable dimension found in file: %s\n", filename);
+		goto close_file;
+	}
 
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
 
 	rgb[0] = malloc (3 * cinfo.output_width * cinfo.output_height);
 	if (rgb[0] == NULL)
-		{
-			fprintf (stderr, "Can't allocate memory for JPEG file.\n");
-			goto close_file;
-		}
+	{
+		fprintf (stderr, "Can't allocate memory for JPEG file.\n");
+		goto close_file;
+	}
 
 	if (cinfo.output_components == 3)
+	{
+		ptr = rgb[0];
+		while (cinfo.output_scanline < cinfo.output_height)
 		{
-			ptr = rgb[0];
-			while (cinfo.output_scanline < cinfo.output_height)
-				{
-					jpeg_read_scanlines (&cinfo, &ptr, 1);
-					ptr += 3 * cinfo.output_width;
-				}
+			jpeg_read_scanlines (&cinfo, &ptr, 1);
+			ptr += 3 * cinfo.output_width;
 		}
+	}
 	else if (cinfo.output_components == 1)
+	{
+		ptr = malloc (cinfo.output_width);
+		if (ptr == NULL)
 		{
-			ptr = malloc (cinfo.output_width);
-			if (ptr == NULL)
-				{
-					fprintf (stderr, "Can't allocate memory for JPEG file.\n");
-					goto rgb_free;
-				}
-
-			ipos = 0;
-			while (cinfo.output_scanline < cinfo.output_height)
-				{
-					jpeg_read_scanlines (&cinfo, &ptr, 1);
-
-					for (i = 0; i < cinfo.output_width; i++)
-						{
-							memset (rgb[0] + ipos, ptr[i], 3);
-							ipos += 3;
-						}
-				}
-
-			free (ptr);
+			fprintf (stderr, "Can't allocate memory for JPEG file.\n");
+			goto rgb_free;
 		}
+
+		ipos = 0;
+		while (cinfo.output_scanline < cinfo.output_height)
+		{
+			jpeg_read_scanlines (&cinfo, &ptr, 1);
+
+			for (i = 0; i < cinfo.output_width; i++)
+			{
+				memset (rgb[0] + ipos, ptr[i], 3);
+				ipos += 3;
+			}
+		}
+
+		free (ptr);
+	}
 
 	jpeg_finish_decompress (&cinfo);
 

@@ -15,9 +15,8 @@
 #include "switchuser.hpp"
 #include "util.hpp"
 
-SwitchUser::SwitchUser (struct passwd *pw, Cfg &c, const std::string &display,
-						char **_env)
-	: cfg (c), Pw (pw), displayName (display), env (_env)
+SwitchUser::SwitchUser (struct passwd *pw, Cfg &c, const std::string &display, char **_env)
+	: m_config_switchuser (c), Pw (pw), displayName (display), env (_env)
 {
 }
 
@@ -34,12 +33,12 @@ SwitchUser::Login (const char *cmd, const char *mcookie)
 void
 SwitchUser::SetUserId ()
 {
-	if ((Pw == 0) || (initgroups (Pw->pw_name, Pw->pw_gid) != 0)
-		|| (setgid (Pw->pw_gid) != 0) || (setuid (Pw->pw_uid) != 0))
-		{
-			logStream << APPNAME << ": could not switch user id" << std::endl;
-			exit (ERR_EXIT);
-		}
+	if ((Pw == 0) || (initgroups (Pw->pw_name, Pw->pw_gid) != 0) || (setgid (Pw->pw_gid) != 0)
+		|| (setuid (Pw->pw_uid) != 0))
+	{
+		logStream << APPNAME << ": could not switch user id" << std::endl;
+		exit (ERR_EXIT);
+	}
 }
 
 void
@@ -56,5 +55,5 @@ SwitchUser::SetClientAuth (const char *mcookie)
 	std::string home = std::string (Pw->pw_dir);
 	std::string authfile = home + "/.Xauthority";
 	remove (authfile.c_str ());
-	Util::add_mcookie (mcookie, ":0", cfg.getOption ("xauth_path"), authfile);
+	Util::add_mcookie (mcookie, ":0", m_config_switchuser.getOption ("xauth_path"), authfile);
 }

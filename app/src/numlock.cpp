@@ -26,8 +26,7 @@ NumLock::xkb_init (Display *dpy)
 	int xkb_lmin = XkbMinorVersion;
 
 	return XkbLibraryVersion (&xkb_lmaj, &xkb_lmin)
-		   && XkbQueryExtension (dpy, &xkb_opcode, &xkb_event, &xkb_error,
-								 &xkb_lmaj, &xkb_lmin);
+		   && XkbQueryExtension (dpy, &xkb_opcode, &xkb_event, &xkb_error, &xkb_lmaj, &xkb_lmin);
 }
 
 unsigned int
@@ -38,15 +37,15 @@ NumLock::xkb_mask_modifier (XkbDescPtr xkb, const char *name)
 		return 0;
 
 	for (i = 0; i < XkbNumVirtualMods; i++)
+	{
+		char *modStr = XGetAtomName (xkb->dpy, xkb->names->vmods[i]);
+		if (modStr != NULL && strcmp (name, modStr) == 0)
 		{
-			char *modStr = XGetAtomName (xkb->dpy, xkb->names->vmods[i]);
-			if (modStr != NULL && strcmp (name, modStr) == 0)
-				{
-					unsigned int mask;
-					XkbVirtualModsToReal (xkb, 1 << i, &mask);
-					return mask;
-				}
+			unsigned int mask;
+			XkbVirtualModsToReal (xkb, 1 << i, &mask);
+			return mask;
 		}
+	}
 	return 0;
 }
 
@@ -57,11 +56,11 @@ NumLock::xkb_numlock_mask (Display *dpy)
 
 	xkb = XkbGetKeyboard (dpy, XkbAllComponentsMask, XkbUseCoreKbd);
 	if (xkb != NULL)
-		{
-			unsigned int mask = xkb_mask_modifier (xkb, "NumLock");
-			XkbFreeKeyboard (xkb, 0, True);
-			return mask;
-		}
+	{
+		unsigned int mask = xkb_mask_modifier (xkb, "NumLock");
+		XkbFreeKeyboard (xkb, 0, True);
+		return mask;
+	}
 	return 0;
 }
 

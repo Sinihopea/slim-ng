@@ -70,8 +70,7 @@ class App
 	bool AuthenticateUser (bool focuspass);
 
 	std::string findValidRandomTheme (const std::string &set);
-	static void replaceVariables (std::string &input, const std::string &var,
-								  const std::string &value);
+	static void replaceVariables (std::string &input, const std::string &var, const std::string &value);
 
 	/* Server functions */
 	int StartServer ();
@@ -99,7 +98,7 @@ class App
 	/* Options */
 	char *DispName;
 
-	Cfg cfg;
+	Cfg m_config_app;
 
 	Pixmap BackgroundPixmap;
 
