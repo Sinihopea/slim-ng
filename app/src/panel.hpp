@@ -28,9 +28,9 @@
 #include <libgen.h>
 #endif
 
-#include "image.h"
-#include "log.h"
-#include "switchuser.h"
+#include "image.hpp"
+#include "log.hpp"
+#include "switchuser.hpp"
 
 struct Rectangle {
 	int x;

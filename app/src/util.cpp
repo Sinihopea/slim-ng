@@ -15,7 +15,7 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "util.h"
+#include "util.hpp"
 
 /*
  * Adds the given cookie to the specified Xauthority file.

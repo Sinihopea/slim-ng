@@ -21,7 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "const.h"
+#include "const.hpp"
 #include <jpeglib.h>
 
 int

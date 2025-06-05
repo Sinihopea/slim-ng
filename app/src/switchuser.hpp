@@ -12,8 +12,8 @@
 #ifndef _SWITCHUSER_H_
 #define _SWITCHUSER_H_
 
-#include "cfg.h"
-#include "log.h"
+#include "cfg.hpp"
+#include "log.hpp"
 #include <cstdio>
 #include <grp.h>
 #include <iostream>

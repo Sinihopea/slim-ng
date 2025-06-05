@@ -2,12 +2,12 @@
 #define _LOG_H_
 
 #ifdef USE_CONSOLEKIT
-#include "Ck.h"
+#include "ck.hpp"
 #endif
 #ifdef USE_PAM
-#include "PAM.h"
+#include "pam.hpp"
 #endif
-#include "const.h"
+#include "const.hpp"
 #include <fstream>
 #include <iostream>
 

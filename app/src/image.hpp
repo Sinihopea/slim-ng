@@ -15,7 +15,7 @@
 #ifndef _IMAGE_H_
 #define _IMAGE_H_
 
-#include "log.h"
+#include "log.hpp"
 #include <X11/Xlib.h>
 #include <X11/Xmu/WinUtil.h>
 

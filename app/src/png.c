@@ -21,7 +21,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "const.h"
+#include "const.hpp"
 #include <png.h>
 #include <string.h>
 #include <sys/socket.h>

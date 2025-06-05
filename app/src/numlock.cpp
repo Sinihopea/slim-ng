@@ -13,7 +13,7 @@
  * the original Copyright information.
  */
 
-#include "numlock.h"
+#include "numlock.hpp"
 #include <string.h>
 
 NumLock::NumLock () {}

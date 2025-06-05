@@ -23,9 +23,9 @@
 #include <unistd.h>
 #include <vector>
 
-#include "app.h"
-#include "numlock.h"
-#include "util.h"
+#include "app.hpp"
+#include "numlock.hpp"
+#include "util.hpp"
 
 #ifdef HAVE_SHADOW
 #include <shadow.h>
@@ -88,8 +88,11 @@ conv (int num_msg, const struct pam_message ** msg,
 
 		case PAM_ERROR_MSG:
 		case PAM_TEXT_INFO:
-			/* We simply write these to the log
-			   TODO: Maybe we should simply ignore them */
+			/**
+			 * We simply write these to the log
+			 *
+			 * @TODO: Maybe we should simply ignore them
+			 */
 			logStream << APPNAME << ": " << msg[i]->msg << endl;
 			break;
 		}
@@ -155,8 +158,11 @@ App::App (int argc, char ** argv)
 	int tmp;
 	bool configLoaded = false;
 
-	/* Parse command line
-	   Note: we force a option for nodaemon switch to handle "-nodaemon" */
+	/**
+	 * Parse command line
+	 *
+	 * @note: we force a option for nodaemon switch to handle "-nodaemon"
+	 */
 	while ((tmp = getopt (argc, argv, "c:p:ndsh?")) != EOF) {
 		switch (tmp) {
 		case 'c': /* Config */
@@ -167,22 +173,27 @@ App::App (int argc, char ** argv)
 			cfg.readConf (optarg);
 			configLoaded = true;
 			break;
-		case 'p': /* Test theme */
+			/* Test theme */
+		case 'p':
 			testtheme = optarg;
 			testing = true;
+
 			if (testtheme == NULL) {
 				logStream << "The -p option requires an argument" << endl;
 				exit (ERR_EXIT);
 			}
 			break;
-		case 'd': /* Daemon mode */
+		/* Daemon mode */
+		case 'd':
 			daemonmode = true;
 			break;
-		case 'n': /* Daemon mode */
+		/* Daemon mode */
+		case 'n':
 			daemonmode = false;
 			force_nodaemon = true;
 			break;
-		case 'v': /* Version */
+		/* Version */
+		case 'v':
 			std::cout << APPNAME << " version " << VERSION << endl;
 			exit (OK_EXIT);
 			break;

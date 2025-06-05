@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#include "app.h"
-#include "const.h"
+#include "app.hpp"
+#include "const.hpp"
 
 App * LoginApp = 0;
 

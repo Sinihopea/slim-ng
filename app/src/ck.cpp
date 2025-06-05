@@ -16,7 +16,7 @@
 #include <ck-connector.h>
 #include <stdarg.h>
 
-#include "Ck.h"
+#include "ck.hpp"
 
 namespace Ck
 {

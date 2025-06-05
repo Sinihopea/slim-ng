@@ -22,7 +22,7 @@
 
 using namespace std;
 
-#include "image.h"
+#include "image.hpp"
 
 extern "C" {
 #include <jpeglib.h>

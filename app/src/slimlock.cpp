@@ -27,9 +27,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "cfg.h"
-#include "panel.h"
-#include "util.h"
+#include "cfg.hpp"
+#include "panel.hpp"
+#include "util.hpp"
 
 #undef APPNAME
 #define APPNAME "slimlock"

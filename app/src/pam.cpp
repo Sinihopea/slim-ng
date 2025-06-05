@@ -8,7 +8,7 @@
  * (at your option) any later version.
  */
 
-#include "PAM.h"
+#include "pam.hpp"
 #include <iostream>
 #include <string>
 

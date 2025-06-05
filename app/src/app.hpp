@@ -13,9 +13,9 @@
 #ifndef _APP_H_
 #define _APP_H_
 
-#include "cfg.h"
-#include "image.h"
-#include "panel.h"
+#include "cfg.hpp"
+#include "image.hpp"
+#include "panel.hpp"
 #include <X11/Xatom.h>
 #include <X11/Xlib.h>
 #include <errno.h>
@@ -27,10 +27,10 @@
 #include <unistd.h>
 
 #ifdef USE_PAM
-#include "PAM.h"
+#include "pam.hpp"
 #endif
 #ifdef USE_CONSOLEKIT
-#include "Ck.h"
+#include "ck.hpp"
 #endif
 
 #define MCOOKIESIZE 32

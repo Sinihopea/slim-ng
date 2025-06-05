@@ -10,7 +10,7 @@
  * (at your option) any later version.
  */
 
-#include "panel.h"
+#include "panel.hpp"
 #include <X11/extensions/Xrandr.h>
 #include <libgen.h>
 #include <poll.h>

@@ -21,7 +21,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "cfg.h"
+#include "cfg.hpp"
 
 using namespace std;
 

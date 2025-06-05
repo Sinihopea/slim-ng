@@ -10,8 +10,8 @@
  * (at your option) any later version.
  */
 
-#include "switchuser.h"
-#include "util.h"
+#include "switchuser.hpp"
+#include "util.hpp"
 #include <cstdio>
 
 using namespace std;
