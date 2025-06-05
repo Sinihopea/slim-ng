@@ -20,15 +20,15 @@ static class LogUnit
 		return logFile.is_open () ? logFile : std::cerr;
 	}
 
-public:
-	bool openLog (const char * filename);
+  public:
+	bool openLog (const char *filename);
 	void closeLog ();
 
 	~LogUnit () { closeLog (); }
 
 	template <typename Type>
 	LogUnit &
-	operator<< (const Type & text)
+	operator<< (const Type &text)
 	{
 		getStream () << text;
 		getStream ().flush ();
@@ -36,7 +36,7 @@ public:
 	}
 
 	LogUnit &
-	operator<< (std::ostream & (*fp) (std::ostream &))
+	operator<< (std::ostream &(*fp) (std::ostream &))
 	{
 		getStream () << fp;
 		getStream ().flush ();
@@ -44,7 +44,7 @@ public:
 	}
 
 	LogUnit &
-	operator<< (std::ios_base & (*fp) (std::ios_base &))
+	operator<< (std::ios_base &(*fp) (std::ios_base &))
 	{
 		getStream () << fp;
 		getStream ().flush ();

@@ -32,7 +32,8 @@
 #include "log.hpp"
 #include "switchuser.hpp"
 
-struct Rectangle {
+struct Rectangle
+{
 	int x;
 	int y;
 	unsigned int width;
@@ -50,76 +51,93 @@ struct Rectangle {
 
 class Panel
 {
-public:
-	enum ActionType { Login, Lock, Console, Reboot, Halt, Exit, Suspend };
+  public:
+	enum ActionType
+	{
+		Login,
+		Lock,
+		Console,
+		Reboot,
+		Halt,
+		Exit,
+		Suspend
+	};
 
-	enum FieldType { Get_Name, Get_Passwd };
+	enum FieldType
+	{
+		Get_Name,
+		Get_Passwd
+	};
 
-	enum PanelType { Mode_DM, Mode_Lock };
+	enum PanelType
+	{
+		Mode_DM,
+		Mode_Lock
+	};
 
-	Panel (Display * dpy, int scr, Window root, Cfg & config,
-		const std::string & themed, PanelType panel_mode);
+	Panel (Display *dpy, int scr, Window root, Cfg &config,
+		   const std::string &themed, PanelType panel_mode);
 	~Panel ();
 	void OpenPanel ();
 	void ClosePanel ();
 	void ClearPanel ();
 	void WrongPassword (int timeout);
-	void Message (const std::string & text);
-	void Error (const std::string & text);
-	void EventHandler (const FieldType & curfield);
+	void Message (const std::string &text);
+	void Error (const std::string &text);
+	void EventHandler (const FieldType &curfield);
 	std::string getSession ();
 	ActionType getAction (void) const;
 
 	void Reset (void);
 	void ResetName (void);
 	void ResetPasswd (void);
-	void SetName (const std::string & name);
-	const std::string & GetName (void) const;
-	const std::string & GetPasswd (void) const;
+	void SetName (const std::string &name);
+	const std::string &GetName (void) const;
+	const std::string &GetPasswd (void) const;
 	void SwitchSession ();
 
-private:
+  private:
 	Panel ();
 	void Cursor (int visible);
-	unsigned long GetColor (const char * colorname);
+	unsigned long GetColor (const char *colorname);
 	void OnExpose (void);
-	void EraseLastChar (std::string & formerString);
-	bool OnKeyPress (XEvent & event);
+	void EraseLastChar (std::string &formerString);
+	bool OnKeyPress (XEvent &event);
 	void ShowText ();
 	void ShowSession ();
 
-	void SlimDrawString8 (XftDraw * d, XftColor * color, XftFont * font, int x,
-		int y, const std::string & str, XftColor * shadowColor, int xOffset,
-		int yOffset);
+	void SlimDrawString8 (XftDraw *d, XftColor *color, XftFont *font, int x,
+						  int y, const std::string &str, XftColor *shadowColor,
+						  int xOffset, int yOffset);
 
 	Rectangle GetPrimaryViewport ();
 	void ApplyBackground (Rectangle = Rectangle ());
 
 	/* Private data */
 	PanelType mode; /* work mode */
-	Cfg & cfg;
+	Cfg &cfg;
 	Window Win;
 	Window Root;
-	Display * Dpy;
+	Display *Dpy;
 	int Scr;
 	int X, Y;
 	GC TextGC;
 	GC WinGC;
-	XftFont * font;
+	XftFont *font;
 	XftColor inputshadowcolor;
 	XftColor inputcolor;
 	XftColor msgcolor;
 	XftColor msgshadowcolor;
-	XftFont * msgfont;
+	XftFont *msgfont;
 	XftColor introcolor;
-	XftFont * introfont;
-	XftFont * welcomefont;
+	XftFont *introfont;
+	XftFont *welcomefont;
 	XftColor welcomecolor;
-	XftFont * sessionfont;
+	XftFont *sessionfont;
 	XftColor sessioncolor;
 	XftColor sessionshadowcolor;
 	XftColor welcomeshadowcolor;
-	XftFont * enterfont;
+	XftFont *enterfont;
 	XftColor entercolor;
 	XftColor entershadowcolor;
 	ActionType action;
@@ -162,7 +180,7 @@ private:
 	/* Pixmap data */
 	Pixmap PanelPixmap;
 
-	Image * image;
+	Image *image;
 
 	/* For thesting themes */
 	bool testing;

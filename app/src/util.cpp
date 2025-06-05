@@ -22,10 +22,10 @@
  * Returns true on success, false on fault.
  */
 bool
-Util::add_mcookie (const std::string & mcookie, const char * display,
-	const std::string & xauth_cmd, const std::string & authfile)
+Util::add_mcookie (const std::string &mcookie, const char *display,
+				   const std::string &xauth_cmd, const std::string &authfile)
 {
-	FILE * fp;
+	FILE *fp;
 	std::string cmd = xauth_cmd + " -f " + authfile + " -q";
 
 	fp = popen (cmd.c_str (), "w");
@@ -66,9 +66,10 @@ Util::makeseed (void)
 	long pid = getpid ();
 	long tm = time (NULL);
 
-	if (clock_gettime (CLOCK_MONOTONIC, &ts) != 0) {
-		ts.tv_sec = ts.tv_nsec = 0;
-	}
+	if (clock_gettime (CLOCK_MONOTONIC, &ts) != 0)
+		{
+			ts.tv_sec = ts.tv_nsec = 0;
+		}
 
 	return pid + tm + (ts.tv_sec ^ ts.tv_nsec);
 }

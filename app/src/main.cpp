@@ -13,10 +13,10 @@
 #include "app.hpp"
 #include "const.hpp"
 
-App * LoginApp = 0;
+App *LoginApp = 0;
 
 int
-main (int argc, char ** argv)
+main (int argc, char **argv)
 {
 	LoginApp = new App (argc, argv);
 	LoginApp->Run ();

@@ -10,13 +10,13 @@
  * (at your option) any later version.
  */
 
- #include <cstdio>
+#include <cstdio>
 
 #include "switchuser.hpp"
 #include "util.hpp"
 
-SwitchUser::SwitchUser (
-	struct passwd * pw, Cfg & c, const std::string & display, char ** _env)
+SwitchUser::SwitchUser (struct passwd *pw, Cfg &c, const std::string &display,
+						char **_env)
 	: cfg (c), Pw (pw), displayName (display), env (_env)
 {
 }
@@ -24,7 +24,7 @@ SwitchUser::SwitchUser (
 SwitchUser::~SwitchUser () { /* Never called */ }
 
 void
-SwitchUser::Login (const char * cmd, const char * mcookie)
+SwitchUser::Login (const char *cmd, const char *mcookie)
 {
 	SetUserId ();
 	SetClientAuth (mcookie);
@@ -35,14 +35,15 @@ void
 SwitchUser::SetUserId ()
 {
 	if ((Pw == 0) || (initgroups (Pw->pw_name, Pw->pw_gid) != 0)
-		|| (setgid (Pw->pw_gid) != 0) || (setuid (Pw->pw_uid) != 0)) {
-		logStream << APPNAME << ": could not switch user id" << std::endl;
-		exit (ERR_EXIT);
-	}
+		|| (setgid (Pw->pw_gid) != 0) || (setuid (Pw->pw_uid) != 0))
+		{
+			logStream << APPNAME << ": could not switch user id" << std::endl;
+			exit (ERR_EXIT);
+		}
 }
 
 void
-SwitchUser::Execute (const char * cmd)
+SwitchUser::Execute (const char *cmd)
 {
 	chdir (Pw->pw_dir);
 	execle (Pw->pw_shell, Pw->pw_shell, "-c", cmd, NULL, env);
@@ -50,7 +51,7 @@ SwitchUser::Execute (const char * cmd)
 }
 
 void
-SwitchUser::SetClientAuth (const char * mcookie)
+SwitchUser::SetClientAuth (const char *mcookie)
 {
 	std::string home = std::string (Pw->pw_dir);
 	std::string authfile = home + "/.Xauthority";

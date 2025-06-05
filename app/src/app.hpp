@@ -37,8 +37,8 @@
 
 class App
 {
-public:
-	App (int argc, char ** argv);
+  public:
+	App (int argc, char **argv);
 	~App ();
 	void Run ();
 	int GetServerPID ();
@@ -51,7 +51,7 @@ public:
 
 	bool isServerStarted ();
 
-private:
+  private:
 	void Login ();
 	void Reboot ();
 	void Halt ();
@@ -64,27 +64,27 @@ private:
 	void CloseLog ();
 	void HideCursor ();
 	void CreateServerAuth ();
-	char * StrConcat (const char * str1, const char * str2);
+	char *StrConcat (const char *str1, const char *str2);
 	void UpdatePid ();
 
 	bool AuthenticateUser (bool focuspass);
 
-	std::string findValidRandomTheme (const std::string & set);
-	static void replaceVariables (std::string & input, const std::string & var,
-		const std::string & value);
+	std::string findValidRandomTheme (const std::string &set);
+	static void replaceVariables (std::string &input, const std::string &var,
+								  const std::string &value);
 
 	/* Server functions */
 	int StartServer ();
-	int ServerTimeout (int timeout, char * string);
+	int ServerTimeout (int timeout, char *string);
 	int WaitForServer ();
 
 	/* Private data */
 	Window Root;
-	Display * Dpy;
+	Display *Dpy;
 	int Scr;
-	Panel * LoginPanel;
+	Panel *LoginPanel;
 	int ServerPID;
-	const char * DisplayName;
+	const char *DisplayName;
 	bool serverStarted;
 
 #ifdef USE_PAM
@@ -96,22 +96,22 @@ private:
 #endif
 
 	/* Options */
-	char * DispName;
+	char *DispName;
 
 	Cfg cfg;
 
 	Pixmap BackgroundPixmap;
 
 	void blankScreen ();
-	Image * image;
+	Image *image;
 	Atom BackgroundPixmapId;
-	void setBackground (const std::string & themedir);
+	void setBackground (const std::string &themedir);
 
 	bool firstlogin;
 	bool daemonmode;
 	bool force_nodaemon;
 	/* For testing themes */
-	char * testtheme;
+	char *testtheme;
 	bool testing;
 
 	std::string themeName;

@@ -19,16 +19,16 @@
 class NumLock
 {
 
-public:
+  public:
 	NumLock ();
-	static void setOn (Display * dpy);
-	static void setOff (Display * dpy);
+	static void setOn (Display *dpy);
+	static void setOff (Display *dpy);
 
-private:
-	static int xkb_init (Display * dpy);
-	static unsigned int xkb_mask_modifier (XkbDescPtr xkb, const char * name);
-	static unsigned int xkb_numlock_mask (Display * dpy);
-	static void control_numlock (Display * dpy, bool flag);
+  private:
+	static int xkb_init (Display *dpy);
+	static unsigned int xkb_mask_modifier (XkbDescPtr xkb, const char *name);
+	static unsigned int xkb_numlock_mask (Display *dpy);
+	static void control_numlock (Display *dpy, bool flag);
 };
 
 #endif /* _NUMLOCK_H_ */

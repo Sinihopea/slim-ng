@@ -35,88 +35,96 @@
 #include <string>
 
 int
-conv (int num_msg, const struct pam_message ** msg,
-	struct pam_response ** resp, void * appdata_ptr)
+conv (int num_msg, const struct pam_message **msg, struct pam_response **resp,
+	  void *appdata_ptr)
 {
-	*resp = (struct pam_response *)calloc (
-		num_msg, sizeof (struct pam_response));
-	Panel * panel = *static_cast<Panel **> (appdata_ptr);
+	*resp = (struct pam_response *)calloc (num_msg,
+										   sizeof (struct pam_response));
+	Panel *panel = *static_cast<Panel **> (appdata_ptr);
 	int result = PAM_SUCCESS;
 	int i;
 
-	for (i = 0; i < num_msg; i++) {
-		(*resp)[i].resp = 0;
-		(*resp)[i].resp_retcode = 0;
-		switch (msg[i]->msg_style) {
-		case PAM_PROMPT_ECHO_ON:
-			/* We assume PAM is asking for the username */
-			panel->EventHandler (Panel::Get_Name);
-			switch (panel->getAction ()) {
-			case Panel::Suspend:
-			case Panel::Halt:
-			case Panel::Reboot:
-				(*resp)[i].resp = strdup ("root");
-				break;
-
-			case Panel::Console:
-			case Panel::Exit:
-			case Panel::Login:
-				(*resp)[i].resp = strdup (panel->GetName ().c_str ());
-				break;
-			default:
-				break;
-			}
-			break;
-
-		case PAM_PROMPT_ECHO_OFF:
-			/* We assume PAM is asking for the password */
-			switch (panel->getAction ()) {
-			case Panel::Console:
-			case Panel::Exit:
-				/* We should leave now! */
-				result = PAM_CONV_ERR;
-				break;
-
-			default:
-				panel->EventHandler (Panel::Get_Passwd);
-				(*resp)[i].resp = strdup (panel->GetPasswd ().c_str ());
-				break;
-			}
-			break;
-
-		case PAM_ERROR_MSG:
-		case PAM_TEXT_INFO:
-			/**
-			 * We simply write these to the log
-			 *
-			 * @TODO: Maybe we should simply ignore them
-			 */
-			logStream << APPNAME << ": " << msg[i]->msg << std::endl;
-			break;
-		}
-		if (result != PAM_SUCCESS)
-			break;
-	}
-
-	if (result != PAM_SUCCESS) {
-		for (i = 0; i < num_msg; i++) {
-			if ((*resp)[i].resp == 0)
-				continue;
-			free ((*resp)[i].resp);
+	for (i = 0; i < num_msg; i++)
+		{
 			(*resp)[i].resp = 0;
+			(*resp)[i].resp_retcode = 0;
+			switch (msg[i]->msg_style)
+				{
+				case PAM_PROMPT_ECHO_ON:
+					/* We assume PAM is asking for the username */
+					panel->EventHandler (Panel::Get_Name);
+					switch (panel->getAction ())
+						{
+						case Panel::Suspend:
+						case Panel::Halt:
+						case Panel::Reboot:
+							(*resp)[i].resp = strdup ("root");
+							break;
+
+						case Panel::Console:
+						case Panel::Exit:
+						case Panel::Login:
+							(*resp)[i].resp
+								= strdup (panel->GetName ().c_str ());
+							break;
+						default:
+							break;
+						}
+					break;
+
+				case PAM_PROMPT_ECHO_OFF:
+					/* We assume PAM is asking for the password */
+					switch (panel->getAction ())
+						{
+						case Panel::Console:
+						case Panel::Exit:
+							/* We should leave now! */
+							result = PAM_CONV_ERR;
+							break;
+
+						default:
+							panel->EventHandler (Panel::Get_Passwd);
+							(*resp)[i].resp
+								= strdup (panel->GetPasswd ().c_str ());
+							break;
+						}
+					break;
+
+				case PAM_ERROR_MSG:
+				case PAM_TEXT_INFO:
+					/**
+					 * We simply write these to the log
+					 *
+					 * @TODO: Maybe we should simply ignore them
+					 */
+					logStream << APPNAME << ": " << msg[i]->msg << std::endl;
+					break;
+				}
+			if (result != PAM_SUCCESS)
+				break;
 		}
-		free (*resp);
-		*resp = 0;
-	}
+
+	if (result != PAM_SUCCESS)
+		{
+			for (i = 0; i < num_msg; i++)
+				{
+					if ((*resp)[i].resp == 0)
+						continue;
+					free ((*resp)[i].resp);
+					(*resp)[i].resp = 0;
+				}
+			free (*resp);
+			*resp = 0;
+		}
 
 	return result;
 }
 #endif
 
-extern App * LoginApp;
+extern App *LoginApp;
 
 int
-xioerror (Display * disp)
+xioerror (Display *disp)
 {
 	LoginApp->RestartServer ();
 	return 0;
@@ -140,7 +148,7 @@ User1Signal (int sig)
 	signal (sig, User1Signal);
 }
 
-App::App (int argc, char ** argv)
+App::App (int argc, char **argv)
 	:
 #ifdef USE_PAM
 	  pam (conv, static_cast<void *> (&LoginPanel)),
@@ -161,68 +169,80 @@ App::App (int argc, char ** argv)
 	 *
 	 * @note: we force a option for nodaemon switch to handle "-nodaemon"
 	 */
-	while ((tmp = getopt (argc, argv, "c:p:ndsh?")) != EOF) {
-		switch (tmp) {
-		case 'c': /* Config */
-			if (optarg == NULL) {
-				logStream << "The -c option requires an argument" << std::endl;
-				exit (ERR_EXIT);
-			}
-			cfg.readConf (optarg);
-			configLoaded = true;
-			break;
-			/* Test theme */
-		case 'p':
-			testtheme = optarg;
-			testing = true;
+	while ((tmp = getopt (argc, argv, "c:p:ndsh?")) != EOF)
+		{
+			switch (tmp)
+				{
+				case 'c': /* Config */
+					if (optarg == NULL)
+						{
+							logStream << "The -c option requires an argument"
+									  << std::endl;
+							exit (ERR_EXIT);
+						}
+					cfg.readConf (optarg);
+					configLoaded = true;
+					break;
+				/* Test theme */
+				case 'p':
+					testtheme = optarg;
+					testing = true;
 
-			if (testtheme == NULL) {
-				logStream << "The -p option requires an argument" << std::endl;
-				exit (ERR_EXIT);
-			}
-			break;
-		/* Daemon mode */
-		case 'd':
-			daemonmode = true;
-			break;
-		/* Daemon mode */
-		case 'n':
-			daemonmode = false;
-			force_nodaemon = true;
-			break;
-		/* Version */
-		case 'v':
-			std::cout << APPNAME << " version " << VERSION << std::endl;
-			exit (OK_EXIT);
-			break;
+					if (testtheme == NULL)
+						{
+							logStream << "The -p option requires an argument"
+									  << std::endl;
+							exit (ERR_EXIT);
+						}
+					break;
+				/* Daemon mode */
+				case 'd':
+					daemonmode = true;
+					break;
+				/* Daemon mode */
+				case 'n':
+					daemonmode = false;
+					force_nodaemon = true;
+					break;
+				/* Version */
+				case 'v':
+					std::cout << APPNAME << " version " << VERSION
+							  << std::endl;
+					exit (OK_EXIT);
+					break;
 #ifdef USE_CONSOLEKIT
-		case 's': /* Disable consolekit support */
-			consolekit_support_enabled = false;
-			break;
+				case 's': /* Disable consolekit support */
+					consolekit_support_enabled = false;
+					break;
 #endif
-		case '?': /* Illegal */
-			logStream << std::endl;
-		case 'h': /* Help */
-			logStream << "usage:  " << APPNAME << " [option ...]" << std::endl
-					  << "options:" << std::endl
-					  << "	-c file: configuration file" << std::endl
-					  << "	-d: daemon mode" << std::endl
-					  << "	-n: no-daemon mode" << std::endl
-					  << "	-v: show version" << std::endl
+				case '?': /* Illegal */
+					logStream << std::endl;
+				case 'h': /* Help */
+					logStream << "usage:  " << APPNAME << " [option ...]"
+							  << std::endl
+							  << "options:" << std::endl
+							  << "	-c file: configuration file" << std::endl
+							  << "	-d: daemon mode" << std::endl
+							  << "	-n: no-daemon mode" << std::endl
+							  << "	-v: show version" << std::endl
 #ifdef USE_CONSOLEKIT
-					  << "	-s: start for systemd, disable consolekit support"
-					  << endl
+							  << "	-s: start for systemd, disable consolekit "
+								 "support"
+							  << endl
 #endif
-					  << "	-p /path/to/theme/dir: preview theme" << std::endl;
-			exit (OK_EXIT);
-			break;
+							  << "	-p /path/to/theme/dir: preview theme"
+							  << std::endl;
+					exit (OK_EXIT);
+					break;
+				}
 		}
-	}
 #ifndef XNEST_DEBUG
-	if (getuid () != 0 && !testing) {
-		logStream << APPNAME << ": only root can run this program" << std::endl;
-		exit (ERR_EXIT);
-	}
+	if (getuid () != 0 && !testing)
+		{
+			logStream << APPNAME << ": only root can run this program"
+					  << std::endl;
+			exit (ERR_EXIT);
+		}
 #endif /* XNEST_DEBUG */
 
 	if (!configLoaded)
@@ -233,13 +253,13 @@ void
 App::Run ()
 {
 	DisplayName = DISPLAY;
-	char * p = getenv ("DISPLAY");
-	
+	char *p = getenv ("DISPLAY");
+
 	if (p && p[0])
-	{
-		DisplayName = p;
-		std::cout << "Using display name " << DisplayName << std::endl;
-	}
+		{
+			DisplayName = p;
+			std::cout << "Using display name " << DisplayName << std::endl;
+		}
 
 	/* Read theme */
 	std::string themebase = "";
@@ -248,126 +268,135 @@ App::Run ()
 	themeName = "";
 
 	if (testing)
-	{
-		themeName = testtheme;
-	}
-	else
-	{
-		themebase = cfg.getOption ("themes_dir") + "/";
-		themeName = cfg.getOption ("current_theme");
-		std::string::size_type pos;
-
-		if ((pos = themeName.find (",")) != std::string::npos)
 		{
-			/* input is a set */
-			themeName = findValidRandomTheme (themeName);
-
-			if (themeName == "")
-			{
-				themeName = "default";
-			}
+			themeName = testtheme;
 		}
-	}
+	else
+		{
+			themebase = cfg.getOption ("themes_dir") + "/";
+			themeName = cfg.getOption ("current_theme");
+			std::string::size_type pos;
+
+			if ((pos = themeName.find (",")) != std::string::npos)
+				{
+					/* input is a set */
+					themeName = findValidRandomTheme (themeName);
+
+					if (themeName == "")
+						{
+							themeName = "default";
+						}
+				}
+		}
 
 #ifdef USE_PAM
 	try
-	{
-		pam.start ("slim");
-		pam.set_item (PAM::Authenticator::TTY, DisplayName);
-		pam.set_item (PAM::Authenticator::Requestor, "root");
-	}
-	catch (PAM::Exception & e)
-	{
-		logStream << APPNAME << ": " << e << std::endl;
-		exit (ERR_EXIT);
-	}
+		{
+			pam.start ("slim");
+			pam.set_item (PAM::Authenticator::TTY, DisplayName);
+			pam.set_item (PAM::Authenticator::Requestor, "root");
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+			exit (ERR_EXIT);
+		}
 #endif
 
 	bool loaded = false;
 
 	while (!loaded)
-	{
-		themedir = themebase + themeName;
-		themefile = themedir + THEMESFILE;
+		{
+			themedir = themebase + themeName;
+			themefile = themedir + THEMESFILE;
 
-		if (!cfg.readConf (themefile))
-		{
-			if (themeName == "default")
-			{
-				logStream << APPNAME << ": Failed to open default theme file "
-						  << themefile << std::endl;
-				exit (ERR_EXIT);
-			}
+			if (!cfg.readConf (themefile))
+				{
+					if (themeName == "default")
+						{
+							logStream << APPNAME
+									  << ": Failed to open default theme file "
+									  << themefile << std::endl;
+							exit (ERR_EXIT);
+						}
+					else
+						{
+							logStream
+								<< APPNAME
+								<< ": Invalid theme in config: " << themeName
+								<< std::endl;
+							themeName = "default";
+						}
+				}
 			else
-			{
-				logStream << APPNAME
-						  << ": Invalid theme in config: "
-						  << themeName << std::endl;
-				themeName = "default";
-			}
+				{
+					loaded = true;
+				}
 		}
-		else
-		{
-			loaded = true;
-		}
-	}
 
 	if (!testing)
-	{
-		/* Create lock file */
-		LoginApp->GetLock ();
+		{
+			/* Create lock file */
+			LoginApp->GetLock ();
 
-		/* Start x-server */
-		setenv ("DISPLAY", DisplayName, 1);
-		signal (SIGQUIT, CatchSignal);
-		signal (SIGTERM, CatchSignal);
-		signal (SIGKILL, CatchSignal);
-		signal (SIGINT, CatchSignal);
-		signal (SIGHUP, CatchSignal);
-		signal (SIGPIPE, CatchSignal);
-		signal (SIGUSR1, User1Signal);
+			/* Start x-server */
+			setenv ("DISPLAY", DisplayName, 1);
+			signal (SIGQUIT, CatchSignal);
+			signal (SIGTERM, CatchSignal);
+			signal (SIGKILL, CatchSignal);
+			signal (SIGINT, CatchSignal);
+			signal (SIGHUP, CatchSignal);
+			signal (SIGPIPE, CatchSignal);
+			signal (SIGUSR1, User1Signal);
 
 #ifndef XNEST_DEBUG
-		if (!force_nodaemon && cfg.getOption ("daemon") == "yes") {
-			daemonmode = true;
-		}
+			if (!force_nodaemon && cfg.getOption ("daemon") == "yes")
+				{
+					daemonmode = true;
+				}
 
-		/* Daemonize */
-		if (daemonmode) {
-			if (daemon (0, 0) == -1) {
-				logStream << APPNAME << ": " << strerror (errno) << std::endl;
-				exit (ERR_EXIT);
-			}
-		}
+			/* Daemonize */
+			if (daemonmode)
+				{
+					if (daemon (0, 0) == -1)
+						{
+							logStream << APPNAME << ": " << strerror (errno)
+									  << std::endl;
+							exit (ERR_EXIT);
+						}
+				}
 
-		OpenLog ();
+			OpenLog ();
 
-		if (daemonmode)
-			UpdatePid ();
+			if (daemonmode)
+				UpdatePid ();
 
-		CreateServerAuth ();
-		StartServer ();
+			CreateServerAuth ();
+			StartServer ();
 
-		// Run setup script
-		if (cfg.getOption ("xsetup_script") != "") {
-			const char * xsetup_cmd = cfg.getOption ("xsetup_script").c_str ();
-			logStream << APPNAME << ": executing xsetup script '" << xsetup_cmd
-					  << "'" << std::endl;
-			system (xsetup_cmd);
-			logStream << APPNAME << ": xsetup script '" << xsetup_cmd
-					  << "' finished." << std::endl;
-		}
+			// Run setup script
+			if (cfg.getOption ("xsetup_script") != "")
+				{
+					const char *xsetup_cmd
+						= cfg.getOption ("xsetup_script").c_str ();
+					logStream << APPNAME << ": executing xsetup script '"
+							  << xsetup_cmd << "'" << std::endl;
+					system (xsetup_cmd);
+					logStream << APPNAME << ": xsetup script '" << xsetup_cmd
+							  << "' finished." << std::endl;
+				}
 #endif
-	}
+		}
 
 	/* Open display */
-	if ((Dpy = XOpenDisplay (DisplayName)) == 0) {
-		logStream << APPNAME << ": could not open display '" << DisplayName
-				  << "'" << std::endl;
-		if (!testing)
-			StopServer ();
-		exit (ERR_EXIT);
-	}
+	if ((Dpy = XOpenDisplay (DisplayName)) == 0)
+		{
+			logStream << APPNAME << ": could not open display '" << DisplayName
+					  << "'" << std::endl;
+			if (!testing)
+				StopServer ();
+			exit (ERR_EXIT);
+		}
 
 	/* Get screen and root window */
 	Scr = DefaultScreen (Dpy);
@@ -377,14 +406,18 @@ App::Run ()
 	BackgroundPixmapId = XInternAtom (Dpy, "_XROOTPMAP_ID", False);
 
 	/* for tests we use a standard window */
-	if (testing) {
-		Window RealRoot = RootWindow (Dpy, Scr);
-		Root = XCreateSimpleWindow (Dpy, RealRoot, 0, 0, 1280, 1024, 0, 0, 0);
-		XMapWindow (Dpy, Root);
-		XFlush (Dpy);
-	} else {
-		blankScreen ();
-	}
+	if (testing)
+		{
+			Window RealRoot = RootWindow (Dpy, Scr);
+			Root = XCreateSimpleWindow (Dpy, RealRoot, 0, 0, 1280, 1024, 0, 0,
+										0);
+			XMapWindow (Dpy, Root);
+			XFlush (Dpy);
+		}
+	else
+		{
+			blankScreen ();
+		}
 
 	HideCursor ();
 
@@ -395,104 +428,114 @@ App::Run ()
 	bool focuspass = cfg.getOption ("focus_password") == "yes";
 	bool autologin = cfg.getOption ("auto_login") == "yes";
 
-	if (firstlogin && cfg.getOption ("default_user") != "") {
-		LoginPanel->SetName (cfg.getOption ("default_user"));
+	if (firstlogin && cfg.getOption ("default_user") != "")
+		{
+			LoginPanel->SetName (cfg.getOption ("default_user"));
 #ifdef USE_PAM
-		pam.set_item (
-			PAM::Authenticator::User, cfg.getOption ("default_user").c_str ());
+			pam.set_item (PAM::Authenticator::User,
+						  cfg.getOption ("default_user").c_str ());
 #endif
-		firstlogin = false;
-		if (autologin) {
-			Login ();
+			firstlogin = false;
+			if (autologin)
+				{
+					Login ();
+				}
 		}
-	}
 
 	/* Set NumLock */
 	std::string numlock = cfg.getOption ("numlock");
-	
+
 	if (numlock == "on")
-	{
-		NumLock::setOn (Dpy);
-	}
+		{
+			NumLock::setOn (Dpy);
+		}
 	else if (numlock == "off")
-	{
-		NumLock::setOff (Dpy);
-	}
+		{
+			NumLock::setOff (Dpy);
+		}
 
 	/* Start looping */
 	int panelclosed = 1;
 	Panel::ActionType Action;
 
-	while (1) {
-		if (panelclosed) {
-			/* Init root */
-			setBackground (themedir);
+	while (1)
+		{
+			if (panelclosed)
+				{
+					/* Init root */
+					setBackground (themedir);
 
-			/* Close all clients */
-			if (!testing) {
-				KillAllClients (False);
-				KillAllClients (True);
-			}
+					/* Close all clients */
+					if (!testing)
+						{
+							KillAllClients (False);
+							KillAllClients (True);
+						}
 
-			/* Show panel */
-			LoginPanel->OpenPanel ();
-		}
+					/* Show panel */
+					LoginPanel->OpenPanel ();
+				}
 
-		LoginPanel->Reset ();
+			LoginPanel->Reset ();
 
-		if (firstloop && cfg.getOption ("default_user") != "")
-			LoginPanel->SetName (cfg.getOption ("default_user"));
+			if (firstloop && cfg.getOption ("default_user") != "")
+				LoginPanel->SetName (cfg.getOption ("default_user"));
 
-		if (firstloop) {
-			LoginPanel->SwitchSession ();
-		}
+			if (firstloop)
+				{
+					LoginPanel->SwitchSession ();
+				}
 
-		if (testing) {
-			LoginPanel->EventHandler (Panel::Get_Name);
-			LoginPanel->EventHandler (Panel::Get_Passwd);
-		} else if (!AuthenticateUser (focuspass && firstloop)) {
-			panelclosed = 0;
+			if (testing)
+				{
+					LoginPanel->EventHandler (Panel::Get_Name);
+					LoginPanel->EventHandler (Panel::Get_Passwd);
+				}
+			else if (!AuthenticateUser (focuspass && firstloop))
+				{
+					panelclosed = 0;
+					firstloop = false;
+					LoginPanel->ClearPanel ();
+					XBell (Dpy, 100);
+					sleep (1); // Just in case, to prevent infinite loops
+							   // without pauses
+					continue;
+				}
+
 			firstloop = false;
-			LoginPanel->ClearPanel ();
-			XBell (Dpy, 100);
-			sleep (
-				1); // Just in case, to prevent infinite loops without pauses
-			continue;
+
+			Action = LoginPanel->getAction ();
+			/* for themes test we just quit */
+			if (testing)
+				Action = Panel::Exit;
+
+			panelclosed = 1;
+			LoginPanel->ClosePanel ();
+
+			switch (Action)
+				{
+				case Panel::Login:
+					Login ();
+					break;
+				case Panel::Console:
+					Console ();
+					break;
+				case Panel::Reboot:
+					Reboot ();
+					break;
+				case Panel::Halt:
+					Halt ();
+					break;
+				case Panel::Suspend:
+					Suspend ();
+					break;
+				case Panel::Exit:
+					Exit ();
+					break;
+				default:
+					break;
+				}
 		}
-
-		firstloop = false;
-
-		Action = LoginPanel->getAction ();
-		/* for themes test we just quit */
-		if (testing)
-			Action = Panel::Exit;
-
-		panelclosed = 1;
-		LoginPanel->ClosePanel ();
-
-		switch (Action) {
-		case Panel::Login:
-			Login ();
-			break;
-		case Panel::Console:
-			Console ();
-			break;
-		case Panel::Reboot:
-			Reboot ();
-			break;
-		case Panel::Halt:
-			Halt ();
-			break;
-		case Panel::Suspend:
-			Suspend ();
-			break;
-		case Panel::Exit:
-			Exit ();
-			break;
-		default:
-			break;
-		}
-	}
 }
 
 #ifdef USE_PAM
@@ -500,65 +543,74 @@ bool
 App::AuthenticateUser (bool focuspass)
 {
 	/* Reset the username */
-	try {
-		if (!focuspass)
-			pam.set_item (PAM::Authenticator::User, 0);
-		pam.authenticate ();
-	} catch (PAM::Auth_Exception & e) {
-		switch (LoginPanel->getAction ()) {
-		case Panel::Exit:
-		case Panel::Console:
-			return true; /* <--- This is simply fake! */
-		default:
-			break;
+	try
+		{
+			if (!focuspass)
+				pam.set_item (PAM::Authenticator::User, 0);
+			pam.authenticate ();
 		}
-		logStream << APPNAME << ": " << e << std::endl;
-		return false;
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << std::endl;
-		exit (ERR_EXIT);
-	}
+	catch (PAM::Auth_Exception &e)
+		{
+			switch (LoginPanel->getAction ())
+				{
+				case Panel::Exit:
+				case Panel::Console:
+					return true; /* <--- This is simply fake! */
+				default:
+					break;
+				}
+			logStream << APPNAME << ": " << e << std::endl;
+			return false;
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+			exit (ERR_EXIT);
+		}
 	return true;
 }
 #else
 bool
 App::AuthenticateUser (bool focuspass)
 {
-	if (!focuspass) {
-		LoginPanel->EventHandler (Panel::Get_Name);
-		switch (LoginPanel->getAction ()) {
-		case Panel::Exit:
-		case Panel::Console:
-			logStream << APPNAME << ": Got a special command ("
-					  << LoginPanel->GetName () << ")" << std::endl;
-			return true; /* <--- This is simply fake! */
-		default:
-			break;
+	if (!focuspass)
+		{
+			LoginPanel->EventHandler (Panel::Get_Name);
+			switch (LoginPanel->getAction ())
+				{
+				case Panel::Exit:
+				case Panel::Console:
+					logStream << APPNAME << ": Got a special command ("
+							  << LoginPanel->GetName () << ")" << std::endl;
+					return true; /* <--- This is simply fake! */
+				default:
+					break;
+				}
 		}
-	}
 	LoginPanel->EventHandler (Panel::Get_Passwd);
 
 	char *encrypted, *correct;
-	struct passwd * pw;
+	struct passwd *pw;
 
-	switch (LoginPanel->getAction ()) {
-	case Panel::Suspend:
-	case Panel::Halt:
-	case Panel::Reboot:
-		pw = getpwnam ("root");
-		break;
-	case Panel::Console:
-	case Panel::Exit:
-	case Panel::Login:
-		pw = getpwnam (LoginPanel->GetName ().c_str ());
-		break;
-	}
+	switch (LoginPanel->getAction ())
+		{
+		case Panel::Suspend:
+		case Panel::Halt:
+		case Panel::Reboot:
+			pw = getpwnam ("root");
+			break;
+		case Panel::Console:
+		case Panel::Exit:
+		case Panel::Login:
+			pw = getpwnam (LoginPanel->GetName ().c_str ());
+			break;
+		}
 	endpwent ();
 	if (pw == 0)
 		return false;
 
 #ifdef HAVE_SHADOW
-	struct spwd * sp = getspnam (pw->pw_name);
+	struct spwd *sp = getspnam (pw->pw_name);
 	endspent ();
 	if (sp)
 		correct = sp->sp_pwdp;
@@ -584,55 +636,62 @@ App::GetServerPID ()
 void
 App::HideCursor ()
 {
-	if (cfg.getOption ("hidecursor") == "true") {
-		XColor black;
-		char cursordata[1];
-		Pixmap cursorpixmap;
-		Cursor cursor;
-		cursordata[0] = 0;
-		cursorpixmap = XCreateBitmapFromData (Dpy, Root, cursordata, 1, 1);
-		black.red = 0;
-		black.green = 0;
-		black.blue = 0;
-		cursor = XCreatePixmapCursor (
-			Dpy, cursorpixmap, cursorpixmap, &black, &black, 0, 0);
-		XDefineCursor (Dpy, Root, cursor);
-	}
+	if (cfg.getOption ("hidecursor") == "true")
+		{
+			XColor black;
+			char cursordata[1];
+			Pixmap cursorpixmap;
+			Cursor cursor;
+			cursordata[0] = 0;
+			cursorpixmap = XCreateBitmapFromData (Dpy, Root, cursordata, 1, 1);
+			black.red = 0;
+			black.green = 0;
+			black.blue = 0;
+			cursor = XCreatePixmapCursor (Dpy, cursorpixmap, cursorpixmap,
+										  &black, &black, 0, 0);
+			XDefineCursor (Dpy, Root, cursor);
+		}
 }
 
 void
 App::Login ()
 {
-	struct passwd * pw;
+	struct passwd *pw;
 	pid_t pid;
 
 #ifdef USE_PAM
-	try {
-		pam.open_session ();
-		pw = getpwnam (static_cast<const char *> (
-			pam.get_item (PAM::Authenticator::User)));
-	} catch (PAM::Cred_Exception & e) {
-		/* Credentials couldn't be established */
-		logStream << APPNAME << ": " << e << std::endl;
-		return;
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << std::endl;
-		exit (ERR_EXIT);
-	}
+	try
+		{
+			pam.open_session ();
+			pw = getpwnam (static_cast<const char *> (
+				pam.get_item (PAM::Authenticator::User)));
+		}
+	catch (PAM::Cred_Exception &e)
+		{
+			/* Credentials couldn't be established */
+			logStream << APPNAME << ": " << e << std::endl;
+			return;
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+			exit (ERR_EXIT);
+		}
 #else
 	pw = getpwnam (LoginPanel->GetName ().c_str ());
 #endif
 	endpwent ();
 	if (pw == 0)
 		return;
-	if (pw->pw_shell[0] == '\0') {
-		setusershell ();
-		strcpy (pw->pw_shell, getusershell ());
-		endusershell ();
-	}
+	if (pw->pw_shell[0] == '\0')
+		{
+			setusershell ();
+			strcpy (pw->pw_shell, getusershell ());
+			endusershell ();
+		}
 
 	/* Setup the environment */
-	char * term = getenv ("TERM");
+	char *term = getenv ("TERM");
 	std::string maildir = _PATH_MAILDIR;
 	maildir.append ("/");
 	maildir.append (pw->pw_name);
@@ -641,112 +700,123 @@ App::Login ()
 
 #ifdef USE_PAM
 	/* Setup the PAM environment */
-	try {
-		if (term)
-			pam.setenv ("TERM", term);
-		pam.setenv ("HOME", pw->pw_dir);
-		pam.setenv ("PWD", pw->pw_dir);
-		pam.setenv ("SHELL", pw->pw_shell);
-		pam.setenv ("USER", pw->pw_name);
-		pam.setenv ("LOGNAME", pw->pw_name);
-		pam.setenv ("PATH", cfg.getOption ("default_path").c_str ());
-		pam.setenv ("DISPLAY", DisplayName);
-		pam.setenv ("MAIL", maildir.c_str ());
-		pam.setenv ("XAUTHORITY", xauthority.c_str ());
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << std::endl;
-		exit (ERR_EXIT);
-	}
+	try
+		{
+			if (term)
+				pam.setenv ("TERM", term);
+			pam.setenv ("HOME", pw->pw_dir);
+			pam.setenv ("PWD", pw->pw_dir);
+			pam.setenv ("SHELL", pw->pw_shell);
+			pam.setenv ("USER", pw->pw_name);
+			pam.setenv ("LOGNAME", pw->pw_name);
+			pam.setenv ("PATH", cfg.getOption ("default_path").c_str ());
+			pam.setenv ("DISPLAY", DisplayName);
+			pam.setenv ("MAIL", maildir.c_str ());
+			pam.setenv ("XAUTHORITY", xauthority.c_str ());
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+			exit (ERR_EXIT);
+		}
 #endif
 
 #ifdef USE_CONSOLEKIT
-	if (consolekit_support_enabled) {
-		/* Setup the ConsoleKit session */
-		try {
-			ck.open_session (DisplayName, pw->pw_uid);
-		} catch (Ck::Exception & e) {
-			logStream << APPNAME << ": " << e << endl;
-			exit (ERR_EXIT);
+	if (consolekit_support_enabled)
+		{
+			/* Setup the ConsoleKit session */
+			try
+				{
+					ck.open_session (DisplayName, pw->pw_uid);
+				}
+			catch (Ck::Exception &e)
+				{
+					logStream << APPNAME << ": " << e << endl;
+					exit (ERR_EXIT);
+				}
 		}
-	}
 #endif
 
 	/* Create new process */
 	pid = fork ();
-	if (pid == 0) {
+	if (pid == 0)
+		{
 #ifdef USE_PAM
-		/* Get a copy of the environment and close the child's copy */
-		/* of the PAM-handle. */
-		char ** child_env = pam.getenvlist ();
+			/* Get a copy of the environment and close the child's copy */
+			/* of the PAM-handle. */
+			char **child_env = pam.getenvlist ();
 
 #ifdef USE_CONSOLEKIT
-		if (consolekit_support_enabled) {
-			char ** old_env = child_env;
+			if (consolekit_support_enabled)
+				{
+					char **old_env = child_env;
 
-			/* Grow the copy of the environment for the session cookie */
-			int n;
-			for (n = 0; child_env[n] != NULL; n++)
-				;
+					/* Grow the copy of the environment for the session cookie
+					 */
+					int n;
+					for (n = 0; child_env[n] != NULL; n++)
+						;
 
-			n++;
+					n++;
 
-			child_env
-				= static_cast<char **> (malloc (sizeof (char *) * (n + 1)));
-			memcpy (child_env, old_env, sizeof (char *) * n);
-			child_env[n - 1] = StrConcat (
-				"XDG_SESSION_COOKIE=", ck.get_xdg_session_cookie ());
-			child_env[n] = NULL;
-		}
+					child_env = static_cast<char **> (
+						malloc (sizeof (char *) * (n + 1)));
+					memcpy (child_env, old_env, sizeof (char *) * n);
+					child_env[n - 1] = StrConcat (
+						"XDG_SESSION_COOKIE=", ck.get_xdg_session_cookie ());
+					child_env[n] = NULL;
+				}
 #endif /* USE_CONSOLEKIT */
 #else
 
 #ifdef USE_CONSOLEKIT
-		const int Num_Of_Variables = 12; /* Number of env. variables + 1 */
+			const int Num_Of_Variables = 12; /* Number of env. variables + 1 */
 #else
-		const int Num_Of_Variables = 11; /* Number of env. variables + 1 */
+			const int Num_Of_Variables = 11; /* Number of env. variables + 1 */
 #endif /* USE_CONSOLEKIT */
-		char ** child_env = static_cast<char **> (
-			malloc (sizeof (char *) * Num_Of_Variables));
-		int n = 0;
-		if (term)
-			child_env[n++] = StrConcat ("TERM=", term);
-		child_env[n++] = StrConcat ("HOME=", pw->pw_dir);
-		child_env[n++] = StrConcat ("PWD=", pw->pw_dir);
-		child_env[n++] = StrConcat ("SHELL=", pw->pw_shell);
-		child_env[n++] = StrConcat ("USER=", pw->pw_name);
-		child_env[n++] = StrConcat ("LOGNAME=", pw->pw_name);
-		child_env[n++]
-			= StrConcat ("PATH=", cfg.getOption ("default_path").c_str ());
-		child_env[n++] = StrConcat ("DISPLAY=", DisplayName);
-		child_env[n++] = StrConcat ("MAIL=", maildir.c_str ());
-		child_env[n++] = StrConcat ("XAUTHORITY=", xauthority.c_str ());
+			char **child_env = static_cast<char **> (
+				malloc (sizeof (char *) * Num_Of_Variables));
+			int n = 0;
+			if (term)
+				child_env[n++] = StrConcat ("TERM=", term);
+			child_env[n++] = StrConcat ("HOME=", pw->pw_dir);
+			child_env[n++] = StrConcat ("PWD=", pw->pw_dir);
+			child_env[n++] = StrConcat ("SHELL=", pw->pw_shell);
+			child_env[n++] = StrConcat ("USER=", pw->pw_name);
+			child_env[n++] = StrConcat ("LOGNAME=", pw->pw_name);
+			child_env[n++]
+				= StrConcat ("PATH=", cfg.getOption ("default_path").c_str ());
+			child_env[n++] = StrConcat ("DISPLAY=", DisplayName);
+			child_env[n++] = StrConcat ("MAIL=", maildir.c_str ());
+			child_env[n++] = StrConcat ("XAUTHORITY=", xauthority.c_str ());
 #ifdef USE_CONSOLEKIT
-		if (consolekit_support_enabled) {
-			child_env[n++] = StrConcat (
-				"XDG_SESSION_COOKIE=", ck.get_xdg_session_cookie ());
-		}
+			if (consolekit_support_enabled)
+				{
+					child_env[n++] = StrConcat ("XDG_SESSION_COOKIE=",
+												ck.get_xdg_session_cookie ());
+				}
 #endif /* USE_CONSOLEKIT */
-		child_env[n++] = 0;
+			child_env[n++] = 0;
 
 #endif
 
-		/* Login process starts here */
-		SwitchUser Su (pw, cfg, DisplayName, child_env);
-		std::string session = LoginPanel->getSession ();
-		std::string loginCommand = cfg.getOption ("login_cmd");
-		replaceVariables (loginCommand, SESSION_VAR, session);
-		replaceVariables (loginCommand, THEME_VAR, themeName);
-		std::string sessStart = cfg.getOption ("sessionstart_cmd");
-		
-		if (sessStart != "")
-		{
-			replaceVariables (sessStart, USER_VAR, pw->pw_name);
-			system (sessStart.c_str ());
-		}
+			/* Login process starts here */
+			SwitchUser Su (pw, cfg, DisplayName, child_env);
+			std::string session = LoginPanel->getSession ();
+			std::string loginCommand = cfg.getOption ("login_cmd");
+			replaceVariables (loginCommand, SESSION_VAR, session);
+			replaceVariables (loginCommand, THEME_VAR, themeName);
+			std::string sessStart = cfg.getOption ("sessionstart_cmd");
 
-		Su.Login (loginCommand.c_str (), mcookie.c_str ());
-		_exit (OK_EXIT);
-	}
+			if (sessStart != "")
+				{
+					replaceVariables (sessStart, USER_VAR, pw->pw_name);
+					system (sessStart.c_str ());
+				}
+
+			Su.Login (loginCommand.c_str (), mcookie.c_str ());
+			_exit (OK_EXIT);
+		}
 
 #ifndef XNEST_DEBUG
 	CloseLog ();
@@ -755,53 +825,53 @@ App::Login ()
 	/* Wait until user is logging out (login process terminates) */
 	pid_t wpid = -1;
 	int status;
-	
+
 	while (wpid != pid)
-	{
-		wpid = wait (&status);
-		if (wpid == ServerPID)
-			xioerror (Dpy); /* Server died, simulate IO error */
-	}
+		{
+			wpid = wait (&status);
+			if (wpid == ServerPID)
+				xioerror (Dpy); /* Server died, simulate IO error */
+		}
 
 	if (WIFEXITED (status) && WEXITSTATUS (status))
-	{
-		LoginPanel->Message ("Failed to execute login command");
-		sleep (3);
-	}
-	else
-	{
-		std::string sessStop = cfg.getOption ("sessionstop_cmd");
-		
-		if (sessStop != "")
 		{
-			replaceVariables (sessStop, USER_VAR, pw->pw_name);
-			system (sessStop.c_str ());
+			LoginPanel->Message ("Failed to execute login command");
+			sleep (3);
 		}
-	}
+	else
+		{
+			std::string sessStop = cfg.getOption ("sessionstop_cmd");
+
+			if (sessStop != "")
+				{
+					replaceVariables (sessStop, USER_VAR, pw->pw_name);
+					system (sessStop.c_str ());
+				}
+		}
 
 #ifdef USE_CONSOLEKIT
 	if (consolekit_support_enabled)
-	{
-		try
 		{
-			ck.close_session ();
+			try
+				{
+					ck.close_session ();
+				}
+			catch (Ck::Exception &e)
+				{
+					logStream << APPNAME << ": " << e << endl;
+				};
 		}
-		catch (Ck::Exception & e)
-		{
-			logStream << APPNAME << ": " << e << endl;
-		};
-	}
 #endif
 
 #ifdef USE_PAM
 	try
-	{
-		pam.close_session ();
-	}
-	catch (PAM::Exception & e)
-	{
-		logStream << APPNAME << ": " << e << std::endl;
-	}
+		{
+			pam.close_session ();
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+		}
 #endif
 
 	/* Close all clients */
@@ -813,7 +883,9 @@ App::Login ()
 
 	/* Send TERM signal to clientgroup, if error send KILL */
 	if (killpg (pid, SIGTERM))
-		killpg (pid, SIGKILL);
+		{
+			killpg (pid, SIGKILL);
+		}
 
 	HideCursor ();
 
@@ -828,11 +900,14 @@ void
 App::Reboot ()
 {
 #ifdef USE_PAM
-	try {
-		pam.end ();
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << std::endl;
-	}
+	try
+		{
+			pam.end ();
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+		}
 #endif
 
 	/* Write message */
@@ -850,11 +925,14 @@ void
 App::Halt ()
 {
 #ifdef USE_PAM
-	try {
-		pam.end ();
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << std::endl;
-	}
+	try
+		{
+			pam.end ();
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+		}
 #endif
 
 	/* Write message */
@@ -888,8 +966,8 @@ App::Console ()
 		= (XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)) - (posy * 2)) / fonty;
 
 	/* Execute console */
-	const char * cmd = cfg.getOption ("console_cmd").c_str ();
-	char * tmp = new char[strlen (cmd) + 60];
+	const char *cmd = cfg.getOption ("console_cmd").c_str ();
+	char *tmp = new char[strlen (cmd) + 60];
 	sprintf (tmp, cmd, width, height, posx, posy, fontx, fonty);
 	system (tmp);
 	delete[] tmp;
@@ -901,29 +979,35 @@ App::Exit ()
 	if (cfg.getOption ("allow_exit") == "false")
 		return;
 #ifdef USE_PAM
-	try {
-		pam.end ();
-	} catch (PAM::Exception & e) {
-		logStream << APPNAME << ": " << e << std::endl;
-	}
+	try
+		{
+			pam.end ();
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+		}
 #endif
 
-	if (testing) {
-		const char * testmsg = "¥·£·€·$·¢·₡·₢·₣·₤·₥·₦·₧·₨·₩·₪·₫·₭·₮·₯·₹";
-		LoginPanel->Message (testmsg);
-		sleep (3);
-		delete LoginPanel;
-		XCloseDisplay (Dpy);
-	} else {
-		delete LoginPanel;
-		StopServer ();
-		RemoveLock ();
-	}
+	if (testing)
+		{
+			const char *testmsg = "¥·£·€·$·¢·₡·₢·₣·₤·₥·₦·₧·₨·₩·₪·₫·₭·₮·₯·₹";
+			LoginPanel->Message (testmsg);
+			sleep (3);
+			delete LoginPanel;
+			XCloseDisplay (Dpy);
+		}
+	else
+		{
+			delete LoginPanel;
+			StopServer ();
+			RemoveLock ();
+		}
 	exit (OK_EXIT);
 }
 
 int
-CatchErrors (Display * dpy, XErrorEvent * ev)
+CatchErrors (Display *dpy, XErrorEvent *ev)
 {
 	return 0;
 }
@@ -933,37 +1017,37 @@ App::RestartServer ()
 {
 #ifdef USE_PAM
 	try
-	{
-		pam.end ();
-	}
-	catch (PAM::Exception & e)
-	{
-		logStream << APPNAME << ": " << e << std::endl;
-	}
+		{
+			pam.end ();
+		}
+	catch (PAM::Exception &e)
+		{
+			logStream << APPNAME << ": " << e << std::endl;
+		}
 #endif
 
 	StopServer ();
 	RemoveLock ();
-	
+
 	if (force_nodaemon)
-	{
-		delete LoginPanel;
-		/* use ERR_EXIT so that systemd's RESTART=on-failure works */
-		exit (ERR_EXIT);
-	}
+		{
+			delete LoginPanel;
+			/* use ERR_EXIT so that systemd's RESTART=on-failure works */
+			exit (ERR_EXIT);
+		}
 	else
-	{
-		while (waitpid (-1, NULL, WNOHANG) > 0)
-			; // Collects all dead childrens
-		Run ();
-	}
+		{
+			while (waitpid (-1, NULL, WNOHANG) > 0)
+				; // Collects all dead childrens
+			Run ();
+		}
 }
 
 void
 App::KillAllClients (Bool top)
 {
 	Window dummywindow;
-	Window * children;
+	Window *children;
 	unsigned int nchildren;
 	unsigned int i;
 	XWindowAttributes attr;
@@ -973,20 +1057,23 @@ App::KillAllClients (Bool top)
 
 	nchildren = 0;
 	XQueryTree (Dpy, Root, &dummywindow, &dummywindow, &children, &nchildren);
-	if (!top) {
-		for (i = 0; i < nchildren; i++) {
-			if (XGetWindowAttributes (Dpy, children[i], &attr)
-				&& (attr.map_state == IsViewable))
-				children[i] = XmuClientWindow (Dpy, children[i]);
-			else
-				children[i] = 0;
+	if (!top)
+		{
+			for (i = 0; i < nchildren; i++)
+				{
+					if (XGetWindowAttributes (Dpy, children[i], &attr)
+						&& (attr.map_state == IsViewable))
+						children[i] = XmuClientWindow (Dpy, children[i]);
+					else
+						children[i] = 0;
+				}
 		}
-	}
 
-	for (i = 0; i < nchildren; i++) {
-		if (children[i])
-			XKillClient (Dpy, children[i]);
-	}
+	for (i = 0; i < nchildren; i++)
+		{
+			if (children[i])
+				XKillClient (Dpy, children[i]);
+		}
 	XFree ((char *)children);
 
 	XSync (Dpy, 0);
@@ -994,27 +1081,30 @@ App::KillAllClients (Bool top)
 }
 
 int
-App::ServerTimeout (int timeout, char * text)
+App::ServerTimeout (int timeout, char *text)
 {
 	int i = 0;
 	int pidfound = -1;
-	static char * lasttext;
+	static char *lasttext;
 
-	while (1) {
-		pidfound = waitpid (ServerPID, NULL, WNOHANG);
-		if (pidfound == ServerPID)
-			break;
-		if (timeout) {
-			if (i == 0 && text != lasttext)
-				logStream << std::endl << APPNAME << ": waiting for " << text;
-			else
-				logStream << ".";
+	while (1)
+		{
+			pidfound = waitpid (ServerPID, NULL, WNOHANG);
+			if (pidfound == ServerPID)
+				break;
+			if (timeout)
+				{
+					if (i == 0 && text != lasttext)
+						logStream << std::endl
+								  << APPNAME << ": waiting for " << text;
+					else
+						logStream << ".";
+				}
+			if (timeout)
+				sleep (1);
+			if (++i > timeout)
+				break;
 		}
-		if (timeout)
-			sleep (1);
-		if (++i > timeout)
-			break;
-	}
 
 	if (i > 0)
 		logStream << std::endl;
@@ -1029,16 +1119,21 @@ App::WaitForServer ()
 	int ncycles = 120;
 	int cycles;
 
-	for (cycles = 0; cycles < ncycles; cycles++) {
-		if ((Dpy = XOpenDisplay (DisplayName))) {
-			XSetIOErrorHandler (xioerror);
-			return 1;
-		} else {
-			if (!ServerTimeout (
-					1, (char *)"X server to begin accepting connections"))
-				break;
+	for (cycles = 0; cycles < ncycles; cycles++)
+		{
+			if ((Dpy = XOpenDisplay (DisplayName)))
+				{
+					XSetIOErrorHandler (xioerror);
+					return 1;
+				}
+			else
+				{
+					if (!ServerTimeout (
+							1,
+							(char *)"X server to begin accepting connections"))
+						break;
+				}
 		}
-	}
 
 	logStream << "Giving up." << std::endl;
 
@@ -1052,80 +1147,95 @@ App::StartServer ()
 
 	int argc = 1, pos = 0, i;
 	static const int MAX_XSERVER_ARGS = 256;
-	static char * server[MAX_XSERVER_ARGS + 2] = { NULL };
+	static char *server[MAX_XSERVER_ARGS + 2] = { NULL };
 	server[0] = (char *)cfg.getOption ("default_xserver").c_str ();
 	std::string argOption = cfg.getOption ("xserver_arguments");
 
 	/* Add mandatory -xauth option */
 	argOption = argOption + " -auth " + cfg.getOption ("authfile");
-	char * args = new char[argOption.length () + 2]; /* NULL plus vt */
+	char *args = new char[argOption.length () + 2]; /* NULL plus vt */
 	strcpy (args, argOption.c_str ());
 	serverStarted = false;
 	bool hasVtSet = false;
 
-	while (args[pos] != '\0') {
-		if (args[pos] == ' ' || args[pos] == '\t') {
-			*(args + pos) = '\0';
-			server[argc++] = args + pos + 1;
-		} else if (pos == 0) {
-			server[argc++] = args + pos;
-		}
-		++pos;
+	while (args[pos] != '\0')
+		{
+			if (args[pos] == ' ' || args[pos] == '\t')
+				{
+					*(args + pos) = '\0';
+					server[argc++] = args + pos + 1;
+				}
+			else if (pos == 0)
+				{
+					server[argc++] = args + pos;
+				}
+			++pos;
 
-		if (argc + 1 >= MAX_XSERVER_ARGS) {
-			/* ignore _all_ arguments to make sure the server starts at */
-			/* all */
-			argc = 1;
-			break;
+			if (argc + 1 >= MAX_XSERVER_ARGS)
+				{
+					/* ignore _all_ arguments to make sure the server starts at
+					 */
+					/* all */
+					argc = 1;
+					break;
+				}
 		}
-	}
 
-	for (i = 0; i < argc; i++) {
-		if (server[i][0] == 'v' && server[i][1] == 't') {
-			bool ok = false;
-			Cfg::string2int (server[i] + 2, &ok);
-			if (ok) {
-				hasVtSet = true;
-			}
+	for (i = 0; i < argc; i++)
+		{
+			if (server[i][0] == 'v' && server[i][1] == 't')
+				{
+					bool ok = false;
+					Cfg::string2int (server[i] + 2, &ok);
+					if (ok)
+						{
+							hasVtSet = true;
+						}
+				}
 		}
-	}
 
-	if (!hasVtSet && daemonmode) {
-		server[argc++] = (char *)"vt07";
-	}
+	if (!hasVtSet && daemonmode)
+		{
+			server[argc++] = (char *)"vt07";
+		}
 	server[argc] = NULL;
 
-	switch (ServerPID) {
-	case 0:
-		signal (SIGTTIN, SIG_IGN);
-		signal (SIGTTOU, SIG_IGN);
-		signal (SIGUSR1, SIG_IGN);
-		setpgid (0, getpid ());
+	switch (ServerPID)
+		{
+		case 0:
+			signal (SIGTTIN, SIG_IGN);
+			signal (SIGTTOU, SIG_IGN);
+			signal (SIGUSR1, SIG_IGN);
+			setpgid (0, getpid ());
 
-		execvp (server[0], server);
-		logStream << APPNAME << ": X server could not be started" << std::endl;
-		exit (ERR_EXIT);
-		break;
+			execvp (server[0], server);
+			logStream << APPNAME << ": X server could not be started"
+					  << std::endl;
+			exit (ERR_EXIT);
+			break;
 
-	case -1:
-		break;
+		case -1:
+			break;
 
-	default:
-		errno = 0;
-		if (!ServerTimeout (0, (char *)"")) {
-			ServerPID = -1;
+		default:
+			errno = 0;
+			if (!ServerTimeout (0, (char *)""))
+				{
+					ServerPID = -1;
+					break;
+				}
+
+			/* Wait for server to start up */
+			if (WaitForServer () == 0)
+				{
+					logStream << APPNAME << ": unable to connect to X server"
+							  << std::endl;
+					StopServer ();
+					ServerPID = -1;
+					exit (ERR_EXIT);
+				}
 			break;
 		}
-
-		/* Wait for server to start up */
-		if (WaitForServer () == 0) {
-			logStream << APPNAME << ": unable to connect to X server" << std::endl;
-			StopServer ();
-			ServerPID = -1;
-			exit (ERR_EXIT);
-		}
-		break;
-	}
 
 	delete[] args;
 
@@ -1136,7 +1246,7 @@ App::StartServer ()
 
 jmp_buf CloseEnv;
 int
-IgnoreXIO (Display * d)
+IgnoreXIO (Display *d)
 {
 	logStream << APPNAME << ": connection to X server lost." << std::endl;
 	longjmp (CloseEnv, 1);
@@ -1170,39 +1280,44 @@ App::StopServer ()
 	errno = 0;
 
 	if (killpg (ServerPID, SIGTERM) < 0)
-	{
-		if (errno == EPERM)
 		{
-			logStream << APPNAME << ": can't kill X server" << std::endl;
-			exit (ERR_EXIT);
+			if (errno == EPERM)
+				{
+					logStream << APPNAME << ": can't kill X server"
+							  << std::endl;
+					exit (ERR_EXIT);
+				}
+			if (errno == ESRCH)
+				return;
 		}
-		if (errno == ESRCH)
-			return;
-	}
 
 	/* Wait for server to shut down */
 	if (!ServerTimeout (10, (char *)"X server to shut down"))
-	{
-		logStream << std::endl;
-		return;
-	}
+		{
+			logStream << std::endl;
+			return;
+		}
 
 	logStream << std::endl
 			  << APPNAME
-			  << ":  X server slow to shut down, sending KILL signal." << std::endl;
+			  << ":  X server slow to shut down, sending KILL signal."
+			  << std::endl;
 
 	/* Send KILL to server */
 	errno = 0;
-	if (killpg (ServerPID, SIGKILL) < 0) {
-		if (errno == ESRCH)
-			return;
-	}
+	if (killpg (ServerPID, SIGKILL) < 0)
+		{
+			if (errno == ESRCH)
+				return;
+		}
 
 	/* Wait for server to die */
-	if (ServerTimeout (3, (char *)"server to die")) {
-		logStream << std::endl << APPNAME << ": can't kill server" << std::endl;
-		exit (ERR_EXIT);
-	}
+	if (ServerTimeout (3, (char *)"server to die"))
+		{
+			logStream << std::endl
+					  << APPNAME << ": can't kill server" << std::endl;
+			exit (ERR_EXIT);
+		}
 	logStream << std::endl;
 }
 
@@ -1212,14 +1327,14 @@ App::blankScreen ()
 	GC gc = XCreateGC (Dpy, Root, 0, 0);
 	XSetForeground (Dpy, gc, BlackPixel (Dpy, Scr));
 	XFillRectangle (Dpy, Root, gc, 0, 0,
-		XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-		XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+					XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+					XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
 	XFlush (Dpy);
 	XFreeGC (Dpy, gc);
 }
 
 void
-App::setBackground (const std::string & themedir)
+App::setBackground (const std::string &themedir)
 {
 	std::string filename;
 	filename = themedir + "/background.png";
@@ -1227,39 +1342,49 @@ App::setBackground (const std::string & themedir)
 	bool loaded = image->Read (filename.c_str ());
 
 	if (!loaded)
-	{ /* try jpeg if png failed */
-		filename = themedir + "/background.jpg";
-		loaded = image->Read (filename.c_str ());
-	}
-
-	if (loaded) {
-		std::string bgstyle = cfg.getOption ("background_style");
-		
-		if (bgstyle == "stretch")
-		{
-			image->Resize (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
-		} else if (bgstyle == "tile") {
-			image->Tile (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
-		} else if (bgstyle == "center") {
-			std::string hexvalue = cfg.getOption ("background_color");
-			hexvalue = hexvalue.substr (1, 6);
-			image->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
-				hexvalue.c_str ());
-		} else { /* plain color or error */
-			std::string hexvalue = cfg.getOption ("background_color");
-			hexvalue = hexvalue.substr (1, 6);
-			image->Center (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
-				XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
-				hexvalue.c_str ());
+		{ /* try jpeg if png failed */
+			filename = themedir + "/background.jpg";
+			loaded = image->Read (filename.c_str ());
 		}
-		Pixmap p = image->createPixmap (Dpy, Scr, Root);
-		XSetWindowBackgroundPixmap (Dpy, Root, p);
-		XChangeProperty (Dpy, Root, BackgroundPixmapId, XA_PIXMAP, 32,
-			PropModeReplace, (unsigned char *)&p, 1);
-	}
+
+	if (loaded)
+		{
+			std::string bgstyle = cfg.getOption ("background_style");
+
+			if (bgstyle == "stretch")
+				{
+					image->Resize (
+						XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+				}
+			else if (bgstyle == "tile")
+				{
+					image->Tile (XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+								 XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)));
+				}
+			else if (bgstyle == "center")
+				{
+					std::string hexvalue = cfg.getOption ("background_color");
+					hexvalue = hexvalue.substr (1, 6);
+					image->Center (
+						XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						hexvalue.c_str ());
+				}
+			else
+				{ /* plain color or error */
+					std::string hexvalue = cfg.getOption ("background_color");
+					hexvalue = hexvalue.substr (1, 6);
+					image->Center (
+						XWidthOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						XHeightOfScreen (ScreenOfDisplay (Dpy, Scr)),
+						hexvalue.c_str ());
+				}
+			Pixmap p = image->createPixmap (Dpy, Scr, Root);
+			XSetWindowBackgroundPixmap (Dpy, Root, p);
+			XChangeProperty (Dpy, Root, BackgroundPixmapId, XA_PIXMAP, 32,
+							 PropModeReplace, (unsigned char *)&p, 1);
+		}
 	XClearWindow (Dpy, Root);
 
 	XFlush (Dpy);
@@ -1271,47 +1396,62 @@ void
 App::GetLock ()
 {
 	std::ifstream lockfile (cfg.getOption ("lockfile").c_str ());
-	if (!lockfile) {
-		/* no lockfile present, create one */
-		std::ofstream lockfile (
-			cfg.getOption ("lockfile").c_str (), std::ios_base::out);
-		if (!lockfile) {
-			logStream << APPNAME << ": Could not create lock file: "
-					  << cfg.getOption ("lockfile").c_str () << std::endl;
-			exit (ERR_EXIT);
-		}
-		lockfile << getpid () << std::endl;
-		lockfile.close ();
-	} else {
-		/* lockfile present, read pid from it */
-		int pid = 0;
-		lockfile >> pid;
-		lockfile.close ();
-		if (pid > 0) {
-			/* see if process with this pid exists */
-			int ret = kill (pid, 0);
-			if (ret == 0 || (ret == -1 && errno == EPERM)) {
-				logStream << APPNAME
-						  << ": Another instance of the program is already "
-							 "running with PID "
-						  << pid << std::endl;
-				exit (0);
-			} else {
-				logStream << APPNAME << ": Stale lockfile found, removing it"
-						  << std::endl;
-				std::ofstream lockfile (
-					cfg.getOption ("lockfile").c_str (), std::ios_base::out);
-				if (!lockfile) {
-					logStream << APPNAME
-							  << ": Could not create new lock file: "
-							  << cfg.getOption ("lockfile") << std::endl;
+	if (!lockfile)
+		{
+			/* no lockfile present, create one */
+			std::ofstream lockfile (cfg.getOption ("lockfile").c_str (),
+									std::ios_base::out);
+			if (!lockfile)
+				{
+					logStream << APPNAME << ": Could not create lock file: "
+							  << cfg.getOption ("lockfile").c_str ()
+							  << std::endl;
 					exit (ERR_EXIT);
 				}
-				lockfile << getpid () << std::endl;
-				lockfile.close ();
-			}
+			lockfile << getpid () << std::endl;
+			lockfile.close ();
 		}
-	}
+	else
+		{
+			/* lockfile present, read pid from it */
+			int pid = 0;
+			lockfile >> pid;
+			lockfile.close ();
+			if (pid > 0)
+				{
+					/* see if process with this pid exists */
+					int ret = kill (pid, 0);
+					if (ret == 0 || (ret == -1 && errno == EPERM))
+						{
+							logStream << APPNAME
+									  << ": Another instance of the program "
+										 "is already "
+										 "running with PID "
+									  << pid << std::endl;
+							exit (0);
+						}
+					else
+						{
+							logStream << APPNAME
+									  << ": Stale lockfile found, removing it"
+									  << std::endl;
+							std::ofstream lockfile (
+								cfg.getOption ("lockfile").c_str (),
+								std::ios_base::out);
+							if (!lockfile)
+								{
+									logStream
+										<< APPNAME
+										<< ": Could not create new lock file: "
+										<< cfg.getOption ("lockfile")
+										<< std::endl;
+									exit (ERR_EXIT);
+								}
+							lockfile << getpid () << std::endl;
+							lockfile.close ();
+						}
+				}
+		}
 }
 
 /* Remove lockfile and close logs */
@@ -1332,12 +1472,13 @@ App::isServerStarted ()
 void
 App::OpenLog ()
 {
-	if (!logStream.openLog (cfg.getOption ("logfile").c_str ())) {
-		logStream << APPNAME << ": Could not accesss log file: "
-				  << cfg.getOption ("logfile") << std::endl;
-		RemoveLock ();
-		exit (ERR_EXIT);
-	}
+	if (!logStream.openLog (cfg.getOption ("logfile").c_str ()))
+		{
+			logStream << APPNAME << ": Could not accesss log file: "
+					  << cfg.getOption ("logfile") << std::endl;
+			RemoveLock ();
+			exit (ERR_EXIT);
+		}
 	/* I should set the buffers to imediate write, but I just flush on every <<
 	 * operation. */
 }
@@ -1351,45 +1492,51 @@ App::CloseLog ()
 }
 
 std::string
-App::findValidRandomTheme (const std::string & set)
+App::findValidRandomTheme (const std::string &set)
 {
 	/* extract random theme from theme set; return empty string on error */
 	std::string name = set;
 	struct stat buf;
 
-	if (name[name.length () - 1] == ',') {
-		name = name.substr (0, name.length () - 1);
-	}
+	if (name[name.length () - 1] == ',')
+		{
+			name = name.substr (0, name.length () - 1);
+		}
 
 	Util::srandom (Util::makeseed ());
 
 	std::vector<std::string> themes;
 	std::string themefile;
 	Cfg::split (themes, name, ',');
-	do {
-		int sel = Util::random () % themes.size ();
+	do
+		{
+			int sel = Util::random () % themes.size ();
+			name = Cfg::Trim (themes[sel]);
+			themefile = cfg.getOption ("themes_dir") + "/" + name + THEMESFILE;
 
-		name = Cfg::Trim (themes[sel]);
-		themefile = cfg.getOption ("themes_dir") + "/" + name + THEMESFILE;
-		if (stat (themefile.c_str (), &buf) != 0) {
-			themes.erase (find (themes.begin (), themes.end (), name));
-			logStream << APPNAME << ": Invalid theme in config: " << name
-					  << std::endl;
-			name = "";
+			if (stat (themefile.c_str (), &buf) != 0)
+				{
+					themes.erase (find (themes.begin (), themes.end (), name));
+					logStream << APPNAME
+							  << ": Invalid theme in config: " << name
+							  << std::endl;
+					name = "";
+				}
 		}
-	} while (name == "" && themes.size ());
+	while (name == "" && themes.size ());
 	return name;
 }
 
 void
-App::replaceVariables (
-	std::string & input, const std::string & var, const std::string & value)
+App::replaceVariables (std::string &input, const std::string &var,
+					   const std::string &value)
 {
 	std::string::size_type pos = 0;
 	int len = var.size ();
-	while ((pos = input.find (var, pos)) != std::string::npos) {
-		input = input.substr (0, pos) + value + input.substr (pos + len);
-	}
+	while ((pos = input.find (var, pos)) != std::string::npos)
+		{
+			input = input.substr (0, pos) + value + input.substr (pos + len);
+		}
 }
 
 /*
@@ -1404,17 +1551,18 @@ App::CreateServerAuth ()
 	uint8_t hi, lo;
 	int i;
 	std::string authfile;
-	const char * digits = "0123456789abcdef";
+	const char *digits = "0123456789abcdef";
 	Util::srandom (Util::makeseed ());
-	for (i = 0; i < MCOOKIESIZE; i += 4) {
-		word = Util::random () & 0xffff;
-		lo = word & 0xff;
-		hi = word >> 8;
-		mcookie[i] = digits[lo & 0x0f];
-		mcookie[i + 1] = digits[lo >> 4];
-		mcookie[i + 2] = digits[hi & 0x0f];
-		mcookie[i + 3] = digits[hi >> 4];
-	}
+	for (i = 0; i < MCOOKIESIZE; i += 4)
+		{
+			word = Util::random () & 0xffff;
+			lo = word & 0xff;
+			hi = word >> 8;
+			mcookie[i] = digits[lo & 0x0f];
+			mcookie[i + 1] = digits[lo >> 4];
+			mcookie[i + 2] = digits[hi & 0x0f];
+			mcookie[i + 3] = digits[hi >> 4];
+		}
 	/* reinitialize auth file */
 	authfile = cfg.getOption ("authfile");
 	remove (authfile.c_str ());
@@ -1423,9 +1571,9 @@ App::CreateServerAuth ()
 }
 
 char *
-App::StrConcat (const char * str1, const char * str2)
+App::StrConcat (const char *str1, const char *str2)
 {
-	char * tmp = new char[strlen (str1) + strlen (str2) + 1];
+	char *tmp = new char[strlen (str1) + strlen (str2) + 1];
 	strcpy (tmp, str1);
 	strcat (tmp, str2);
 	return tmp;
@@ -1434,14 +1582,15 @@ App::StrConcat (const char * str1, const char * str2)
 void
 App::UpdatePid ()
 {
-	std::ofstream lockfile (cfg.getOption ("lockfile").c_str (), std::ios_base::out);
-	
+	std::ofstream lockfile (cfg.getOption ("lockfile").c_str (),
+							std::ios_base::out);
+
 	if (!lockfile)
-	{
-		logStream << APPNAME << ": Could not update lock file: "
-				  << cfg.getOption ("lockfile").c_str () << std::endl;
-		exit (ERR_EXIT);
-	}
+		{
+			logStream << APPNAME << ": Could not update lock file: "
+					  << cfg.getOption ("lockfile").c_str () << std::endl;
+			exit (ERR_EXIT);
+		}
 	lockfile << getpid () << std::endl;
 	lockfile.close ();
 }
