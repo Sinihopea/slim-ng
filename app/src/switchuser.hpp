@@ -26,8 +26,8 @@
 class SwitchUser
 {
   public:
-	SwitchUser(struct passwd *pw, Cfg &c, const std::string &display, char **_env);
-	~SwitchUser();
+	explicit SwitchUser(struct passwd *pw, Cfg &c, const std::string &display, char **_env);
+	~SwitchUser() = default;
 	void Login(const char *cmd, const char *mcookie);
 
   private:

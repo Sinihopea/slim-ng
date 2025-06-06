@@ -20,8 +20,6 @@ SwitchUser::SwitchUser(struct passwd *pw, Cfg &c, const std::string &display, ch
 {
 }
 
-SwitchUser::~SwitchUser() { /* Never called */ }
-
 void SwitchUser::Login(const char *cmd, const char *mcookie)
 {
 	SetUserId();
