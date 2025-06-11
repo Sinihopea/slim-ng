@@ -8,6 +8,10 @@
  * (at your option) any later version.
  */
 
+#include "cfg.hpp"
+#include "panel.hpp"
+#include "util.hpp"
+
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/dpms.h>
@@ -26,10 +30,6 @@
 #include <sys/ioctl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-
-#include "cfg.hpp"
-#include "panel.hpp"
-#include "util.hpp"
 
 #undef APPNAME
 #define APPNAME "slimlock"
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
 	/* Create a full screen window */
 	root = RootWindow(dpy, scr);
 	win = XCreateWindow(dpy, root, 0, 0, DisplayWidth(dpy, scr), DisplayHeight(dpy, scr), 0, DefaultDepth(dpy, scr),
-						CopyFromParent, DefaultVisual(dpy, scr), CWOverrideRedirect, &wa);
+		CopyFromParent, DefaultVisual(dpy, scr), CWOverrideRedirect, &wa);
 	XMapWindow(dpy, win);
 	XFlush(dpy);
 

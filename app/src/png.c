@@ -18,11 +18,11 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ****************************************************************************/
 
+#include "const.hpp"
+
+#include <png.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-#include "const.hpp"
-#include <png.h>
 #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>

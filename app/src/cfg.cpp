@@ -10,18 +10,18 @@
  * (at your option) any later version.
  */
 
+#include "cfg.hpp"
+
 #include <algorithm>
+#include <dirent.h>
 #include <fstream>
+#include <sys/stat.h>
+#include <unistd.h>
+
 // #include <iostream>
 // #include <cstdlib>
 // #include <string>
-#include <unistd.h>
-
-#include <dirent.h>
-#include <sys/stat.h>
 // #include <sys/types.h>
-
-#include "cfg.hpp"
 
 using option = std::pair<std::string, std::string>;
 
@@ -400,8 +400,8 @@ void Cfg::fillSessionList()
 	}
 
 	std::sort(sessions.begin(), sessions.end(),
-			  [](std::pair<std::string, std::string> &a, std::pair<std::string, std::string> &b) -> bool
-			  { return a.first < b.first; });
+		[](std::pair<std::string, std::string> &a, std::pair<std::string, std::string> &b) -> bool
+		{ return a.first < b.first; });
 
 	if (sessions.empty())
 	{

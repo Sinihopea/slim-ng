@@ -10,8 +10,15 @@
  * (at your option) any later version.
  */
 
+#include "app.hpp"
+
+#include "numlock.hpp"
+#include "util.hpp"
+
 #include <algorithm>
+#include <csetjmp>
 #include <cstdint>
+
 // #include <cstdio>
 // #include <cstring>
 // #include <fcntl.h>
@@ -23,10 +30,6 @@
 // #include <sys/types.h>
 // #include <unistd.h>
 // #include <vector>
-
-#include "app.hpp"
-#include "numlock.hpp"
-#include "util.hpp"
 
 #ifdef HAVE_SHADOW
 #include <shadow.h>
@@ -47,53 +50,53 @@ int conv(int num_msg, const struct pam_message **msg, struct pam_response **resp
 
 		switch (msg[i]->msg_style)
 		{
-		case PAM_PROMPT_ECHO_ON:
-			/* We assume PAM is asking for the username */
-			panel->EventHandler(Panel::Get_Name);
-			switch (panel->getAction())
-			{
-			case Panel::Suspend:
-			case Panel::Halt:
-			case Panel::Reboot:
-				(*resp)[i].resp = strdup("root");
+			case PAM_PROMPT_ECHO_ON:
+				/* We assume PAM is asking for the username */
+				panel->EventHandler(Panel::Get_Name);
+				switch (panel->getAction())
+				{
+					case Panel::Suspend:
+					case Panel::Halt:
+					case Panel::Reboot:
+						(*resp)[i].resp = strdup("root");
+						break;
+
+					case Panel::Console:
+					case Panel::Exit:
+					case Panel::Login:
+						(*resp)[i].resp = strdup(panel->GetName().c_str());
+						break;
+					default:
+						break;
+				}
 				break;
 
-			case Panel::Console:
-			case Panel::Exit:
-			case Panel::Login:
-				(*resp)[i].resp = strdup(panel->GetName().c_str());
-				break;
-			default:
-				break;
-			}
-			break;
+			case PAM_PROMPT_ECHO_OFF:
+				/* We assume PAM is asking for the password */
+				switch (panel->getAction())
+				{
+					case Panel::Console:
+					case Panel::Exit:
+						/* We should leave now! */
+						result = PAM_CONV_ERR;
+						break;
 
-		case PAM_PROMPT_ECHO_OFF:
-			/* We assume PAM is asking for the password */
-			switch (panel->getAction())
-			{
-			case Panel::Console:
-			case Panel::Exit:
-				/* We should leave now! */
-				result = PAM_CONV_ERR;
+					default:
+						panel->EventHandler(Panel::Get_Passwd);
+						(*resp)[i].resp = strdup(panel->GetPasswd().c_str());
+						break;
+				}
 				break;
 
-			default:
-				panel->EventHandler(Panel::Get_Passwd);
-				(*resp)[i].resp = strdup(panel->GetPasswd().c_str());
+			case PAM_ERROR_MSG:
+			case PAM_TEXT_INFO:
+				/**
+				 * We simply write these to the log
+				 *
+				 * @TODO: Maybe we should simply ignore them
+				 */
+				logStream << APPNAME << ": " << msg[i]->msg << std::endl;
 				break;
-			}
-			break;
-
-		case PAM_ERROR_MSG:
-		case PAM_TEXT_INFO:
-			/**
-			 * We simply write these to the log
-			 *
-			 * @TODO: Maybe we should simply ignore them
-			 */
-			logStream << APPNAME << ": " << msg[i]->msg << std::endl;
-			break;
 		}
 		if (result != PAM_SUCCESS)
 			break;
@@ -167,75 +170,75 @@ App::App(int argc, char **argv)
 		switch (tmp)
 		{
 
-		/* Config */
-		case 'c':
-			if (optarg == nullptr)
-			{
-				logStream << "The -c option requires an argument" << std::endl;
-				exit(ERR_EXIT);
-			}
-			m_config_app.readConf(optarg);
-			configLoaded = true;
-			break;
+			/* Config */
+			case 'c':
+				if (optarg == nullptr)
+				{
+					logStream << "The -c option requires an argument" << std::endl;
+					exit(ERR_EXIT);
+				}
+				m_config_app.readConf(optarg);
+				configLoaded = true;
+				break;
 
-		/* Test theme */
-		case 'p':
-			m_test_theme = optarg;
-			m_testing = true;
+			/* Test theme */
+			case 'p':
+				m_test_theme = optarg;
+				m_testing = true;
 
-			if (m_test_theme == nullptr)
-			{
-				logStream << "The -p option requires an argument" << std::endl;
-				exit(ERR_EXIT);
-			}
-			break;
+				if (m_test_theme == nullptr)
+				{
+					logStream << "The -p option requires an argument" << std::endl;
+					exit(ERR_EXIT);
+				}
+				break;
 
-		/* Daemon mode */
-		case 'd':
-			m_daemon_mode = true;
-			break;
+			/* Daemon mode */
+			case 'd':
+				m_daemon_mode = true;
+				break;
 
-		/* Daemon mode */
-		case 'n':
-			m_daemon_mode = false;
-			m_force_no_daemon = true;
-			break;
+			/* Daemon mode */
+			case 'n':
+				m_daemon_mode = false;
+				m_force_no_daemon = true;
+				break;
 
-		/* Version */
-		case 'v':
-			std::cout << APPNAME << " version " << VERSION << std::endl;
-			exit(OK_EXIT);
-			break;
+			/* Version */
+			case 'v':
+				std::cout << APPNAME << " version " << VERSION << std::endl;
+				exit(OK_EXIT);
+				break;
 
 #ifdef USE_CONSOLEKIT
 
-		/* Disable consolekit support */
-		case 's':
-			consolekit_support_enabled = false;
-			break;
+			/* Disable consolekit support */
+			case 's':
+				consolekit_support_enabled = false;
+				break;
 
 #endif
 
-		/* Illegal */
-		case '?':
-			logStream << std::endl;
+			/* Illegal */
+			case '?':
+				logStream << std::endl;
 
-		/* Help */
-		case 'h':
-			logStream << "usage:  " << APPNAME << " [option ...]" << std::endl
-					  << "options:" << std::endl
-					  << "\t-c file: configuration file" << std::endl
-					  << "\t-d: daemon mode" << std::endl
-					  << "\t-n: no-daemon mode" << std::endl
-					  << "\t-v: show version" << std::endl
+			/* Help */
+			case 'h':
+				logStream << "usage:  " << APPNAME << " [option ...]" << std::endl
+						  << "options:" << std::endl
+						  << "\t-c file: configuration file" << std::endl
+						  << "\t-d: daemon mode" << std::endl
+						  << "\t-n: no-daemon mode" << std::endl
+						  << "\t-v: show version" << std::endl
 #ifdef USE_CONSOLEKIT
-					  << "\t-s: start for systemd, disable consolekit support" << std::endl
+						  << "\t-s: start for systemd, disable consolekit support" << std::endl
 #endif
-					  << "\t-p /path/to/theme/dir: preview theme" << std::endl;
+						  << "\t-p /path/to/theme/dir: preview theme" << std::endl;
 
-			exit(OK_EXIT);
+				exit(OK_EXIT);
 
-			break;
+				break;
 		}
 	}
 #ifndef XNEST_DEBUG
@@ -506,26 +509,26 @@ void App::Run()
 
 		switch (Action)
 		{
-		case Panel::Login:
-			Login();
-			break;
-		case Panel::Console:
-			Console();
-			break;
-		case Panel::Reboot:
-			Reboot();
-			break;
-		case Panel::Halt:
-			Halt();
-			break;
-		case Panel::Suspend:
-			Suspend();
-			break;
-		case Panel::Exit:
-			Exit();
-			break;
-		default:
-			break;
+			case Panel::Login:
+				Login();
+				break;
+			case Panel::Console:
+				Console();
+				break;
+			case Panel::Reboot:
+				Reboot();
+				break;
+			case Panel::Halt:
+				Halt();
+				break;
+			case Panel::Suspend:
+				Suspend();
+				break;
+			case Panel::Exit:
+				Exit();
+				break;
+			default:
+				break;
 		}
 	}
 }
@@ -544,11 +547,11 @@ bool App::AuthenticateUser(bool focuspass)
 	{
 		switch (LoginPanel->getAction())
 		{
-		case Panel::Exit:
-		case Panel::Console:
-			return true; /* <--- This is simply fake! */
-		default:
-			break;
+			case Panel::Exit:
+			case Panel::Console:
+				return true; /* <--- This is simply fake! */
+			default:
+				break;
 		}
 		logStream << APPNAME << ": " << e << std::endl;
 		return false;
@@ -568,12 +571,12 @@ bool App::AuthenticateUser(bool focuspass)
 		LoginPanel->EventHandler(Panel::Get_Name);
 		switch (LoginPanel->getAction())
 		{
-		case Panel::Exit:
-		case Panel::Console:
-			logStream << APPNAME << ": Got a special command (" << LoginPanel->GetName() << ")" << std::endl;
-			return true; /* <--- This is simply fake! */
-		default:
-			break;
+			case Panel::Exit:
+			case Panel::Console:
+				logStream << APPNAME << ": Got a special command (" << LoginPanel->GetName() << ")" << std::endl;
+				return true; /* <--- This is simply fake! */
+			default:
+				break;
 		}
 	}
 	LoginPanel->EventHandler(Panel::Get_Passwd);
@@ -583,16 +586,16 @@ bool App::AuthenticateUser(bool focuspass)
 
 	switch (LoginPanel->getAction())
 	{
-	case Panel::Suspend:
-	case Panel::Halt:
-	case Panel::Reboot:
-		pw = getpwnam("root");
-		break;
-	case Panel::Console:
-	case Panel::Exit:
-	case Panel::Login:
-		pw = getpwnam(LoginPanel->GetName().c_str());
-		break;
+		case Panel::Suspend:
+		case Panel::Halt:
+		case Panel::Reboot:
+			pw = getpwnam("root");
+			break;
+		case Panel::Console:
+		case Panel::Exit:
+		case Panel::Login:
+			pw = getpwnam(LoginPanel->GetName().c_str());
+			break;
 	}
 	endpwent();
 	if (pw == 0)
@@ -1071,7 +1074,8 @@ int App::ServerTimeout(int timeout, char *text)
 		{
 			if (i == 0 && text != lasttext)
 			{
-				logStream << std::endl << APPNAME << ": waiting for " << text;
+				logStream << std::endl
+						  << APPNAME << ": waiting for " << text;
 			}
 			else
 			{
@@ -1190,38 +1194,38 @@ int App::StartServer()
 
 	switch (m_server_pid)
 	{
-	case 0:
-		signal(SIGTTIN, SIG_IGN);
-		signal(SIGTTOU, SIG_IGN);
-		signal(SIGUSR1, SIG_IGN);
-		setpgid(0, getpid());
+		case 0:
+			signal(SIGTTIN, SIG_IGN);
+			signal(SIGTTOU, SIG_IGN);
+			signal(SIGUSR1, SIG_IGN);
+			setpgid(0, getpid());
 
-		execvp(server[0], server);
-		logStream << APPNAME << ": X server could not be started" << std::endl;
-		exit(ERR_EXIT);
-		break;
-
-	case -1:
-		break;
-
-	default:
-		errno = 0;
-
-		if (!ServerTimeout(0, (char *)""))
-		{
-			m_server_pid = -1;
-			break;
-		}
-
-		/* Wait for server to start up */
-		if (WaitForServer() == 0)
-		{
-			logStream << APPNAME << ": unable to connect to X server" << std::endl;
-			StopServer();
-			m_server_pid = -1;
+			execvp(server[0], server);
+			logStream << APPNAME << ": X server could not be started" << std::endl;
 			exit(ERR_EXIT);
-		}
-		break;
+			break;
+
+		case -1:
+			break;
+
+		default:
+			errno = 0;
+
+			if (!ServerTimeout(0, (char *)""))
+			{
+				m_server_pid = -1;
+				break;
+			}
+
+			/* Wait for server to start up */
+			if (WaitForServer() == 0)
+			{
+				logStream << APPNAME << ": unable to connect to X server" << std::endl;
+				StopServer();
+				m_server_pid = -1;
+				exit(ERR_EXIT);
+			}
+			break;
 	}
 
 	delete[] args;
@@ -1293,7 +1297,8 @@ void App::StopServer()
 		return;
 	}
 
-	logStream << std::endl << APPNAME << ":  X server slow to shut down, sending KILL signal." << std::endl;
+	logStream << std::endl
+			  << APPNAME << ":  X server slow to shut down, sending KILL signal." << std::endl;
 
 	/* Send KILL to server */
 	errno = 0;
@@ -1309,7 +1314,8 @@ void App::StopServer()
 	/* Wait for server to die */
 	if (ServerTimeout(3, (char *)"server to die"))
 	{
-		logStream << std::endl << APPNAME << ": can't kill server" << std::endl;
+		logStream << std::endl
+				  << APPNAME << ": can't kill server" << std::endl;
 		exit(ERR_EXIT);
 	}
 	logStream << std::endl;
@@ -1320,7 +1326,7 @@ void App::blankScreen()
 	GC gc = XCreateGC(m_display, m_window_root, 0, 0);
 	XSetForeground(m_display, gc, BlackPixel(m_display, m_screen));
 	XFillRectangle(m_display, m_window_root, gc, 0, 0, XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-				   XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
+		XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
 	XFlush(m_display);
 	XFreeGC(m_display, gc);
 }
@@ -1346,31 +1352,31 @@ void App::setBackground(const std::string &themedir)
 		if (bgstyle == "stretch")
 		{
 			image->Resize(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-						  XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
 		}
 		else if (bgstyle == "tile")
 		{
 			image->Tile(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-						XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
 		}
 		else if (bgstyle == "center")
 		{
 			std::string hexvalue = m_config_app.getOption("background_color");
 			hexvalue = hexvalue.substr(1, 6);
 			image->Center(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-						  XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
 		}
 		else
 		{ /* plain color or error */
 			std::string hexvalue = m_config_app.getOption("background_color");
 			hexvalue = hexvalue.substr(1, 6);
 			image->Center(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-						  XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
 		}
 		Pixmap p = image->createPixmap(m_display, m_screen, m_window_root);
 		XSetWindowBackgroundPixmap(m_display, m_window_root, p);
 		XChangeProperty(m_display, m_window_root, BackgroundPixmapId, XA_PIXMAP, 32, PropModeReplace,
-						(unsigned char *)&p, 1);
+			(unsigned char *)&p, 1);
 	}
 
 	XClearWindow(m_display, m_window_root);

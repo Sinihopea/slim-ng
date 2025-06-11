@@ -14,6 +14,7 @@
  */
 
 #include "numlock.hpp"
+
 #include <cstring>
 
 NumLock::NumLock() {}
@@ -40,6 +41,7 @@ unsigned int NumLock::xkb_mask_modifier(XkbDescPtr xkb, const char *name)
 	for (i = 0; i < XkbNumVirtualMods; i++)
 	{
 		char *modStr = XGetAtomName(xkb->dpy, xkb->names->vmods[i]);
+
 		if (modStr != nullptr && strcmp(name, modStr) == 0)
 		{
 			unsigned int mask;
@@ -47,6 +49,7 @@ unsigned int NumLock::xkb_mask_modifier(XkbDescPtr xkb, const char *name)
 			return mask;
 		}
 	}
+
 	return 0;
 }
 
@@ -92,9 +95,15 @@ void NumLock::control_numlock(Display *dpy, bool flag)
 	}
 }
 
-void NumLock::setOn(Display *dpy) { control_numlock(dpy, true); }
+void NumLock::setOn(Display *dpy)
+{
+	control_numlock(dpy, true);
+}
 
-void NumLock::setOff(Display *dpy) { control_numlock(dpy, false); }
+void NumLock::setOff(Display *dpy)
+{
+	control_numlock(dpy, false);
+}
 
 /*
  * Copyright (C) 2000-2001 Lubos Lunak <l.lunak@kde.org>

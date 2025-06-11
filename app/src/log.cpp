@@ -1,4 +1,5 @@
 #include "log.hpp"
+
 #include <cstring>
 #include <iostream>
 

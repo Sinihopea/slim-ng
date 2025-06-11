@@ -13,6 +13,8 @@
  * xplanet 1.0.1, Copyright (C) 2002-04 Hari Nair <hari@alumni.caltech.edu>
  */
 
+#include "image.hpp"
+
 #include <cctype>
 #include <cmath>
 #include <cstdio>
@@ -20,18 +22,19 @@
 #include <cstring>
 #include <iostream>
 
-#include "image.hpp"
-
 extern "C"
 {
 #include <jpeglib.h>
 #include <png.h>
 }
 
-Image::Image() : width(0), height(0), area(0), rgb_data(nullptr), png_alpha(nullptr), quality_(80) {}
+Image::Image() :
+	width(0), height(0), area(0), rgb_data(nullptr), png_alpha(nullptr), quality_(80)
+{
+}
 
-Image::Image(const int w, const int h, const unsigned char *rgb, const unsigned char *alpha)
-	: width(w), height(h), area(w * h), quality_(80)
+Image::Image(const int w, const int h, const unsigned char *rgb, const unsigned char *alpha) :
+	width(w), height(h), area(w * h), quality_(80)
 {
 	width = w;
 	height = h;
@@ -214,28 +217,50 @@ void Image::getPixel(double x, double y, unsigned char *pixel) { getPixel(x, y, 
 void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *alpha)
 {
 	if (x < -0.5)
+	{
 		x = -0.5;
+	}
+
 	if (x >= width - 0.5)
+	{
 		x = width - 0.5;
+	}
 
 	if (y < -0.5)
+	{
 		y = -0.5;
+	}
+
 	if (y >= height - 0.5)
+	{
 		y = height - 0.5;
+	}
 
 	int ix0 = (int)(floor(x));
 	int ix1 = ix0 + 1;
+
 	if (ix0 < 0)
+	{
 		ix0 = width - 1;
+	}
+
 	if (ix1 >= width)
+	{
 		ix1 = 0;
+	}
 
 	int iy0 = (int)(floor(y));
 	int iy1 = iy0 + 1;
+
 	if (iy0 < 0)
+	{
 		iy0 = 0;
+	}
+
 	if (iy1 >= height)
+	{
 		iy1 = height - 1;
+	}
 
 	const double t = x - floor(x);
 	const double u = 1 - (y - floor(y));
@@ -253,10 +278,13 @@ void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *al
 	pixels[3] = rgb_data + 3 * (iy1 * width + ix1);
 
 	memset(pixel, 0, 3);
+
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < 3; j++)
+		{
 			pixel[j] += (unsigned char)(weight[i] * pixels[i][j]);
+		}
 	}
 
 	if (alpha != nullptr)
@@ -268,7 +296,9 @@ void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *al
 		pixels[3] = png_alpha[iy1 * width + ix1];
 
 		for (int i = 0; i < 4; i++)
+		{
 			*alpha = (unsigned char)(weight[i] * pixels[i]);
+		}
 	}
 }
 
@@ -281,10 +311,14 @@ void Image::Merge(Image *background, const int x, const int y)
 {
 
 	if (x + width > background->Width() || y + height > background->Height())
+	{
 		return;
+	}
 
 	if (background->Width() * background->Height() != width * height)
+	{
 		background->Crop(x, y, width, height);
+	}
 
 	double tmp;
 	unsigned char *new_rgb = (unsigned char *)malloc(3 * width * height);
@@ -292,6 +326,7 @@ void Image::Merge(Image *background, const int x, const int y)
 	const unsigned char *bg_rgb = background->getRGBData();
 
 	int ipos = 0;
+
 	if (png_alpha != nullptr)
 	{
 		for (int j = 0; j < height; j++)
@@ -674,19 +709,19 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 
 	switch (depth)
 	{
-	case 32:
-	case 24:
-		pixmap_data = new char[4 * width * height];
-		break;
-	case 16:
-	case 15:
-		pixmap_data = new char[2 * width * height];
-		break;
-	case 8:
-		pixmap_data = new char[width * height];
-		break;
-	default:
-		break;
+		case 32:
+		case 24:
+			pixmap_data = new char[4 * width * height];
+			break;
+		case 16:
+		case 15:
+			pixmap_data = new char[2 * width * height];
+			break;
+		case 8:
+			pixmap_data = new char[width * height];
+			break;
+		default:
+			break;
 	}
 
 	XImage *ximage = XCreateImage(dpy, visual, depth, ZPixmap, 0, pixmap_data, width, height, 8, 0);
@@ -698,106 +733,106 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 
 	switch (visual_info->c_class)
 	{
-	case PseudoColor:
-	{
-		XColor xc;
-		xc.flags = DoRed | DoGreen | DoBlue;
-		int num_colors = 256;
-		XColor *colors = new XColor[num_colors];
-
-		for (i = 0; i < num_colors; i++)
+		case PseudoColor:
 		{
-			colors[i].pixel = (unsigned long)i;
-		}
+			XColor xc;
+			xc.flags = DoRed | DoGreen | DoBlue;
+			int num_colors = 256;
+			XColor *colors = new XColor[num_colors];
 
-		XQueryColors(dpy, colormap, colors, num_colors);
-		int *closest_color = new int[num_colors];
-
-		for (i = 0; i < num_colors; i++)
-		{
-			/* highest 3 bits */
-			xc.red = (i & 0xe0) << 8;
-
-			/* middle 3 bits */
-			xc.green = (i & 0x1c) << 11;
-
-			/* lowest 2 bits */
-			xc.blue = (i & 0x03) << 14;
-
-			/* find the closest color in the colormap */
-			double distance, distance_squared, min_distance = 0;
-
-			for (int ii = 0; ii < num_colors; ii++)
+			for (i = 0; i < num_colors; i++)
 			{
-				distance = colors[ii].red - xc.red;
-				distance_squared = distance * distance;
-				distance = colors[ii].green - xc.green;
-				distance_squared += distance * distance;
-				distance = colors[ii].blue - xc.blue;
-				distance_squared += distance * distance;
+				colors[i].pixel = (unsigned long)i;
+			}
 
-				if ((ii == 0) || (distance_squared <= min_distance))
+			XQueryColors(dpy, colormap, colors, num_colors);
+			int *closest_color = new int[num_colors];
+
+			for (i = 0; i < num_colors; i++)
+			{
+				/* highest 3 bits */
+				xc.red = (i & 0xe0) << 8;
+
+				/* middle 3 bits */
+				xc.green = (i & 0x1c) << 11;
+
+				/* lowest 2 bits */
+				xc.blue = (i & 0x03) << 14;
+
+				/* find the closest color in the colormap */
+				double distance, distance_squared, min_distance = 0;
+
+				for (int ii = 0; ii < num_colors; ii++)
 				{
-					min_distance = distance_squared;
-					closest_color[i] = ii;
+					distance = colors[ii].red - xc.red;
+					distance_squared = distance * distance;
+					distance = colors[ii].green - xc.green;
+					distance_squared += distance * distance;
+					distance = colors[ii].blue - xc.blue;
+					distance_squared += distance * distance;
+
+					if ((ii == 0) || (distance_squared <= min_distance))
+					{
+						min_distance = distance_squared;
+						closest_color[i] = ii;
+					}
+				}
+			}
+
+			for (j = 0; j < height; j++)
+			{
+				for (i = 0; i < width; i++)
+				{
+					xc.red = (unsigned short)(rgb_data[ipos++] & 0xe0);
+					xc.green = (unsigned short)(rgb_data[ipos++] & 0xe0);
+					xc.blue = (unsigned short)(rgb_data[ipos++] & 0xc0);
+					xc.pixel = xc.red | (xc.green >> 3) | (xc.blue >> 6);
+					XPutPixel(ximage, i, j, colors[closest_color[xc.pixel]].pixel);
+				}
+			}
+
+			delete[] colors;
+			delete[] closest_color;
+		}
+		break;
+		case TrueColor:
+		{
+			unsigned char red_left_shift;
+			unsigned char red_right_shift;
+			unsigned char green_left_shift;
+			unsigned char green_right_shift;
+			unsigned char blue_left_shift;
+			unsigned char blue_right_shift;
+
+			computeShift(visual_info->red_mask, red_left_shift, red_right_shift);
+			computeShift(visual_info->green_mask, green_left_shift, green_right_shift);
+			computeShift(visual_info->blue_mask, blue_left_shift, blue_right_shift);
+
+			unsigned long pixel;
+			unsigned long red, green, blue;
+
+			for (j = 0; j < height; j++)
+			{
+				for (i = 0; i < width; i++)
+				{
+					red = (unsigned long)rgb_data[ipos++] >> red_right_shift;
+					green = (unsigned long)rgb_data[ipos++] >> green_right_shift;
+					blue = (unsigned long)rgb_data[ipos++] >> blue_right_shift;
+
+					pixel = (((red << red_left_shift) & visual_info->red_mask) |
+							 ((green << green_left_shift) & visual_info->green_mask) |
+							 ((blue << blue_left_shift) & visual_info->blue_mask));
+
+					XPutPixel(ximage, i, j, pixel);
 				}
 			}
 		}
-
-		for (j = 0; j < height; j++)
+		break;
+		default:
 		{
-			for (i = 0; i < width; i++)
-			{
-				xc.red = (unsigned short)(rgb_data[ipos++] & 0xe0);
-				xc.green = (unsigned short)(rgb_data[ipos++] & 0xe0);
-				xc.blue = (unsigned short)(rgb_data[ipos++] & 0xc0);
-				xc.pixel = xc.red | (xc.green >> 3) | (xc.blue >> 6);
-				XPutPixel(ximage, i, j, colors[closest_color[xc.pixel]].pixel);
-			}
+			logStream << "Login.app: could not load image" << std::endl;
+			return (tmp);
 		}
-
-		delete[] colors;
-		delete[] closest_color;
-	}
-	break;
-	case TrueColor:
-	{
-		unsigned char red_left_shift;
-		unsigned char red_right_shift;
-		unsigned char green_left_shift;
-		unsigned char green_right_shift;
-		unsigned char blue_left_shift;
-		unsigned char blue_right_shift;
-
-		computeShift(visual_info->red_mask, red_left_shift, red_right_shift);
-		computeShift(visual_info->green_mask, green_left_shift, green_right_shift);
-		computeShift(visual_info->blue_mask, blue_left_shift, blue_right_shift);
-
-		unsigned long pixel;
-		unsigned long red, green, blue;
-
-		for (j = 0; j < height; j++)
-		{
-			for (i = 0; i < width; i++)
-			{
-				red = (unsigned long)rgb_data[ipos++] >> red_right_shift;
-				green = (unsigned long)rgb_data[ipos++] >> green_right_shift;
-				blue = (unsigned long)rgb_data[ipos++] >> blue_right_shift;
-
-				pixel = (((red << red_left_shift) & visual_info->red_mask) |
-						 ((green << green_left_shift) & visual_info->green_mask) |
-						 ((blue << blue_left_shift) & visual_info->blue_mask));
-
-				XPutPixel(ximage, i, j, pixel);
-			}
-		}
-	}
-	break;
-	default:
-	{
-		logStream << "Login.app: could not load image" << std::endl;
-		return (tmp);
-	}
 	}
 
 	GC gc = XCreateGC(dpy, win, 0, nullptr);
@@ -920,8 +955,7 @@ int Image::readPng(const char *filename, int *width, int *height, unsigned char 
 		return ret;
 	}
 
-	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp) nullptr, (png_error_ptr) nullptr,
-									 (png_error_ptr) nullptr);
+	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp) nullptr, (png_error_ptr) nullptr, (png_error_ptr) nullptr);
 	if (!png_ptr)
 	{
 		goto file_close;

@@ -34,152 +34,152 @@
 
 struct Rectangle
 {
-	int x;
-	int y;
-	unsigned int width;
-	unsigned int height;
+		int x;
+		int y;
+		unsigned int width;
+		unsigned int height;
 
-	Rectangle() : x(0), y(0), width(0), height(0) {};
-	Rectangle(int x, int y, unsigned int width, unsigned int height) : x(x), y(y), width(width), height(height) {};
-	bool is_empty() const { return width == 0 || height == 0; }
+		Rectangle() : x(0), y(0), width(0), height(0) {};
+		Rectangle(int x, int y, unsigned int width, unsigned int height) : x(x), y(y), width(width), height(height) {};
+		bool is_empty() const { return width == 0 || height == 0; }
 };
 
 class Panel
 {
-  public:
-	enum ActionType
-	{
-		Login,
-		Lock,
-		Console,
-		Reboot,
-		Halt,
-		Exit,
-		Suspend
-	};
+	public:
+		enum ActionType
+		{
+			Login,
+			Lock,
+			Console,
+			Reboot,
+			Halt,
+			Exit,
+			Suspend
+		};
 
-	enum FieldType
-	{
-		Get_Name,
-		Get_Passwd
-	};
+		enum FieldType
+		{
+			Get_Name,
+			Get_Passwd
+		};
 
-	enum PanelType
-	{
-		Mode_DM,
-		Mode_Lock
-	};
+		enum PanelType
+		{
+			Mode_DM,
+			Mode_Lock
+		};
 
-	Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string &themed, PanelType panel_mode);
-	~Panel();
-	void OpenPanel();
-	void ClosePanel();
-	void ClearPanel();
-	void WrongPassword(int timeout);
-	void Message(const std::string &text);
-	void Error(const std::string &text);
-	void EventHandler(const FieldType &curfield);
-	std::string getSession();
-	ActionType getAction(void) const;
-	void Reset(void);
-	void ResetName(void);
-	void ResetPasswd(void);
-	void SetName(const std::string &name);
-	const std::string &GetName(void) const;
-	const std::string &GetPasswd(void) const;
-	void SwitchSession();
+		Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string &themed, PanelType panel_mode);
+		~Panel();
+		void OpenPanel();
+		void ClosePanel();
+		void ClearPanel();
+		void WrongPassword(int timeout);
+		void Message(const std::string &text);
+		void Error(const std::string &text);
+		void EventHandler(const FieldType &curfield);
+		std::string getSession();
+		ActionType getAction(void) const;
+		void Reset(void);
+		void ResetName(void);
+		void ResetPasswd(void);
+		void SetName(const std::string &name);
+		const std::string &GetName(void) const;
+		const std::string &GetPasswd(void) const;
+		void SwitchSession();
 
-  private:
-	Panel();
-	void Cursor(int visible);
-	unsigned long GetColor(const char *colorname);
-	void OnExpose(void);
-	void EraseLastChar(std::string &formerString);
-	bool OnKeyPress(XEvent &event);
-	void ShowText();
-	void ShowSession();
+	private:
+		Panel();
+		void Cursor(int visible);
+		unsigned long GetColor(const char *colorname);
+		void OnExpose(void);
+		void EraseLastChar(std::string &formerString);
+		bool OnKeyPress(XEvent &event);
+		void ShowText();
+		void ShowSession();
 
-	void SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font, int x, int y, const std::string &str,
-						 XftColor *shadowColor, int xOffset, int yOffset);
+		void SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font, int x, int y, const std::string &str,
+			XftColor *shadowColor, int xOffset, int yOffset);
 
-	Rectangle GetPrimaryViewport();
-	void ApplyBackground(Rectangle = Rectangle());
+		Rectangle GetPrimaryViewport();
+		void ApplyBackground(Rectangle = Rectangle());
 
-	/* Private data */
-	PanelType mode; /* work mode */
-	Cfg &m_config_panel;
-	Window Win;
-	Window m_window_root;
-	Display *m_display;
-	int m_screen;
-	int X, Y;
-	GC TextGC;
-	GC WinGC;
-	XftFont *font;
-	XftColor inputshadowcolor;
-	XftColor inputcolor;
-	XftColor msgcolor;
-	XftColor msgshadowcolor;
-	XftFont *msgfont;
-	XftColor introcolor;
-	XftFont *introfont;
-	XftFont *welcomefont;
-	XftColor welcomecolor;
-	XftFont *sessionfont;
-	XftColor sessioncolor;
-	XftColor sessionshadowcolor;
-	XftColor welcomeshadowcolor;
-	XftFont *enterfont;
-	XftColor entercolor;
-	XftColor entershadowcolor;
-	ActionType action;
-	FieldType field;
-	// Pixmap   background;
+		/* Private data */
+		PanelType mode; /* work mode */
+		Cfg &m_config_panel;
+		Window Win;
+		Window m_window_root;
+		Display *m_display;
+		int m_screen;
+		int X, Y;
+		GC TextGC;
+		GC WinGC;
+		XftFont *font;
+		XftColor inputshadowcolor;
+		XftColor inputcolor;
+		XftColor msgcolor;
+		XftColor msgshadowcolor;
+		XftFont *msgfont;
+		XftColor introcolor;
+		XftFont *introfont;
+		XftFont *welcomefont;
+		XftColor welcomecolor;
+		XftFont *sessionfont;
+		XftColor sessioncolor;
+		XftColor sessionshadowcolor;
+		XftColor welcomeshadowcolor;
+		XftFont *enterfont;
+		XftColor entercolor;
+		XftColor entershadowcolor;
+		ActionType action;
+		FieldType field;
+		// Pixmap   background;
 
-	/* Username/Password */
-	std::string NameBuffer;
-	std::string PasswdBuffer;
-	std::string HiddenPasswdBuffer;
+		/* Username/Password */
+		std::string NameBuffer;
+		std::string PasswdBuffer;
+		std::string HiddenPasswdBuffer;
 
-	/* screen stuff */
-	Rectangle viewport;
+		/* screen stuff */
+		Rectangle viewport;
 
-	/* Configuration */
-	int input_name_x;
-	int input_name_y;
-	int input_pass_x;
-	int input_pass_y;
-	int inputShadowXOffset;
-	int inputShadowYOffset;
-	int input_cursor_height;
-	int welcome_x;
-	int welcome_y;
-	int welcome_shadow_xoffset;
-	int welcome_shadow_yoffset;
-	int session_shadow_xoffset;
-	int session_shadow_yoffset;
-	int intro_x;
-	int intro_y;
-	int username_x;
-	int username_y;
-	int username_shadow_xoffset;
-	int username_shadow_yoffset;
-	int password_x;
-	int password_y;
-	std::string welcome_message;
-	std::string intro_message;
+		/* Configuration */
+		int input_name_x;
+		int input_name_y;
+		int input_pass_x;
+		int input_pass_y;
+		int inputShadowXOffset;
+		int inputShadowYOffset;
+		int input_cursor_height;
+		int welcome_x;
+		int welcome_y;
+		int welcome_shadow_xoffset;
+		int welcome_shadow_yoffset;
+		int session_shadow_xoffset;
+		int session_shadow_yoffset;
+		int intro_x;
+		int intro_y;
+		int username_x;
+		int username_y;
+		int username_shadow_xoffset;
+		int username_shadow_yoffset;
+		int password_x;
+		int password_y;
+		std::string welcome_message;
+		std::string intro_message;
 
-	/* Pixmap data */
-	Pixmap PanelPixmap;
-	Image *image;
+		/* Pixmap data */
+		Pixmap PanelPixmap;
+		Image *image;
 
-	/* For thesting themes */
-	bool m_testing;
-	std::string themedir;
+		/* For thesting themes */
+		bool m_testing;
+		std::string themedir;
 
-	/* Session handling */
-	std::string session_name;
-	std::string session_exec;
+		/* Session handling */
+		std::string session_name;
+		std::string session_exec;
 };
 
 #endif /* _PANEL_H_ */

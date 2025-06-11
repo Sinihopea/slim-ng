@@ -11,6 +11,7 @@
  */
 
 #include "panel.hpp"
+
 #include <X11/extensions/Xrandr.h>
 #include <libgen.h>
 #include <poll.h>
@@ -68,20 +69,20 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 	/* NOTE: using XftColorAllocValue() would be a better solution. Lazy me. */
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("input_color").c_str(), &inputcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("input_shadow_color").c_str(),
-					  &inputshadowcolor);
+		&inputshadowcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("welcome_color").c_str(), &welcomecolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("welcome_shadow_color").c_str(),
-					  &welcomeshadowcolor);
+		&welcomeshadowcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("username_color").c_str(), &entercolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("username_shadow_color").c_str(),
-					  &entershadowcolor);
+		&entershadowcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("msg_color").c_str(), &msgcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("msg_shadow_color").c_str(),
-					  &msgshadowcolor);
+		&msgshadowcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("intro_color").c_str(), &introcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("session_color").c_str(), &sessioncolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("session_shadow_color").c_str(),
-					  &sessionshadowcolor);
+		&sessionshadowcolor);
 
 	/* Load properties from config / theme */
 	input_name_x = m_config_panel.getIntOption("input_name_x");
@@ -172,26 +173,26 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 		if (bgstyle == "stretch")
 		{
 			bg->Resize(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-					   XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
 		}
 		else if (bgstyle == "tile")
 		{
 			bg->Tile(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-					 XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));
 		}
 		else if (bgstyle == "center")
 		{
 			std::string hexvalue = m_config_panel.getOption("background_color");
 			hexvalue = hexvalue.substr(1, 6);
 			bg->Center(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-					   XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
 		}
 		else
 		{ /* plain color or error */
 			std::string hexvalue = m_config_panel.getOption("background_color");
 			hexvalue = hexvalue.substr(1, 6);
 			bg->Center(XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
-					   XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
+				XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), hexvalue.c_str());
 		}
 	}
 
@@ -276,7 +277,7 @@ void Panel::OpenPanel()
 {
 	/* Create window */
 	Win = XCreateSimpleWindow(m_display, m_window_root, X, Y, image->Width(), image->Height(), 0, GetColor("white"),
-							  GetColor("white"));
+		GetColor("white"));
 
 	/* Events */
 	XSelectInput(m_display, Win, ExposureMask | KeyPressMask);
@@ -328,7 +329,7 @@ void Panel::WrongPassword(int timeout)
 	XftDraw *draw =
 		XftDrawCreate(m_display, Win, DefaultVisual(m_display, m_screen), DefaultColormap(m_display, m_screen));
 	XftTextExtentsUtf8(m_display, msgfont, reinterpret_cast<const XftChar8 *>(message.c_str()), message.length(),
-					   &extents);
+		&extents);
 
 	std::string cfgX = m_config_panel.getOption("passwd_feedback_x");
 	std::string cfgY = m_config_panel.getOption("passwd_feedback_y");
@@ -369,7 +370,7 @@ void Panel::Message(const std::string &text)
 	else
 	{
 		draw = XftDrawCreate(m_display, m_window_root, DefaultVisual(m_display, m_screen),
-							 DefaultColormap(m_display, m_screen));
+			DefaultColormap(m_display, m_screen));
 	}
 
 	XftTextExtentsUtf8(m_display, msgfont, reinterpret_cast<const XftChar8 *>(text.c_str()), text.length(), &extents);
@@ -448,17 +449,17 @@ void Panel::Cursor(int visible)
 	{
 		switch (field)
 		{
-		case Get_Passwd:
-			text = HiddenPasswdBuffer.c_str();
-			xx = input_pass_x;
-			yy = input_pass_y;
-			break;
+			case Get_Passwd:
+				text = HiddenPasswdBuffer.c_str();
+				xx = input_pass_x;
+				yy = input_pass_y;
+				break;
 
-		case Get_Name:
-			text = NameBuffer.c_str();
-			xx = input_name_x;
-			yy = input_name_y;
-			break;
+			case Get_Name:
+				text = NameBuffer.c_str();
+				xx = input_name_x;
+				yy = input_name_y;
+				break;
 		}
 	}
 
@@ -518,13 +519,13 @@ void Panel::EventHandler(const Panel::FieldType &curfield)
 				XNextEvent(m_display, &event);
 				switch (event.type)
 				{
-				case Expose:
-					OnExpose();
-					break;
+					case Expose:
+						OnExpose();
+						break;
 
-				case KeyPress:
-					loop = OnKeyPress(event);
-					break;
+					case KeyPress:
+						loop = OnKeyPress(event);
+						break;
 				}
 			}
 		}
@@ -550,23 +551,23 @@ void Panel::OnExpose(void)
 	if (input_pass_x != input_name_x || input_pass_y != input_name_y)
 	{
 		SlimDrawString8(draw, &inputcolor, font, input_name_x, input_name_y, NameBuffer, &inputshadowcolor,
-						inputShadowXOffset, inputShadowYOffset);
+			inputShadowXOffset, inputShadowYOffset);
 		SlimDrawString8(draw, &inputcolor, font, input_pass_x, input_pass_y, HiddenPasswdBuffer, &inputshadowcolor,
-						inputShadowXOffset, inputShadowYOffset);
+			inputShadowXOffset, inputShadowYOffset);
 	}
 	else
 	{
 		/*single input mode */
 		switch (field)
 		{
-		case Get_Passwd:
-			SlimDrawString8(draw, &inputcolor, font, input_pass_x, input_pass_y, HiddenPasswdBuffer, &inputshadowcolor,
-							inputShadowXOffset, inputShadowYOffset);
-			break;
-		case Get_Name:
-			SlimDrawString8(draw, &inputcolor, font, input_name_x, input_name_y, NameBuffer, &inputshadowcolor,
-							inputShadowXOffset, inputShadowYOffset);
-			break;
+			case Get_Passwd:
+				SlimDrawString8(draw, &inputcolor, font, input_pass_x, input_pass_y, HiddenPasswdBuffer, &inputshadowcolor,
+					inputShadowXOffset, inputShadowYOffset);
+				break;
+			case Get_Name:
+				SlimDrawString8(draw, &inputcolor, font, input_name_x, input_name_y, NameBuffer, &inputshadowcolor,
+					inputShadowXOffset, inputShadowYOffset);
+				break;
 		}
 	}
 
@@ -579,22 +580,22 @@ void Panel::EraseLastChar(std::string &formerString)
 {
 	switch (field)
 	{
-	case GET_NAME:
-		if (!NameBuffer.empty())
-		{
-			formerString = NameBuffer;
-			NameBuffer.erase(--NameBuffer.end());
-		}
-		break;
+		case GET_NAME:
+			if (!NameBuffer.empty())
+			{
+				formerString = NameBuffer;
+				NameBuffer.erase(--NameBuffer.end());
+			}
+			break;
 
-	case GET_PASSWD:
-		if (!PasswdBuffer.empty())
-		{
-			formerString = HiddenPasswdBuffer;
-			PasswdBuffer.erase(--PasswdBuffer.end());
-			HiddenPasswdBuffer.erase(--HiddenPasswdBuffer.end());
-		}
-		break;
+		case GET_PASSWD:
+			if (!PasswdBuffer.empty())
+			{
+				formerString = HiddenPasswdBuffer;
+				PasswdBuffer.erase(--PasswdBuffer.end());
+				HiddenPasswdBuffer.erase(--HiddenPasswdBuffer.end());
+			}
+			break;
 	}
 }
 
@@ -611,122 +612,122 @@ bool Panel::OnKeyPress(XEvent &event)
 
 	switch (keysym)
 	{
-	case XK_F1:
-		SwitchSession();
-		return true;
+		case XK_F1:
+			SwitchSession();
+			return true;
 
-	/* Take a screenshot */
-	case XK_F11:
-		system(m_config_panel.getOption("screenshot_cmd").c_str());
-		return true;
+		/* Take a screenshot */
+		case XK_F11:
+			system(m_config_panel.getOption("screenshot_cmd").c_str());
+			return true;
 
-	case XK_Return:
-	case XK_KP_Enter:
-		if (field == Get_Name)
-		{
-			/* Don't allow an empty username */
-			if (NameBuffer.empty())
+		case XK_Return:
+		case XK_KP_Enter:
+			if (field == Get_Name)
 			{
-				return true;
-			}
-
-			if (NameBuffer == CONSOLE_STR)
-			{
-				action = Console;
-			}
-			else if (NameBuffer == HALT_STR)
-			{
-				action = Halt;
-			}
-			else if (NameBuffer == REBOOT_STR)
-			{
-				action = Reboot;
-			}
-			else if (NameBuffer == SUSPEND_STR)
-			{
-				action = Suspend;
-			}
-			else if (NameBuffer == EXIT_STR)
-			{
-				action = Exit;
-			}
-			else
-			{
-				if (mode == Mode_DM)
+				/* Don't allow an empty username */
+				if (NameBuffer.empty())
 				{
-					action = Login;
+					return true;
+				}
+
+				if (NameBuffer == CONSOLE_STR)
+				{
+					action = Console;
+				}
+				else if (NameBuffer == HALT_STR)
+				{
+					action = Halt;
+				}
+				else if (NameBuffer == REBOOT_STR)
+				{
+					action = Reboot;
+				}
+				else if (NameBuffer == SUSPEND_STR)
+				{
+					action = Suspend;
+				}
+				else if (NameBuffer == EXIT_STR)
+				{
+					action = Exit;
 				}
 				else
 				{
-					action = Lock;
+					if (mode == Mode_DM)
+					{
+						action = Login;
+					}
+					else
+					{
+						action = Lock;
+					}
 				}
-			}
-		};
-		return false;
-	default:
-		break;
+			};
+			return false;
+		default:
+			break;
 	};
 
 	Cursor(HIDE);
 	switch (keysym)
 	{
-	case XK_Delete:
-	case XK_BackSpace:
-		EraseLastChar(formerString);
-		break;
-
-	case XK_w:
-	case XK_u:
-		if (reinterpret_cast<XKeyEvent &>(event).state & ControlMask)
-		{
-			switch (field)
-			{
-			case Get_Passwd:
-				formerString = HiddenPasswdBuffer;
-				HiddenPasswdBuffer.clear();
-				PasswdBuffer.clear();
-				break;
-			case Get_Name:
-				formerString = NameBuffer;
-				NameBuffer.clear();
-				break;
-			}
-			break;
-		}
-	case XK_h:
-		if (reinterpret_cast<XKeyEvent &>(event).state & ControlMask)
-		{
+		case XK_Delete:
+		case XK_BackSpace:
 			EraseLastChar(formerString);
 			break;
-		}
-	/* Deliberate fall-through */
-	default:
-		if (isprint(ascii) && (keysym < XK_Shift_L || keysym > XK_Hyper_R))
-		{
-			switch (field)
+
+		case XK_w:
+		case XK_u:
+			if (reinterpret_cast<XKeyEvent &>(event).state & ControlMask)
 			{
-			case GET_NAME:
-				formerString = NameBuffer;
-				if (NameBuffer.length() < INPUT_MAXLENGTH_NAME - 1)
+				switch (field)
 				{
-					NameBuffer.append(&ascii, 1);
-				};
+					case Get_Passwd:
+						formerString = HiddenPasswdBuffer;
+						HiddenPasswdBuffer.clear();
+						PasswdBuffer.clear();
+						break;
+					case Get_Name:
+						formerString = NameBuffer;
+						NameBuffer.clear();
+						break;
+				}
 				break;
-			case GET_PASSWD:
-				formerString = HiddenPasswdBuffer;
-				if (PasswdBuffer.length() < INPUT_MAXLENGTH_PASSWD - 1)
+			}
+		case XK_h:
+			if (reinterpret_cast<XKeyEvent &>(event).state & ControlMask)
+			{
+				EraseLastChar(formerString);
+				break;
+			}
+		/* Deliberate fall-through */
+		default:
+			if (isprint(ascii) && (keysym < XK_Shift_L || keysym > XK_Hyper_R))
+			{
+				switch (field)
 				{
-					PasswdBuffer.append(&ascii, 1);
-					HiddenPasswdBuffer.append("*");
+					case GET_NAME:
+						formerString = NameBuffer;
+						if (NameBuffer.length() < INPUT_MAXLENGTH_NAME - 1)
+						{
+							NameBuffer.append(&ascii, 1);
+						};
+						break;
+					case GET_PASSWD:
+						formerString = HiddenPasswdBuffer;
+						if (PasswdBuffer.length() < INPUT_MAXLENGTH_PASSWD - 1)
+						{
+							PasswdBuffer.append(&ascii, 1);
+							HiddenPasswdBuffer.append("*");
+						};
+						break;
 				};
-				break;
+			}
+			else
+			{
+				return true; // nodraw if notchange
 			};
-		}
-		else
-		{
-			return true; // nodraw if notchange
-		};
-		break;
+			break;
 	};
 
 	XGlyphInfo extents;
@@ -735,17 +736,17 @@ bool Panel::OnKeyPress(XEvent &event)
 
 	switch (field)
 	{
-	case Get_Name:
-		text = NameBuffer;
-		xx = input_name_x;
-		yy = input_name_y;
-		break;
+		case Get_Name:
+			text = NameBuffer;
+			xx = input_name_x;
+			yy = input_name_y;
+			break;
 
-	case Get_Passwd:
-		text = HiddenPasswdBuffer;
-		xx = input_pass_x;
-		yy = input_pass_y;
-		break;
+		case Get_Passwd:
+			text = HiddenPasswdBuffer;
+			xx = input_pass_x;
+			yy = input_pass_y;
+			break;
 	}
 
 	if (!formerString.empty())
@@ -755,7 +756,7 @@ bool Panel::OnKeyPress(XEvent &event)
 		int maxHeight = extents.height;
 
 		XftTextExtentsUtf8(m_display, font, reinterpret_cast<const XftChar8 *>(formerString.c_str()),
-						   formerString.length(), &extents);
+			formerString.length(), &extents);
 		int maxLength = extents.width;
 
 		if (mode == Mode_Lock)
@@ -767,7 +768,7 @@ bool Panel::OnKeyPress(XEvent &event)
 	if (!text.empty())
 	{
 		SlimDrawString8(draw, &inputcolor, font, xx, yy, text, &inputshadowcolor, inputShadowXOffset,
-						inputShadowYOffset);
+			inputShadowYOffset);
 	}
 
 	XftDrawDestroy(draw);
@@ -787,7 +788,7 @@ void Panel::ShowText()
 		XftDrawCreate(m_display, Win, DefaultVisual(m_display, m_screen), DefaultColormap(m_display, m_screen));
 	/* welcome message */
 	XftTextExtentsUtf8(m_display, welcomefont, (XftChar8 *)welcome_message.c_str(), strlen(welcome_message.c_str()),
-					   &extents);
+		&extents);
 	cfgX = m_config_panel.getOption("welcome_x");
 	cfgY = m_config_panel.getOption("welcome_y");
 	int shadowXOffset = m_config_panel.getIntOption("welcome_shadow_xoffset");
@@ -798,7 +799,7 @@ void Panel::ShowText()
 	if (welcome_x >= 0 && welcome_y >= 0)
 	{
 		SlimDrawString8(draw, &welcomecolor, welcomefont, welcome_x, welcome_y, welcome_message, &welcomeshadowcolor,
-						shadowXOffset, shadowYOffset);
+			shadowXOffset, shadowYOffset);
 	}
 
 	/* Enter username-password message */
@@ -817,7 +818,7 @@ void Panel::ShowText()
 		if (password_x >= 0 && password_y >= 0)
 		{
 			SlimDrawString8(draw, &entercolor, enterfont, password_x, password_y, msg, &entershadowcolor, shadowXOffset,
-							shadowYOffset);
+				shadowYOffset);
 		}
 	}
 
@@ -834,7 +835,7 @@ void Panel::ShowText()
 		if (username_x >= 0 && username_y >= 0)
 		{
 			SlimDrawString8(draw, &entercolor, enterfont, username_x, username_y, msg, &entershadowcolor, shadowXOffset,
-							shadowYOffset);
+				shadowYOffset);
 		}
 	}
 	XftDrawDestroy(draw);
@@ -877,9 +878,9 @@ void Panel::ShowSession()
 	sessionfont = XftFontOpenName(m_display, m_screen, m_config_panel.getOption("session_font").c_str());
 
 	XftDraw *draw = XftDrawCreate(m_display, m_window_root, DefaultVisual(m_display, m_screen),
-								  DefaultColormap(m_display, m_screen));
+		DefaultColormap(m_display, m_screen));
 	XftTextExtentsUtf8(m_display, sessionfont, reinterpret_cast<const XftChar8 *>(currsession.c_str()),
-					   currsession.length(), &extents);
+		currsession.length(), &extents);
 	msg_x = m_config_panel.getOption("session_x");
 	msg_y = m_config_panel.getOption("session_y");
 	int x = Cfg::absolutepos(msg_x, XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)), extents.width);
@@ -888,13 +889,13 @@ void Panel::ShowSession()
 	int shadowYOffset = m_config_panel.getIntOption("session_shadow_yoffset");
 
 	SlimDrawString8(draw, &sessioncolor, sessionfont, x, y, currsession, &sessionshadowcolor, shadowXOffset,
-					shadowYOffset);
+		shadowYOffset);
 	XFlush(m_display);
 	XftDrawDestroy(draw);
 }
 
 void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font, int x, int y, const std::string &str,
-							XftColor *shadowColor, int xOffset, int yOffset)
+	XftColor *shadowColor, int xOffset, int yOffset)
 {
 	int calc_x = 0;
 	int calc_y = 0;
@@ -907,11 +908,11 @@ void Panel::SlimDrawString8(XftDraw *d, XftColor *color, XftFont *font, int x, i
 	if (xOffset && yOffset)
 	{
 		XftDrawStringUtf8(d, shadowColor, font, x + xOffset + calc_x, y + yOffset + calc_y,
-						  reinterpret_cast<const FcChar8 *>(str.c_str()), str.length());
+			reinterpret_cast<const FcChar8 *>(str.c_str()), str.length());
 	}
 
 	XftDrawStringUtf8(d, color, font, x + calc_x, y + calc_y, reinterpret_cast<const FcChar8 *>(str.c_str()),
-					  str.length());
+		str.length());
 }
 
 Panel::ActionType Panel::getAction(void) const { return action; }
@@ -1029,7 +1030,7 @@ void Panel::ApplyBackground(Rectangle rect)
 	}
 
 	ret = XCopyArea(m_display, PanelPixmap, Win, WinGC, rect.x, rect.y, rect.width, rect.height, viewport.x + rect.x,
-					viewport.y + rect.y);
+		viewport.y + rect.y);
 
 	if (!ret)
 		std::cerr << APPNAME << ": failed to put pixmap on the screen\n.";

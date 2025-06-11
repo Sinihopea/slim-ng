@@ -17,11 +17,12 @@
 	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ****************************************************************************/
 
+#include "const.hpp"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "const.hpp"
 #include <jpeglib.h>
 
 int read_jpeg(const char *filename, int *width, int *height, unsigned char **rgb)
@@ -31,8 +32,8 @@ int read_jpeg(const char *filename, int *width, int *height, unsigned char **rgb
 	struct jpeg_error_mgr jerr;
 	unsigned char *ptr = NULL;
 	unsigned int i, ipos;
-
 	FILE *infile = fopen(filename, "rb");
+
 	if (infile == NULL)
 	{
 		fprintf(stderr, "Can not fopen file: %s\n", filename);

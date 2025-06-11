@@ -14,6 +14,7 @@
 
 #include "cfg.hpp"
 #include "log.hpp"
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -25,21 +26,21 @@
 
 class SwitchUser
 {
-  public:
-	explicit SwitchUser(struct passwd *pw, Cfg &c, const std::string &display, char **_env);
-	~SwitchUser() = default;
-	void Login(const char *cmd, const char *mcookie);
+	public:
+		explicit SwitchUser(struct passwd *pw, Cfg &c, const std::string &display, char **_env);
+		~SwitchUser() = default;
+		void Login(const char *cmd, const char *mcookie);
 
-  private:
-	SwitchUser();
-	void SetEnvironment();
-	void SetUserId();
-	void Execute(const char *cmd);
-	void SetClientAuth(const char *mcookie);
-	Cfg &m_config_switchuser;
-	struct passwd *Pw;
-	std::string m_display_name;
-	char **m_environment;
+	private:
+		SwitchUser();
+		void SetEnvironment();
+		void SetUserId();
+		void Execute(const char *cmd);
+		void SetClientAuth(const char *mcookie);
+		Cfg &m_config_switchuser;
+		struct passwd *Pw;
+		std::string m_display_name;
+		char **m_environment;
 };
 
 #endif /* _SWITCHUSER_H_ */

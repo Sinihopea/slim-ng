@@ -8,21 +8,20 @@
  * (at your option) any later version.
  */
 
-#include <sys/types.h>
+#include "util.hpp"
 
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
+#include <sys/types.h>
 #include <unistd.h>
-
-#include "util.hpp"
 
 /*
  * Adds the given cookie to the specified Xauthority file.
  * Returns true on success, false on fault.
  */
-bool Util::add_mcookie(const std::string &mcookie, const char *display, const std::string &xauth_cmd,
-					   const std::string &authfile)
+bool Util::add_mcookie(const std::string &mcookie, const char *display,
+	const std::string &xauth_cmd, const std::string &authfile)
 {
 	FILE *fp;
 	std::string cmd = xauth_cmd + " -f " + authfile + " -q";
@@ -45,9 +44,15 @@ bool Util::add_mcookie(const std::string &mcookie, const char *display, const st
  * Interface for random number generator.  Just now it uses ordinary
  * random/srandom routines and serves as a wrapper for them.
  */
-void Util::srandom(unsigned long seed) { ::srandom(seed); }
+void Util::srandom(unsigned long seed)
+{
+	::srandom(seed);
+}
 
-long Util::random(void) { return ::random(); }
+long Util::random(void)
+{
+	return ::random();
+}
 
 /*
  * Makes seed for the srandom() using "random" values obtained from

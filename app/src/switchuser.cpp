@@ -10,10 +10,11 @@
  * (at your option) any later version.
  */
 
-#include <cstdio>
-
 #include "switchuser.hpp"
+
 #include "util.hpp"
+
+#include <cstdio>
 
 SwitchUser::SwitchUser(struct passwd *pw, Cfg &c, const std::string &display, char **_env)
 	: m_config_switchuser(c), Pw(pw), m_display_name(display), m_environment(_env)
