@@ -68,7 +68,7 @@ namespace PAM
 			};
 
 		public:
-			Authenticator(conversation *conv, void *data = 0);
+			Authenticator(conversation *conv, void *data = nullptr);
 			~Authenticator(void);
 
 			void start(const std::string &service);

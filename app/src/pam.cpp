@@ -35,11 +35,11 @@ namespace PAM
 	int Authenticator::_end(void)
 	{
 		int result = pam_end(pam_handle, last_result);
-		pam_handle = 0;
+		pam_handle = nullptr;
 		return result;
 	}
 
-	Authenticator::Authenticator(conversation *conv, void *data) : pam_handle(0), last_result(PAM_SUCCESS)
+	Authenticator::Authenticator(conversation *conv, void *data) : pam_handle(nullptr), last_result(PAM_SUCCESS)
 	{
 		pam_conversation.conv = conv;
 		pam_conversation.appdata_ptr = data;

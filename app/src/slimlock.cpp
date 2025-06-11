@@ -414,12 +414,12 @@ void HandleSignal(int sig)
 /** i think this should be in an event loop instead of this threaded thing */
 void *RaiseWindow(void *data)
 {
-	while (1)
+	while (true)
 	{
 		XRaiseWindow(dpy, win);
 		XGrabKeyboard(dpy, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
 		sleep(1);
 	}
 
-	return (void *)0;
+	return (void *)nullptr;
 }

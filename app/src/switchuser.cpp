@@ -30,7 +30,7 @@ void SwitchUser::Login(const char *cmd, const char *mcookie)
 
 void SwitchUser::SetUserId()
 {
-	if ((Pw == 0) || (initgroups(Pw->pw_name, Pw->pw_gid) != 0) || (setgid(Pw->pw_gid) != 0) ||
+	if ((Pw == nullptr) || (initgroups(Pw->pw_name, Pw->pw_gid) != 0) || (setgid(Pw->pw_gid) != 0) ||
 		(setuid(Pw->pw_uid) != 0))
 	{
 		logStream << APPNAME << ": could not switch user id" << std::endl;
