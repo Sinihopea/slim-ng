@@ -98,8 +98,11 @@ int conv(int num_msg, const struct pam_message **msg, struct pam_response **resp
 				logStream << APPNAME << ": " << msg[i]->msg << std::endl;
 				break;
 		}
+
 		if (result != PAM_SUCCESS)
+		{
 			break;
+		}
 	}
 
 	if (result != PAM_SUCCESS)
@@ -245,6 +248,7 @@ App::App(int argc, char **argv) :
 				break;
 		}
 	}
+
 #ifndef XNEST_DEBUG
 	if (getuid() != 0 && !m_testing)
 	{
@@ -254,7 +258,9 @@ App::App(int argc, char **argv) :
 #endif /* XNEST_DEBUG */
 
 	if (!configLoaded)
+	{
 		m_config_app.readConf(CFGFILE);
+	}
 }
 
 void App::Run()
@@ -387,7 +393,7 @@ void App::Run()
 	}
 
 	/* Open display */
-	if ((m_display = XOpenDisplay(m_display_name)) == 0)
+	if ((m_display = XOpenDisplay(m_display_name)) == nullptr)
 	{
 		logStream << APPNAME << ": could not open display '" << m_display_name << "'" << std::endl;
 
@@ -548,7 +554,9 @@ bool App::AuthenticateUser(bool focuspass)
 	try
 	{
 		if (!focuspass)
-			pam.set_item(PAM::Authenticator::User, 0);
+		{
+			pam.set_item(PAM::Authenticator::User, nullptr);
+		}
 		pam.authenticate();
 	}
 	catch (PAM::Auth_Exception &e)
@@ -675,7 +683,7 @@ void App::Login()
 #endif
 	endpwent();
 
-	if (pw == 0)
+	if (pw == nullptr)
 	{
 		return;
 	}
@@ -1336,7 +1344,7 @@ void App::StopServer()
 
 void App::blankScreen()
 {
-	GC gc = XCreateGC(m_display, m_window_root, 0, 0);
+	GC gc = XCreateGC(m_display, m_window_root, 0, nullptr);
 	XSetForeground(m_display, gc, BlackPixel(m_display, m_screen));
 	XFillRectangle(m_display, m_window_root, gc, 0, 0, XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)),
 		XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)));

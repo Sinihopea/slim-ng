@@ -264,8 +264,9 @@ std::string Cfg::getWelcomeMessage()
 
 int Cfg::string2int(const char *string, bool *ok)
 {
-	char *err = 0;
+	char *err = nullptr;
 	int l = (int)strtol(string, &err, 10);
+
 	if (ok)
 	{
 		*ok = (*err == 0);
