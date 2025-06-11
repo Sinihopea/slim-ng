@@ -719,10 +719,10 @@ void App::Login()
 		pam.setenv("SHELL", pw->pw_shell);
 		pam.setenv("USER", pw->pw_name);
 		pam.setenv("LOGNAME", pw->pw_name);
-		pam.setenv("PATH", m_config_app.getOption("default_path").c_str());
+		pam.setenv("PATH", m_config_app.getOption("default_path"));
 		pam.setenv("DISPLAY", m_display_name);
-		pam.setenv("MAIL", maildir.c_str());
-		pam.setenv("XAUTHORITY", xauthority.c_str());
+		pam.setenv("MAIL", maildir);
+		pam.setenv("XAUTHORITY", xauthority);
 	}
 	catch (PAM::Exception &e)
 	{

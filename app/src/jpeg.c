@@ -109,5 +109,5 @@ close_file:
 	jpeg_destroy_decompress(&cinfo);
 	fclose(infile);
 
-	return (ret);
+	return ret;
 }

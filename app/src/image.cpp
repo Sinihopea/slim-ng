@@ -70,7 +70,7 @@ bool Image::Read(const char *filename)
 
 	if (file == nullptr)
 	{
-		return (false);
+		return false;
 	}
 
 	/* see what kind of file we have */
@@ -835,7 +835,7 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 		default:
 		{
 			logStream << "Login.app: could not load image" << std::endl;
-			return (tmp);
+			return tmp;
 		}
 	}
 
@@ -850,7 +850,7 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 	ximage->data = nullptr;
 	XDestroyImage(ximage);
 
-	return (tmp);
+	return tmp;
 }
 
 int Image::readJpeg(const char *filename, int *width, int *height, unsigned char **rgb)
@@ -938,7 +938,7 @@ close_file:
 	jpeg_destroy_decompress(&cinfo);
 	fclose(infile);
 
-	return (ret);
+	return ret;
 }
 
 int Image::readPng(const char *filename, int *width, int *height, unsigned char **rgb, unsigned char **alpha)
@@ -1108,5 +1108,5 @@ png_destroy:
 file_close:
 	fclose(infile);
 
-	return (ret);
+	return ret;
 }

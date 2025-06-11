@@ -39,8 +39,17 @@ class Image
 
 		void getPixel(double px, double py, unsigned char *pixel);
 		void getPixel(double px, double py, unsigned char *pixel, unsigned char *alpha);
-		int Width() const { return (width); };
-		int Height() const { return (height); };
+
+		int Width() const
+		{
+			return width;
+		};
+
+		int Height() const
+		{
+			return height;
+		};
+
 		void Quality(const int q) { quality_ = q; };
 		bool Read(const char *filename);
 		void Reduce(const int factor);
