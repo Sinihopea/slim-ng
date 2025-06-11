@@ -112,7 +112,8 @@ class Panel
 		Window m_window_root;
 		Display *m_display;
 		int m_screen;
-		int X, Y;
+		int X;
+		int Y;
 		GC TextGC;
 		GC WinGC;
 		XftFont *font;

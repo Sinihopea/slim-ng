@@ -31,7 +31,8 @@ int read_jpeg(const char *filename, int *width, int *height, unsigned char **rgb
 	struct jpeg_decompress_struct cinfo;
 	struct jpeg_error_mgr jerr;
 	unsigned char *ptr = NULL;
-	unsigned int i, ipos;
+	unsigned int i;
+	unsigned int ipos;
 	FILE *infile = fopen(filename, "rb");
 
 	if (infile == NULL)

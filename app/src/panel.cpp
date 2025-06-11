@@ -359,7 +359,8 @@ void Panel::WrongPassword(int timeout)
 
 void Panel::Message(const std::string &text)
 {
-	std::string cfgX, cfgY;
+	std::string cfgX;
+	std::string cfgY;
 	XGlyphInfo extents;
 	XftDraw *draw;
 
@@ -378,7 +379,8 @@ void Panel::Message(const std::string &text)
 	cfgY = m_config_panel.getOption("msg_y");
 	int shadowXOffset = m_config_panel.getIntOption("msg_shadow_xoffset");
 	int shadowYOffset = m_config_panel.getIntOption("msg_shadow_yoffset");
-	int msg_x, msg_y;
+	int msg_x;
+	int msg_y;
 
 	if (mode == Mode_Lock)
 	{
@@ -436,8 +438,13 @@ unsigned long Panel::GetColor(const char *colorname)
 void Panel::Cursor(int visible)
 {
 	const char *text = nullptr;
-	int xx = 0, yy = 0, y2 = 0, cheight = 0;
-	const char *txth = "Wj"; /* used to get cursor height */
+	int xx = 0;
+	int yy = 0;
+	int y2 = 0;
+	int cheight = 0;
+
+	/* used to get cursor height */
+	const char *txth = "Wj";
 
 	if (mode == Mode_Lock)
 	{
@@ -779,7 +786,8 @@ bool Panel::OnKeyPress(XEvent &event)
 /* Draw welcome and "enter username" message */
 void Panel::ShowText()
 {
-	std::string cfgX, cfgY;
+	std::string cfgX;
+	std::string cfgY;
 	XGlyphInfo extents;
 
 	bool singleInputMode = input_name_x == input_pass_x && input_name_y == input_pass_y;
@@ -870,7 +878,8 @@ void Panel::SwitchSession()
 /* Display session type on the screen */
 void Panel::ShowSession()
 {
-	std::string msg_x, msg_y;
+	std::string msg_x;
+	std::string msg_y;
 	XClearWindow(m_display, m_window_root);
 	std::string currsession = m_config_panel.getOption("session_msg") + " " + session_name;
 	XGlyphInfo extents;

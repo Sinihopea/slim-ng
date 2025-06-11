@@ -21,7 +21,9 @@ NumLock::NumLock() {}
 
 int NumLock::xkb_init(Display *dpy)
 {
-	int xkb_opcode, xkb_event, xkb_error;
+	int xkb_opcode;
+	int xkb_event;
+	int xkb_error;
 	int xkb_lmaj = XkbMajorVersion;
 	int xkb_lmin = XkbMinorVersion;
 

@@ -36,8 +36,11 @@ int read_png(const char *filename, int *width, int *height, unsigned char **rgb,
 	png_bytepp row_pointers;
 
 	unsigned char *ptr = NULL;
-	png_uint_32 w, h;
-	int bit_depth, color_type, interlace_type;
+	png_uint_32 w;
+	png_uint_32 h;
+	int bit_depth;
+	int color_type;
+	int interlace_type;
 	int i;
 
 	FILE *infile = fopen(filename, "rb");

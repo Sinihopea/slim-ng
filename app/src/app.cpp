@@ -1082,7 +1082,7 @@ int App::ServerTimeout(int timeout, char *text)
 	int pidfound = -1;
 	static char *lasttext;
 
-	while (1)
+	while (true)
 	{
 		pidfound = waitpid(m_server_pid, nullptr, WNOHANG);
 
@@ -1155,7 +1155,9 @@ int App::WaitForServer()
 int App::StartServer()
 {
 	m_server_pid = fork();
-	int argc = 1, pos = 0, i;
+	int argc = 1;
+	int pos = 0;
+	int i;
 	static const int MAX_XSERVER_ARGS = 256;
 	static char *server[MAX_XSERVER_ARGS + 2] = {nullptr};
 	server[0] = (char *)m_config_app.getOption("default_xserver").c_str();

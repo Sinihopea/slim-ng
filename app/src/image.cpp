@@ -760,7 +760,9 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 				xc.blue = (i & 0x03) << 14;
 
 				/* find the closest color in the colormap */
-				double distance, distance_squared, min_distance = 0;
+				double distance;
+				double distance_squared;
+				double min_distance = 0;
 
 				for (int ii = 0; ii < num_colors; ii++)
 				{
@@ -809,7 +811,9 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 			computeShift(visual_info->blue_mask, blue_left_shift, blue_right_shift);
 
 			unsigned long pixel;
-			unsigned long red, green, blue;
+			unsigned long red;
+			unsigned long green;
+			unsigned long blue;
 
 			for (j = 0; j < height; j++)
 			{
@@ -944,8 +948,11 @@ int Image::readPng(const char *filename, int *width, int *height, unsigned char 
 	png_infop info_ptr;
 	png_bytepp row_pointers;
 	unsigned char *ptr = nullptr;
-	png_uint_32 w, h;
-	int bit_depth, color_type, interlace_type;
+	png_uint_32 w;
+	png_uint_32 h;
+	int bit_depth;
+	int color_type;
+	int interlace_type;
 	int i;
 	FILE *infile = std::fopen(filename, "rb");
 

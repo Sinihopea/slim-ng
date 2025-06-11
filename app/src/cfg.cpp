@@ -152,7 +152,11 @@ bool Cfg::readConf(std::string configfile)
 {
 	int n = -1;
 	size_t pos = 0;
-	std::string line, next, op, fn(configfile);
+	std::string line;
+	std::string next;
+	std::string op;
+	std::string fn(configfile);
+
 	std::map<std::string, std::string>::iterator it;
 	std::ifstream cfgfile(fn.c_str());
 
@@ -356,7 +360,9 @@ void Cfg::fillSessionList()
 
 						if (desktop_file)
 						{
-							std::string line, session_name = "", session_exec = "";
+							std::string line;
+							std::string session_name = "";
+							std::string session_exec = "";
 
 							while (getline(desktop_file, line))
 							{
