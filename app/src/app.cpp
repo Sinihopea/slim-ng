@@ -967,7 +967,7 @@ void App::Console()
 
 	/* Execute console */
 	const char *cmd = m_config_app.getOption("console_cmd").c_str();
-	char *tmp = new char[std::strlen(cmd) + 60];
+	auto tmp = new char[std::strlen(cmd) + 60];
 	sprintf(tmp, cmd, width, height, posx, posy, fontx, fonty);
 	std::system(tmp);
 	delete[] tmp;
@@ -1167,7 +1167,7 @@ int App::StartServer()
 	argOption = argOption + " -auth " + m_config_app.getOption("authfile");
 
 	/* nullptr plus vt */
-	char *args = new char[argOption.length() + 2];
+	auto args = new char[argOption.length() + 2];
 	strcpy(args, argOption.c_str());
 	m_server_started = false;
 	bool hasVtSet = false;
@@ -1567,7 +1567,7 @@ void App::CreateServerAuth()
 
 char *App::StrConcat(const char *str1, const char *str2)
 {
-	char *tmp = new char[std::strlen(str1) + std::strlen(str2) + 1];
+	auto tmp = new char[std::strlen(str1) + std::strlen(str2) + 1];
 	strcpy(tmp, str1);
 	strcat(tmp, str2);
 

@@ -25,7 +25,8 @@
 
 using option = std::pair<std::string, std::string>;
 
-Cfg::Cfg() : currentSession(-1)
+Cfg::Cfg() :
+	currentSession(-1)
 {
 	/* Configuration options */
 	options.insert(option("default_path", "/bin:/usr/bin:/usr/local/bin"));
@@ -269,7 +270,7 @@ std::string Cfg::getWelcomeMessage()
 int Cfg::string2int(const char *string, bool *ok)
 {
 	char *err = nullptr;
-	int l = (int)strtol(string, &err, 10);
+	auto l = (int)strtol(string, &err, 10);
 
 	if (ok)
 	{
@@ -300,7 +301,7 @@ int Cfg::absolutepos(const std::string &position, int max, int width)
 void Cfg::split(std::vector<std::string> &v, const std::string &str, char c, bool useEmpty)
 {
 	v.clear();
-	std::string::const_iterator s = str.begin();
+	auto s = str.begin();
 	std::string tmp;
 
 	while (true)
@@ -408,7 +409,9 @@ void Cfg::fillSessionList()
 
 	std::sort(sessions.begin(), sessions.end(),
 		[](std::pair<std::string, std::string> &a, std::pair<std::string, std::string> &b) -> bool
-		{ return a.first < b.first; });
+		{
+			return a.first < b.first;
+		});
 
 	if (sessions.empty())
 	{
@@ -423,7 +426,7 @@ void Cfg::fillSessionList()
 			std::vector<std::string> sessit;
 			split(sessit, strSessionList, ',', false);
 
-			for (std::vector<std::string>::iterator it = sessit.begin(); it != sessit.end(); ++it)
+			for (auto it = sessit.begin(); it != sessit.end(); ++it)
 			{
 				std::pair<std::string, std::string> session(*it, *it);
 				sessions.push_back(session);

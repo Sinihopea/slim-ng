@@ -13,12 +13,12 @@ QMAKE_CFLAGS_RELEASE += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3
 
 # QMAKE_CXX = clang++
 QMAKE_CXXFLAGS +=  -Wall -Wformat -Wformat=2 -Wconversion -Wimplicit-fallthrough -Werror=format-security
-QMAKE_CXXFLAGS += -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS
+QMAKE_CXXFLAGS += -D_GLIBCXX_ASSERTIONS
 QMAKE_CXXFLAGS += -fstrict-flex-arrays=3 -fstack-clash-protection -fstack-protector-strong
 # QMAKE_CXXFLAGS += -Wl,-z,nodlopen -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -Wl,--no-copy-dt-needed-entries
 QMAKE_CXXFLAGS += -Werror=implicit -Werror=incompatible-pointer-types -Werror=int-conversion
 QMAKE_CXXFLAGS_DEBUG += -O0
-QMAKE_CXXFLAGS_RELEASE += -O2
+QMAKE_CXXFLAGS_RELEASE += -O2 -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3
 
 # QMAKE_LFLAGS += -Wl,-z,nodlopen -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -Wl,--as-needed -Wl,--no-copy-dt-needed-entries
 

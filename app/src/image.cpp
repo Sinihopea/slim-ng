@@ -63,7 +63,7 @@ Image::~Image()
 bool Image::Read(const char *filename)
 {
 	char buf[4];
-	unsigned char *ubuf = (unsigned char *)buf;
+	auto ubuf = (unsigned char *)buf;
 	int success = 0;
 	FILE *file;
 	file = std::fopen(filename, "rb");
@@ -113,7 +113,7 @@ void Image::Reduce(const int factor)
 	int w = width / scale;
 	int h = height / scale;
 	int new_area = w * h;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * new_area);
+	auto new_rgb = (unsigned char *)malloc(3 * new_area);
 	memset(new_rgb, 0, 3 * new_area);
 	unsigned char *new_alpha = nullptr;
 
@@ -167,7 +167,7 @@ void Image::Resize(const int w, const int h)
 	}
 
 	int new_area = w * h;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * new_area);
+	auto new_rgb = (unsigned char *)malloc(3 * new_area);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
@@ -236,7 +236,7 @@ void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *al
 		y = height - 0.5;
 	}
 
-	int ix0 = (int)(floor(x));
+	auto ix0 = (int)(floor(x));
 	int ix1 = ix0 + 1;
 
 	if (ix0 < 0)
@@ -249,7 +249,7 @@ void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *al
 		ix1 = 0;
 	}
 
-	int iy0 = (int)(floor(y));
+	auto iy0 = (int)(floor(y));
 	int iy1 = iy0 + 1;
 
 	if (iy0 < 0)
@@ -321,7 +321,7 @@ void Image::Merge(Image *background, const int x, const int y)
 	}
 
 	double tmp;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * width * height);
+	auto new_rgb = (unsigned char *)malloc(3 * width * height);
 	memset(new_rgb, 0, 3 * width * height);
 	const unsigned char *bg_rgb = background->getRGBData();
 
@@ -383,7 +383,7 @@ void Image::Merge_non_crop(Image *background, const int x, const int y)
 	}
 
 	double tmp;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * bg_w * bg_h);
+	auto new_rgb = (unsigned char *)malloc(3 * bg_w * bg_h);
 	const unsigned char *bg_rgb = background->getRGBData();
 	int pnl_pos = 0;
 	int bg_pos = 0;
@@ -454,7 +454,7 @@ void Image::Tile(const int w, const int h)
 
 	int newwidth = nx * width;
 	int newheight = ny * height;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * newwidth * newheight);
+	auto new_rgb = (unsigned char *)malloc(3 * newwidth * newheight);
 	memset(new_rgb, 0, 3 * width * height * nx * ny);
 	int ipos = 0;
 	int opos = 0;
@@ -501,7 +501,7 @@ void Image::Crop(const int x, const int y, const int w, const int h)
 
 	int x2 = x + w;
 	int y2 = y + h;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * w * h);
+	auto new_rgb = (unsigned char *)malloc(3 * w * h);
 	memset(new_rgb, 0, 3 * w * h);
 	unsigned char *new_alpha = nullptr;
 
@@ -561,7 +561,7 @@ void Image::Center(const int w, const int h, const char *hex)
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * w * h);
+	auto new_rgb = (unsigned char *)malloc(3 * w * h);
 	memset(new_rgb, 0, 3 * w * h);
 	int x = (w - width) / 2;
 	int y = (h - height) / 2;
@@ -655,7 +655,7 @@ void Image::Plain(const int w, const int h, const char *hex)
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-	unsigned char *new_rgb = (unsigned char *)malloc(3 * w * h);
+	auto new_rgb = (unsigned char *)malloc(3 * w * h);
 	memset(new_rgb, 0, 3 * w * h);
 	area = w * h;
 
@@ -738,7 +738,7 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 			XColor xc;
 			xc.flags = DoRed | DoGreen | DoBlue;
 			int num_colors = 256;
-			XColor *colors = new XColor[num_colors];
+			auto colors = new XColor[num_colors];
 
 			for (i = 0; i < num_colors; i++)
 			{
@@ -746,7 +746,7 @@ Pixmap Image::createPixmap(Display *dpy, int scr, Window win)
 			}
 
 			XQueryColors(dpy, colormap, colors, num_colors);
-			int *closest_color = new int[num_colors];
+			auto closest_color = new int[num_colors];
 
 			for (i = 0; i < num_colors; i++)
 			{

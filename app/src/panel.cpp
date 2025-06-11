@@ -118,7 +118,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 		}
 	}
 
-	Image *bg = new Image();
+	auto bg = new Image();
 	std::string bgstyle = m_config_panel.getOption("background_style");
 
 	if (bgstyle != "color")

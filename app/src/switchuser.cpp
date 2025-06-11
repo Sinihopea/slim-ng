@@ -51,7 +51,7 @@ void SwitchUser::Execute(const char *cmd)
 
 void SwitchUser::SetClientAuth(const char *mcookie)
 {
-	std::string home = std::string(Pw->pw_dir);
+	auto home = std::string(Pw->pw_dir);
 	std::string authfile = home + "/.Xauthority";
 	remove(authfile.c_str());
 	Util::add_mcookie(mcookie, ":0", m_config_switchuser.getOption("xauth_path"), authfile);
