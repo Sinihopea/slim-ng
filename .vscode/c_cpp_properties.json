@@ -3,8 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
-                "${workspaceFolder}/app/src/**",
-                "/usr/include/**"
+                "${workspaceFolder}/app/src/**"
             ],
             "defines": [
                 "APPNAME=\"slim\"",

@@ -6,5 +6,6 @@
     ],
     "cmake.ignoreCMakeListsMissing": true,
     "C_Cpp.default.cppStandard": "gnu++14",
-    "C_Cpp.default.cStandard": "gnu11"
+    "C_Cpp.default.cStandard": "gnu11",
+    "files.trimTrailingWhitespace": true
 }
