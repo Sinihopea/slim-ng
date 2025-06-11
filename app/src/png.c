@@ -44,15 +44,20 @@ int read_png(const char *filename, int *width, int *height, unsigned char **rgb,
 	int i;
 
 	FILE *infile = fopen(filename, "rb");
+
 	if (infile == NULL)
 	{
 		fprintf(stderr, "Can not fopen file: %s\n", filename);
+
 		return ret;
 	}
 
 	png_ptr = png_create_read_struct(PNG_LIBPNG_VER_STRING, (png_voidp)NULL, (png_error_ptr)NULL, (png_error_ptr)NULL);
+
 	if (!png_ptr)
+	{
 		goto file_close;
+	}
 
 	info_ptr = png_create_info_struct(png_ptr);
 	if (!info_ptr)

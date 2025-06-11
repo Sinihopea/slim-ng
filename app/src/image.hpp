@@ -26,8 +26,17 @@ class Image
 		Image();
 		Image(const int w, const int h, const unsigned char *rgb, const unsigned char *alpha);
 		~Image();
-		const unsigned char *getPNGAlpha() const { return (png_alpha); };
-		const unsigned char *getRGBData() const { return (rgb_data); };
+
+		const unsigned char *getPNGAlpha() const
+		{
+			return png_alpha;
+		};
+
+		const unsigned char *getRGBData() const
+		{
+			return rgb_data;
+		};
+
 		void getPixel(double px, double py, unsigned char *pixel);
 		void getPixel(double px, double py, unsigned char *pixel, unsigned char *alpha);
 		int Width() const { return (width); };
