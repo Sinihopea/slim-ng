@@ -45,7 +45,7 @@ int conv(int num_msg, const struct pam_message **msg, struct pam_response **resp
 
 	for (int i = 0; i < num_msg; i++)
 	{
-		(*resp)[i].resp = 0;
+		(*resp)[i].resp = nullptr;
 		(*resp)[i].resp_retcode = 0;
 
 		switch (msg[i]->msg_style)
@@ -106,13 +106,17 @@ int conv(int num_msg, const struct pam_message **msg, struct pam_response **resp
 	{
 		for (int i = 0; i < num_msg; i++)
 		{
-			if ((*resp)[i].resp == 0)
+			if ((*resp)[i].resp == nullptr)
+			{
 				continue;
+			}
+
 			free((*resp)[i].resp);
-			(*resp)[i].resp = 0;
+			(*resp)[i].resp = nullptr;
 		}
+
 		free(*resp);
-		*resp = 0;
+		*resp = nullptr;
 	}
 
 	return result;
@@ -137,25 +141,25 @@ void CatchSignal(int sig)
 	}
 
 	LoginApp->RemoveLock();
-	exit(ERR_EXIT);
+	std::exit(ERR_EXIT);
 }
 
 void User1Signal(int sig) { signal(sig, User1Signal); }
 
-App::App(int argc, char **argv)
-	: m_display(nullptr), m_server_pid(-1), m_server_started(false),
+App::App(int argc, char **argv) :
+	m_display(nullptr), m_server_pid(-1), m_server_started(false),
 
 #ifdef USE_PAM
-	  pam(conv, static_cast<void *>(&LoginPanel)),
+	pam(conv, static_cast<void *>(&LoginPanel)),
 #endif
 
-	  m_first_login(true), m_daemon_mode(false),
+	m_first_login(true), m_daemon_mode(false),
 
 #ifdef USE_CONSOLEKIT
-	  consolekit_support_enabled(true),
+	consolekit_support_enabled(true),
 #endif
 
-	  m_force_no_daemon(false), m_testing(false), mcookie(std::string(MCOOKIESIZE, 'a'))
+	m_force_no_daemon(false), m_testing(false), mcookie(std::string(MCOOKIESIZE, 'a'))
 {
 	int tmp;
 	bool configLoaded = false;
@@ -175,7 +179,7 @@ App::App(int argc, char **argv)
 				if (optarg == nullptr)
 				{
 					logStream << "The -c option requires an argument" << std::endl;
-					exit(ERR_EXIT);
+					std::exit(ERR_EXIT);
 				}
 				m_config_app.readConf(optarg);
 				configLoaded = true;
@@ -189,7 +193,7 @@ App::App(int argc, char **argv)
 				if (m_test_theme == nullptr)
 				{
 					logStream << "The -p option requires an argument" << std::endl;
-					exit(ERR_EXIT);
+					std::exit(ERR_EXIT);
 				}
 				break;
 
@@ -207,7 +211,7 @@ App::App(int argc, char **argv)
 			/* Version */
 			case 'v':
 				std::cout << APPNAME << " version " << VERSION << std::endl;
-				exit(OK_EXIT);
+				std::exit(OK_EXIT);
 				break;
 
 #ifdef USE_CONSOLEKIT
@@ -236,7 +240,7 @@ App::App(int argc, char **argv)
 #endif
 						  << "\t-p /path/to/theme/dir: preview theme" << std::endl;
 
-				exit(OK_EXIT);
+				std::exit(OK_EXIT);
 
 				break;
 		}
@@ -245,7 +249,7 @@ App::App(int argc, char **argv)
 	if (getuid() != 0 && !m_testing)
 	{
 		logStream << APPNAME << ": only root can run this program" << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 #endif /* XNEST_DEBUG */
 
@@ -256,11 +260,11 @@ App::App(int argc, char **argv)
 void App::Run()
 {
 	m_display_name = DISPLAY;
-	char *p = getenv("DISPLAY");
+	std::string p = getenv("DISPLAY");
 
-	if (p && p[0])
+	if (!p.empty())
 	{
-		m_display_name = p;
+		m_display_name = p.c_str();
 		std::cout << "Using display name " << m_display_name << std::endl;
 	}
 
@@ -302,7 +306,7 @@ void App::Run()
 	catch (PAM::Exception &e)
 	{
 		logStream << APPNAME << ": " << e << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 #endif
 
@@ -318,7 +322,7 @@ void App::Run()
 			if (themeName == "default")
 			{
 				logStream << APPNAME << ": Failed to open default theme file " << themefile << std::endl;
-				exit(ERR_EXIT);
+				std::exit(ERR_EXIT);
 			}
 			else
 			{
@@ -359,7 +363,7 @@ void App::Run()
 			if (daemon(0, 0) == -1)
 			{
 				logStream << APPNAME << ": " << strerror(errno) << std::endl;
-				exit(ERR_EXIT);
+				std::exit(ERR_EXIT);
 			}
 		}
 
@@ -376,7 +380,7 @@ void App::Run()
 		{
 			const char *xsetup_cmd = m_config_app.getOption("xsetup_script").c_str();
 			logStream << APPNAME << ": executing xsetup script '" << xsetup_cmd << "'" << std::endl;
-			system(xsetup_cmd);
+			std::system(xsetup_cmd);
 			logStream << APPNAME << ": xsetup script '" << xsetup_cmd << "' finished." << std::endl;
 		}
 #endif
@@ -386,9 +390,13 @@ void App::Run()
 	if ((m_display = XOpenDisplay(m_display_name)) == 0)
 	{
 		logStream << APPNAME << ": could not open display '" << m_display_name << "'" << std::endl;
+
 		if (!m_testing)
+		{
 			StopServer();
-		exit(ERR_EXIT);
+		}
+
+		std::exit(ERR_EXIT);
 	}
 
 	/* Get screen and root window */
@@ -525,7 +533,7 @@ void App::Run()
 				Suspend();
 				break;
 			case Panel::Exit:
-				Exit();
+				Quit();
 				break;
 			default:
 				break;
@@ -559,7 +567,7 @@ bool App::AuthenticateUser(bool focuspass)
 	catch (PAM::Exception &e)
 	{
 		logStream << APPNAME << ": " << e << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 	return true;
 }
@@ -660,7 +668,7 @@ void App::Login()
 	catch (PAM::Exception &e)
 	{
 		logStream << APPNAME << ": " << e << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 #else
 	pw = getpwnam(LoginPanel->GetName().c_str());
@@ -680,10 +688,12 @@ void App::Login()
 	}
 
 	/* Setup the environment */
-	char *term = getenv("TERM");
+	std::string term = getenv("TERM");
+
 	std::string maildir = _PATH_MAILDIR;
 	maildir.append("/");
 	maildir.append(pw->pw_name);
+
 	std::string xauthority = pw->pw_dir;
 	xauthority.append("/.Xauthority");
 
@@ -691,8 +701,11 @@ void App::Login()
 	/* Setup the PAM environment */
 	try
 	{
-		if (term)
+		if (!term.empty())
+		{
 			pam.setenv("TERM", term);
+		}
+
 		pam.setenv("HOME", pw->pw_dir);
 		pam.setenv("PWD", pw->pw_dir);
 		pam.setenv("SHELL", pw->pw_shell);
@@ -706,7 +719,7 @@ void App::Login()
 	catch (PAM::Exception &e)
 	{
 		logStream << APPNAME << ": " << e << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 #endif
 
@@ -721,7 +734,7 @@ void App::Login()
 		catch (Ck::Exception &e)
 		{
 			logStream << APPNAME << ": " << e << endl;
-			exit(ERR_EXIT);
+			std::exit(ERR_EXIT);
 		}
 	}
 #endif
@@ -796,11 +809,11 @@ void App::Login()
 		if (sessStart != "")
 		{
 			replaceVariables(sessStart, USER_VAR, pw->pw_name);
-			system(sessStart.c_str());
+			std::system(sessStart.c_str());
 		}
 
 		Su.Login(loginCommand.c_str(), mcookie.c_str());
-		_exit(OK_EXIT);
+		std::_Exit(OK_EXIT);
 	}
 
 #ifndef XNEST_DEBUG
@@ -830,7 +843,7 @@ void App::Login()
 		if (sessStop != "")
 		{
 			replaceVariables(sessStop, USER_VAR, pw->pw_name);
-			system(sessStop.c_str());
+			std::system(sessStop.c_str());
 		}
 	}
 
@@ -901,8 +914,8 @@ void App::Reboot()
 	/* Stop server and reboot */
 	StopServer();
 	RemoveLock();
-	system(m_config_app.getOption("reboot_cmd").c_str());
-	exit(OK_EXIT);
+	std::system(m_config_app.getOption("reboot_cmd").c_str());
+	std::exit(OK_EXIT);
 }
 
 void App::Halt()
@@ -925,14 +938,14 @@ void App::Halt()
 	/* Stop server and halt */
 	StopServer();
 	RemoveLock();
-	system(m_config_app.getOption("halt_cmd").c_str());
-	exit(OK_EXIT);
+	std::system(m_config_app.getOption("halt_cmd").c_str());
+	std::exit(OK_EXIT);
 }
 
 void App::Suspend()
 {
 	sleep(1);
-	system(m_config_app.getOption("suspend_cmd").c_str());
+	std::system(m_config_app.getOption("suspend_cmd").c_str());
 }
 
 void App::Console()
@@ -946,13 +959,13 @@ void App::Console()
 
 	/* Execute console */
 	const char *cmd = m_config_app.getOption("console_cmd").c_str();
-	char *tmp = new char[strlen(cmd) + 60];
+	char *tmp = new char[std::strlen(cmd) + 60];
 	sprintf(tmp, cmd, width, height, posx, posy, fontx, fonty);
-	system(tmp);
+	std::system(tmp);
 	delete[] tmp;
 }
 
-void App::Exit()
+void App::Quit()
 {
 	if (m_config_app.getOption("allow_exit") == "false")
 	{
@@ -984,7 +997,7 @@ void App::Exit()
 		StopServer();
 		RemoveLock();
 	}
-	exit(OK_EXIT);
+	std::exit(OK_EXIT);
 }
 
 int CatchErrors(Display *, XErrorEvent *) { return 0; }
@@ -1009,7 +1022,7 @@ void App::RestartServer()
 	{
 		delete LoginPanel;
 		/* use ERR_EXIT so that systemd's RESTART=on-failure works */
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 	else
 	{
@@ -1202,7 +1215,7 @@ int App::StartServer()
 
 			execvp(server[0], server);
 			logStream << APPNAME << ": X server could not be started" << std::endl;
-			exit(ERR_EXIT);
+			std::exit(ERR_EXIT);
 			break;
 
 		case -1:
@@ -1223,7 +1236,7 @@ int App::StartServer()
 				logStream << APPNAME << ": unable to connect to X server" << std::endl;
 				StopServer();
 				m_server_pid = -1;
-				exit(ERR_EXIT);
+				std::exit(ERR_EXIT);
 			}
 			break;
 	}
@@ -1280,7 +1293,7 @@ void App::StopServer()
 		if (errno == EPERM)
 		{
 			logStream << APPNAME << ": can't kill X server" << std::endl;
-			exit(ERR_EXIT);
+			std::exit(ERR_EXIT);
 		}
 
 		if (errno == ESRCH)
@@ -1316,7 +1329,7 @@ void App::StopServer()
 	{
 		logStream << std::endl
 				  << APPNAME << ": can't kill server" << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 	logStream << std::endl;
 }
@@ -1399,7 +1412,7 @@ void App::GetLock()
 		{
 			logStream << APPNAME << ": Could not create lock file: " << m_config_app.getOption("lockfile").c_str()
 					  << std::endl;
-			exit(ERR_EXIT);
+			std::exit(ERR_EXIT);
 		}
 		lockfile << getpid() << std::endl;
 		lockfile.close();
@@ -1420,7 +1433,7 @@ void App::GetLock()
 			{
 				logStream << APPNAME << ": Another instance of the program is already running with PID " << pid
 						  << std::endl;
-				exit(0);
+				std::exit(OK_EXIT);
 			}
 			else
 			{
@@ -1431,7 +1444,7 @@ void App::GetLock()
 				{
 					logStream << APPNAME << ": Could not create new lock file: " << m_config_app.getOption("lockfile")
 							  << std::endl;
-					exit(ERR_EXIT);
+					std::exit(ERR_EXIT);
 				}
 				lockfile << getpid() << std::endl;
 				lockfile.close();
@@ -1453,7 +1466,7 @@ void App::OpenLog()
 	{
 		logStream << APPNAME << ": Could not accesss log file: " << m_config_app.getOption("logfile") << std::endl;
 		RemoveLock();
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 	/* I should set the buffers to imediate write, but I just flush on every << operation. */
 }
@@ -1544,7 +1557,7 @@ void App::CreateServerAuth()
 
 char *App::StrConcat(const char *str1, const char *str2)
 {
-	char *tmp = new char[strlen(str1) + strlen(str2) + 1];
+	char *tmp = new char[std::strlen(str1) + std::strlen(str2) + 1];
 	strcpy(tmp, str1);
 	strcat(tmp, str2);
 
@@ -1559,7 +1572,7 @@ void App::UpdatePid()
 	{
 		logStream << APPNAME << ": Could not update lock file: " << m_config_app.getOption("lockfile").c_str()
 				  << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 	lockfile << getpid() << std::endl;
 	lockfile.close();

@@ -60,7 +60,7 @@ class App
 		void Halt();
 		void Suspend();
 		void Console();
-		void Exit();
+		void Quit();
 		void KillAllClients(Bool top);
 		// void ReadConfig();
 		void OpenLog();

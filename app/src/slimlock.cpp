@@ -65,9 +65,9 @@ static void die(const char *errstr, ...)
 {
 	va_list ap;
 	va_start(ap, errstr);
-	vfprintf(stderr, errstr, ap);
+	std::vfprintf(stderr, errstr, ap);
 	va_end(ap);
-	exit(EXIT_FAILURE);
+	std::exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv)
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
 			if (themeName == "default")
 			{
 				std::cerr << APPNAME << ": Failed to open default theme file " << themefile << std::endl;
-				exit(ERR_EXIT);
+				std::exit(ERR_EXIT);
 			}
 			else
 			{

@@ -34,13 +34,17 @@ void SwitchUser::SetUserId()
 		(setuid(Pw->pw_uid) != 0))
 	{
 		logStream << APPNAME << ": could not switch user id" << std::endl;
-		exit(ERR_EXIT);
+		std::exit(ERR_EXIT);
 	}
 }
 
 void SwitchUser::Execute(const char *cmd)
 {
-	chdir(Pw->pw_dir);
+	if (-1 == chdir(Pw->pw_dir))
+	{
+		/** @todo Print strerror or something. */
+	}
+
 	execle(Pw->pw_shell, Pw->pw_shell, "-c", cmd, nullptr, m_environment);
 	logStream << APPNAME << ": could not execute login command" << std::endl;
 }

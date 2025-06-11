@@ -88,7 +88,7 @@ bool Image::Read(const char *filename)
 	}
 	else
 	{
-		fprintf(stderr, "Unknown image format\n");
+		std::fprintf(stderr, "Unknown image format\n");
 		success = 0;
 	}
 

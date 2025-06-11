@@ -114,7 +114,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 		{
 			logStream << APPNAME << ": could not load panel image for theme '" << basename((char *)themedir.c_str())
 					  << "'" << std::endl;
-			exit(ERR_EXIT);
+			std::exit(ERR_EXIT);
 		}
 	}
 
@@ -138,7 +138,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 						  << ": could not load background image "
 							 "for theme '"
 						  << basename((char *)themedir.c_str()) << "'" << std::endl;
-				exit(ERR_EXIT);
+				std::exit(ERR_EXIT);
 			}
 		}
 	}
@@ -464,10 +464,10 @@ void Panel::Cursor(int visible)
 	}
 
 	XGlyphInfo extents;
-	XftTextExtentsUtf8(m_display, font, (XftChar8 *)txth, strlen(txth), &extents);
+	XftTextExtentsUtf8(m_display, font, (XftChar8 *)txth, std::strlen(txth), &extents);
 	cheight = extents.height;
 	y2 = yy - extents.y + extents.height;
-	XftTextExtentsUtf8(m_display, font, (XftChar8 *)text, strlen(text), &extents);
+	XftTextExtentsUtf8(m_display, font, (XftChar8 *)text, std::strlen(text), &extents);
 	xx += extents.width;
 
 	if (visible == SHOW)
@@ -618,7 +618,7 @@ bool Panel::OnKeyPress(XEvent &event)
 
 		/* Take a screenshot */
 		case XK_F11:
-			system(m_config_panel.getOption("screenshot_cmd").c_str());
+			std::system(m_config_panel.getOption("screenshot_cmd").c_str());
 			return true;
 
 		case XK_Return:
@@ -752,7 +752,7 @@ bool Panel::OnKeyPress(XEvent &event)
 	if (!formerString.empty())
 	{
 		const char *txth = "Wj"; /* get proper maximum height ? */
-		XftTextExtentsUtf8(m_display, font, reinterpret_cast<const XftChar8 *>(txth), strlen(txth), &extents);
+		XftTextExtentsUtf8(m_display, font, reinterpret_cast<const XftChar8 *>(txth), std::strlen(txth), &extents);
 		int maxHeight = extents.height;
 
 		XftTextExtentsUtf8(m_display, font, reinterpret_cast<const XftChar8 *>(formerString.c_str()),
@@ -787,7 +787,7 @@ void Panel::ShowText()
 	XftDraw *draw =
 		XftDrawCreate(m_display, Win, DefaultVisual(m_display, m_screen), DefaultColormap(m_display, m_screen));
 	/* welcome message */
-	XftTextExtentsUtf8(m_display, welcomefont, (XftChar8 *)welcome_message.c_str(), strlen(welcome_message.c_str()),
+	XftTextExtentsUtf8(m_display, welcomefont, (XftChar8 *)welcome_message.c_str(), std::strlen(welcome_message.c_str()),
 		&extents);
 	cfgX = m_config_panel.getOption("welcome_x");
 	cfgY = m_config_panel.getOption("welcome_y");
@@ -808,7 +808,7 @@ void Panel::ShowText()
 	if ((!singleInputMode || field == Get_Passwd) && mode == Mode_DM)
 	{
 		msg = m_config_panel.getOption("password_msg");
-		XftTextExtentsUtf8(m_display, enterfont, (XftChar8 *)msg.c_str(), strlen(msg.c_str()), &extents);
+		XftTextExtentsUtf8(m_display, enterfont, (XftChar8 *)msg.c_str(), std::strlen(msg.c_str()), &extents);
 		cfgX = m_config_panel.getOption("password_x");
 		cfgY = m_config_panel.getOption("password_y");
 		int shadowXOffset = m_config_panel.getIntOption("username_shadow_xoffset");
@@ -825,7 +825,7 @@ void Panel::ShowText()
 	if (!singleInputMode || field == Get_Name)
 	{
 		msg = m_config_panel.getOption("username_msg");
-		XftTextExtentsUtf8(m_display, enterfont, (XftChar8 *)msg.c_str(), strlen(msg.c_str()), &extents);
+		XftTextExtentsUtf8(m_display, enterfont, (XftChar8 *)msg.c_str(), std::strlen(msg.c_str()), &extents);
 		cfgX = m_config_panel.getOption("username_x");
 		cfgY = m_config_panel.getOption("username_y");
 		int shadowXOffset = m_config_panel.getIntOption("username_shadow_xoffset");
@@ -988,7 +988,7 @@ Rectangle Panel::GetPrimaryViewport()
 		else
 		{
 			std::cerr << "Cannot get crtc from xrandr.\n";
-			exit(EXIT_FAILURE);
+			std::exit(EXIT_FAILURE);
 		}
 	}
 	else
