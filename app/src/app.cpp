@@ -153,7 +153,7 @@ App::App(int argc, char **argv) :
 	m_display(nullptr), m_server_pid(-1), m_server_started(false),
 
 #ifdef USE_PAM
-	pam(conv, static_cast<void *>(&m_login_panel)),
+	m_pam_auth(conv, static_cast<void *>(&m_login_panel)),
 #endif
 
 	m_first_login(true), m_daemon_mode(false),
@@ -305,9 +305,9 @@ void App::Run()
 #ifdef USE_PAM
 	try
 	{
-		pam.start("slim");
-		pam.set_item(PAM::Authenticator::TTY, m_display_name);
-		pam.set_item(PAM::Authenticator::Requestor, "root");
+		m_pam_auth.start("slim");
+		m_pam_auth.set_item(PAM::Authenticator::TTY, m_display_name);
+		m_pam_auth.set_item(PAM::Authenticator::Requestor, "root");
 	}
 	catch (PAM::Exception &e)
 	{
@@ -439,7 +439,7 @@ void App::Run()
 	{
 		m_login_panel->SetName(m_config_app.getOption("default_user"));
 #ifdef USE_PAM
-		pam.set_item(PAM::Authenticator::User, m_config_app.getOption("default_user").c_str());
+		m_pam_auth.set_item(PAM::Authenticator::User, m_config_app.getOption("default_user").c_str());
 #endif
 		m_first_login = false;
 
@@ -555,9 +555,9 @@ bool App::AuthenticateUser(bool focuspass)
 	{
 		if (!focuspass)
 		{
-			pam.set_item(PAM::Authenticator::User, nullptr);
+			m_pam_auth.set_item(PAM::Authenticator::User, nullptr);
 		}
-		pam.authenticate();
+		m_pam_auth.authenticate();
 	}
 	catch (PAM::Auth_Exception &e)
 	{
@@ -663,8 +663,8 @@ void App::Login()
 #ifdef USE_PAM
 	try
 	{
-		pam.open_session();
-		pw = getpwnam(static_cast<const char *>(pam.get_item(PAM::Authenticator::User)));
+		m_pam_auth.open_session();
+		pw = getpwnam(static_cast<const char *>(m_pam_auth.get_item(PAM::Authenticator::User)));
 	}
 	catch (PAM::Cred_Exception &e)
 	{
@@ -711,18 +711,18 @@ void App::Login()
 	{
 		if (!term.empty())
 		{
-			pam.setenv("TERM", term);
+			m_pam_auth.setenv("TERM", term);
 		}
 
-		pam.setenv("HOME", pw->pw_dir);
-		pam.setenv("PWD", pw->pw_dir);
-		pam.setenv("SHELL", pw->pw_shell);
-		pam.setenv("USER", pw->pw_name);
-		pam.setenv("LOGNAME", pw->pw_name);
-		pam.setenv("PATH", m_config_app.getOption("default_path"));
-		pam.setenv("DISPLAY", m_display_name);
-		pam.setenv("MAIL", maildir);
-		pam.setenv("XAUTHORITY", xauthority);
+		m_pam_auth.setenv("HOME", pw->pw_dir);
+		m_pam_auth.setenv("PWD", pw->pw_dir);
+		m_pam_auth.setenv("SHELL", pw->pw_shell);
+		m_pam_auth.setenv("USER", pw->pw_name);
+		m_pam_auth.setenv("LOGNAME", pw->pw_name);
+		m_pam_auth.setenv("PATH", m_config_app.getOption("default_path"));
+		m_pam_auth.setenv("DISPLAY", m_display_name);
+		m_pam_auth.setenv("MAIL", maildir);
+		m_pam_auth.setenv("XAUTHORITY", xauthority);
 	}
 	catch (PAM::Exception &e)
 	{
@@ -755,7 +755,7 @@ void App::Login()
 #ifdef USE_PAM
 		/* Get a copy of the environment and close the child's copy */
 		/* of the PAM-handle. */
-		char **child_env = pam.getenvlist();
+		char **child_env = m_pam_auth.getenvlist();
 
 #ifdef USE_CONSOLEKIT
 		if (consolekit_support_enabled)
@@ -872,7 +872,7 @@ void App::Login()
 #ifdef USE_PAM
 	try
 	{
-		pam.close_session();
+		m_pam_auth.close_session();
 	}
 	catch (PAM::Exception &e)
 	{
@@ -907,7 +907,7 @@ void App::Reboot()
 #ifdef USE_PAM
 	try
 	{
-		pam.end();
+		m_pam_auth.end();
 	}
 	catch (PAM::Exception &e)
 	{
@@ -931,7 +931,7 @@ void App::Halt()
 #ifdef USE_PAM
 	try
 	{
-		pam.end();
+		m_pam_auth.end();
 	}
 	catch (PAM::Exception &e)
 	{
@@ -983,7 +983,7 @@ void App::Quit()
 #ifdef USE_PAM
 	try
 	{
-		pam.end();
+		m_pam_auth.end();
 	}
 	catch (PAM::Exception &e)
 	{
@@ -1015,7 +1015,7 @@ void App::RestartServer()
 #ifdef USE_PAM
 	try
 	{
-		pam.end();
+		m_pam_auth.end();
 	}
 	catch (PAM::Exception &e)
 	{

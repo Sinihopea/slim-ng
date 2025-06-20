@@ -91,7 +91,7 @@ class App
 		bool m_server_started;
 
 #ifdef USE_PAM
-		PAM::Authenticator pam;
+		PAM::Authenticator m_pam_auth;
 #endif
 
 #ifdef USE_CONSOLEKIT
