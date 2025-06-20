@@ -1,14 +1,32 @@
 # slim-ng.pro
 
 TEMPLATE = app
+TARGET = slim
+
+VERSION = 0.3.6
+RELEASE = 1
+
+LANGUAGE = C++
 
 include(../config.pri)
 
-CONFIG += debug_and_release
+CONFIG += c11
+CONFIG += c++17
+# CONFIG += x11
 
-QT =
+CONFIG(debug, debug|release) {
+	message("debug")
+	CONFIG += warn_on
+	CONFIG += rtti
 
-TARGET = slim
+	OBJECTS_DIR = $$PROJECT_ROOT/build/slim/debug/
+} else {
+	message("release")
+	CONFIG += warn_off
+	CONFIG += rtti_off
+
+	OBJECTS_DIR = $$PROJECT_ROOT/build/slim/release/
+}
 
 DEFINES += APPNAME=\\\"slim\\\"
 DEFINES += VERSION=\\\"1.3.6\\\"
@@ -64,3 +82,9 @@ SOURCES += src/main.cpp \
 
 # IF CONSOLEKIT, THEN
 # src/ck.cpp \
+
+# IF CHECKS: PASS, COPY TO BUILDROOT
+# target.path += $${BINDIR}/
+# INSTALLS += target
+
+# TODO Needs to copy resources as well
