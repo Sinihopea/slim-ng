@@ -669,11 +669,11 @@ bool Panel::OnKeyPress(XEvent &event)
 						action = Lock;
 					}
 				}
-			};
+			}
 			return false;
 		default:
 			break;
-	};
+	}
 
 	Cursor(HIDE);
 	switch (keysym)
@@ -718,7 +718,7 @@ bool Panel::OnKeyPress(XEvent &event)
 						if (NameBuffer.length() < INPUT_MAXLENGTH_NAME - 1)
 						{
 							NameBuffer.append(&ascii, 1);
-						};
+						}
 						break;
 					case GET_PASSWD:
 						formerString = HiddenPasswdBuffer;
@@ -726,16 +726,16 @@ bool Panel::OnKeyPress(XEvent &event)
 						{
 							PasswdBuffer.append(&ascii, 1);
 							HiddenPasswdBuffer.append("*");
-						};
+						}
 						break;
-				};
+				}
 			}
 			else
 			{
 				return true; // nodraw if notchange
-			};
+			}
 			break;
-	};
+	}
 
 	XGlyphInfo extents;
 	XftDraw *draw =

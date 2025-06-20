@@ -40,7 +40,7 @@ Image::Image(const int w, const int h, const unsigned char *rgb, const unsigned 
 	height = h;
 	area = w * h;
 
-	rgb_data = (unsigned char *)malloc(3 * area);
+	rgb_data = (unsigned char *)std::malloc(3 * area);
 	memcpy(rgb_data, rgb, 3 * area);
 
 	if (alpha == nullptr)
@@ -49,15 +49,15 @@ Image::Image(const int w, const int h, const unsigned char *rgb, const unsigned 
 	}
 	else
 	{
-		png_alpha = (unsigned char *)malloc(area);
+		png_alpha = (unsigned char *)std::malloc(area);
 		memcpy(png_alpha, alpha, area);
 	}
 }
 
 Image::~Image()
 {
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 }
 
 bool Image::Read(const char *filename)
@@ -113,14 +113,14 @@ void Image::Reduce(const int factor)
 	int w = width / scale;
 	int h = height / scale;
 	int new_area = w * h;
-	auto new_rgb = (unsigned char *)malloc(3 * new_area);
-	memset(new_rgb, 0, 3 * new_area);
+	auto new_rgb = (unsigned char *)std::malloc(3 * new_area);
+	std::memset(new_rgb, 0, 3 * new_area);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
 	{
-		new_alpha = (unsigned char *)malloc(new_area);
-		memset(new_alpha, 0, new_area);
+		new_alpha = (unsigned char *)std::malloc(new_area);
+		std::memset(new_alpha, 0, new_area);
 	}
 
 	int ipos = 0;
@@ -147,8 +147,8 @@ void Image::Reduce(const int factor)
 		}
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 
 	rgb_data = new_rgb;
 	png_alpha = new_alpha;
@@ -167,12 +167,12 @@ void Image::Resize(const int w, const int h)
 	}
 
 	int new_area = w * h;
-	auto new_rgb = (unsigned char *)malloc(3 * new_area);
+	auto new_rgb = (unsigned char *)std::malloc(3 * new_area);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
 	{
-		new_alpha = (unsigned char *)malloc(new_area);
+		new_alpha = (unsigned char *)std::malloc(new_area);
 	}
 
 	const double scale_x = ((double)w) / width;
@@ -200,8 +200,8 @@ void Image::Resize(const int w, const int h)
 		}
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = new_alpha;
 	width = w;
@@ -277,7 +277,7 @@ void Image::getPixel(double x, double y, unsigned char *pixel, unsigned char *al
 	pixels[2] = rgb_data + 3 * (iy1 * width + ix0);
 	pixels[3] = rgb_data + 3 * (iy1 * width + ix1);
 
-	memset(pixel, 0, 3);
+	std::memset(pixel, 0, 3);
 
 	for (int i = 0; i < 4; i++)
 	{
@@ -321,8 +321,8 @@ void Image::Merge(Image *background, const int x, const int y)
 	}
 
 	double tmp;
-	auto new_rgb = (unsigned char *)malloc(3 * width * height);
-	memset(new_rgb, 0, 3 * width * height);
+	auto new_rgb = (unsigned char *)std::malloc(3 * width * height);
+	std::memset(new_rgb, 0, 3 * width * height);
 	const unsigned char *bg_rgb = background->getRGBData();
 
 	int ipos = 0;
@@ -359,8 +359,8 @@ void Image::Merge(Image *background, const int x, const int y)
 		}
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 }
@@ -383,7 +383,7 @@ void Image::Merge_non_crop(Image *background, const int x, const int y)
 	}
 
 	double tmp;
-	auto new_rgb = (unsigned char *)malloc(3 * bg_w * bg_h);
+	auto new_rgb = (unsigned char *)std::malloc(3 * bg_w * bg_h);
 	const unsigned char *bg_rgb = background->getRGBData();
 	int pnl_pos = 0;
 	int bg_pos = 0;
@@ -420,8 +420,8 @@ void Image::Merge_non_crop(Image *background, const int x, const int y)
 
 	width = bg_w;
 	height = bg_h;
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 }
@@ -454,8 +454,8 @@ void Image::Tile(const int w, const int h)
 
 	int newwidth = nx * width;
 	int newheight = ny * height;
-	auto new_rgb = (unsigned char *)malloc(3 * newwidth * newheight);
-	memset(new_rgb, 0, 3 * width * height * nx * ny);
+	auto new_rgb = (unsigned char *)std::malloc(3 * newwidth * newheight);
+	std::memset(new_rgb, 0, 3 * width * height * nx * ny);
 	int ipos = 0;
 	int opos = 0;
 
@@ -479,8 +479,8 @@ void Image::Tile(const int w, const int h)
 		}
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 	width = newwidth;
@@ -501,14 +501,14 @@ void Image::Crop(const int x, const int y, const int w, const int h)
 
 	int x2 = x + w;
 	int y2 = y + h;
-	auto new_rgb = (unsigned char *)malloc(3 * w * h);
-	memset(new_rgb, 0, 3 * w * h);
+	auto new_rgb = (unsigned char *)std::malloc(3 * w * h);
+	std::memset(new_rgb, 0, 3 * w * h);
 	unsigned char *new_alpha = nullptr;
 
 	if (png_alpha != nullptr)
 	{
-		new_alpha = (unsigned char *)malloc(w * h);
-		memset(new_alpha, 0, w * h);
+		new_alpha = (unsigned char *)std::malloc(w * h);
+		std::memset(new_alpha, 0, w * h);
 	}
 
 	int ipos = 0;
@@ -537,8 +537,8 @@ void Image::Crop(const int x, const int y, const int w, const int h)
 		}
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 
 	if (png_alpha != nullptr)
@@ -561,8 +561,8 @@ void Image::Center(const int w, const int h, const char *hex)
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-	auto new_rgb = (unsigned char *)malloc(3 * w * h);
-	memset(new_rgb, 0, 3 * w * h);
+	auto new_rgb = (unsigned char *)std::malloc(3 * w * h);
+	std::memset(new_rgb, 0, 3 * w * h);
 	int x = (w - width) / 2;
 	int y = (h - height) / 2;
 
@@ -636,8 +636,8 @@ void Image::Center(const int w, const int h, const char *hex)
 		}
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 	width = w;
@@ -655,8 +655,8 @@ void Image::Plain(const int w, const int h, const char *hex)
 	unsigned long r = packed_rgb >> 16;
 	unsigned long g = packed_rgb >> 8 & 0xff;
 	unsigned long b = packed_rgb & 0xff;
-	auto new_rgb = (unsigned char *)malloc(3 * w * h);
-	memset(new_rgb, 0, 3 * w * h);
+	auto new_rgb = (unsigned char *)std::malloc(3 * w * h);
+	std::memset(new_rgb, 0, 3 * w * h);
 	area = w * h;
 
 	for (int i = 0; i < area; i++)
@@ -666,8 +666,8 @@ void Image::Plain(const int w, const int h, const char *hex)
 		new_rgb[3 * i + 2] = b;
 	}
 
-	free(rgb_data);
-	free(png_alpha);
+	std::free(rgb_data);
+	std::free(png_alpha);
 	rgb_data = new_rgb;
 	png_alpha = nullptr;
 	width = w;
@@ -882,7 +882,7 @@ int Image::readJpeg(const char *filename, int *width, int *height, unsigned char
 
 	*width = cinfo.output_width;
 	*height = cinfo.output_height;
-	rgb[0] = (unsigned char *)malloc(3 * cinfo.output_width * cinfo.output_height);
+	rgb[0] = (unsigned char *)std::malloc(3 * cinfo.output_width * cinfo.output_height);
 
 	if (rgb[0] == nullptr)
 	{
@@ -902,7 +902,7 @@ int Image::readJpeg(const char *filename, int *width, int *height, unsigned char
 	}
 	else if (cinfo.output_components == 1)
 	{
-		ptr = (unsigned char *)malloc(cinfo.output_width);
+		ptr = (unsigned char *)std::malloc(cinfo.output_width);
 
 		if (ptr == nullptr)
 		{
@@ -919,12 +919,12 @@ int Image::readJpeg(const char *filename, int *width, int *height, unsigned char
 
 			for (unsigned int i = 0; i < cinfo.output_width; i++)
 			{
-				memset(rgb[0] + ipos, ptr[i], 3);
+				std::memset(rgb[0] + ipos, ptr[i], 3);
 				ipos += 3;
 			}
 		}
 
-		free(ptr);
+		std::free(ptr);
 	}
 
 	jpeg_finish_decompress(&cinfo);
@@ -932,7 +932,7 @@ int Image::readJpeg(const char *filename, int *width, int *height, unsigned char
 	goto close_file;
 
 rgb_free:
-	free(rgb[0]);
+	std::free(rgb[0]);
 
 close_file:
 	jpeg_destroy_decompress(&cinfo);
@@ -1002,7 +1002,7 @@ int Image::readPng(const char *filename, int *width, int *height, unsigned char 
 
 	if (color_type == PNG_COLOR_TYPE_RGB_ALPHA || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 	{
-		alpha[0] = (unsigned char *)malloc(*width * *height);
+		alpha[0] = (unsigned char *)std::malloc(*width * *height);
 
 		if (alpha[0] == nullptr)
 		{
@@ -1031,7 +1031,7 @@ int Image::readPng(const char *filename, int *width, int *height, unsigned char 
 
 	/* use 1 byte per pixel */
 	png_set_packing(png_ptr);
-	row_pointers = (png_byte **)malloc(*height * sizeof(png_bytep));
+	row_pointers = (png_byte **)std::malloc(*height * sizeof(png_bytep));
 
 	if (row_pointers == nullptr)
 	{
@@ -1042,7 +1042,7 @@ int Image::readPng(const char *filename, int *width, int *height, unsigned char 
 
 	for (i = 0; i < *height; i++)
 	{
-		row_pointers[i] = (png_byte *)malloc(4 * *width);
+		row_pointers[i] = (png_byte *)std::malloc(4 * *width);
 
 		if (row_pointers == nullptr)
 		{
@@ -1053,7 +1053,7 @@ int Image::readPng(const char *filename, int *width, int *height, unsigned char 
 	}
 
 	png_read_image(png_ptr, row_pointers);
-	rgb[0] = (unsigned char *)malloc(3 * (*width) * (*height));
+	rgb[0] = (unsigned char *)std::malloc(3 * (*width) * (*height));
 
 	if (rgb[0] == nullptr)
 	{
@@ -1096,11 +1096,11 @@ rows_free:
 	{
 		if (row_pointers[i] != nullptr)
 		{
-			free(row_pointers[i]);
+			std::free(row_pointers[i]);
 		}
 	}
 
-	free(row_pointers);
+	std::free(row_pointers);
 
 png_destroy:
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp) nullptr);

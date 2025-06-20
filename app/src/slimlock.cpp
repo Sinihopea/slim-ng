@@ -323,7 +323,7 @@ static int ConvCallback(int num_msgs, const struct pam_message **msg, struct pam
 	loginPanel->EventHandler(Panel::Get_Passwd);
 
 	/* PAM expects an array of responses, one for each message */
-	if (num_msgs == 0 || (*resp = (pam_response *)calloc(num_msgs, sizeof(struct pam_message))) == nullptr)
+	if (num_msgs == 0 || (*resp = (pam_response *)std::calloc(num_msgs, sizeof(struct pam_message))) == nullptr)
 	{
 		return PAM_BUF_ERR;
 	}
@@ -340,7 +340,7 @@ static int ConvCallback(int num_msgs, const struct pam_message **msg, struct pam
 
 		if ((resp[i]->resp = strdup(loginPanel->GetPasswd().c_str())) == nullptr)
 		{
-			free(*resp);
+			std::free(*resp);
 
 			return PAM_BUF_ERR;
 		}

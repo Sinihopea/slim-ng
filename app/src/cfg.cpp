@@ -144,7 +144,11 @@ Cfg::Cfg() :
 	error = "";
 }
 
-Cfg::~Cfg() { options.clear(); }
+Cfg::~Cfg()
+{
+	options.clear();
+}
+
 /*
  * Creates the Cfg object and parses
  * known options from the given configfile / themefile
@@ -157,15 +161,16 @@ bool Cfg::readConf(std::string configfile)
 	std::string next;
 	std::string op;
 	std::string fn(configfile);
-
 	std::map<std::string, std::string>::iterator it;
 	std::ifstream cfgfile(fn.c_str());
 
 	if (!cfgfile)
 	{
 		error = "Cannot read configuration file: " + configfile;
+
 		return false;
 	}
+
 	while (getline(cfgfile, line))
 	{
 		if ((pos = line.find('\\')) != std::string::npos)
@@ -174,10 +179,13 @@ bool Cfg::readConf(std::string configfile)
 			{
 				line.replace(pos, 1, " ");
 				next = next + line;
+
 				continue;
 			}
 			else
+			{
 				line.replace(pos, line.length() - pos, " ");
+			}
 		}
 
 		if (!next.empty())
@@ -185,7 +193,9 @@ bool Cfg::readConf(std::string configfile)
 			line = next + line;
 			next = "";
 		}
+
 		it = options.begin();
+
 		while (it != options.end())
 		{
 			op = it->first;
@@ -208,9 +218,15 @@ std::string Cfg::parseOption(std::string line, std::string option)
 	return Trim(line.substr(option.size(), line.size() - option.size()));
 }
 
-const std::string &Cfg::getError() const { return error; }
+const std::string &Cfg::getError() const
+{
+	return error;
+}
 
-std::string &Cfg::getOption(std::string option) { return options[option]; }
+std::string &Cfg::getOption(std::string option)
+{
+	return options[option];
+}
 
 /* return a trimmed string */
 std::string Cfg::Trim(const std::string &s)
@@ -219,23 +235,29 @@ std::string Cfg::Trim(const std::string &s)
 	{
 		return s;
 	}
+
 	int pos = 0;
 	std::string line = s;
 	int len = line.length();
+
 	while (pos < len && isspace(line[pos]))
 	{
 		++pos;
 	}
+
 	line.erase(0, pos);
 	pos = line.length() - 1;
+
 	while (pos > -1 && isspace(line[pos]))
 	{
 		--pos;
 	}
+
 	if (pos != -1)
 	{
 		line.erase(pos + 1);
 	}
+
 	return line;
 }
 
@@ -244,6 +266,7 @@ std::string Cfg::getWelcomeMessage()
 {
 	std::string s = getOption("welcome_msg");
 	int n = s.find("%host");
+
 	if (n >= 0)
 	{
 		std::string tmp = s.substr(0, n);
@@ -253,17 +276,19 @@ std::string Cfg::getWelcomeMessage()
 		tmp = tmp + s.substr(n + 5, s.size() - n);
 		s = tmp;
 	}
+
 	n = s.find("%domain");
+
 	if (n >= 0)
 	{
 		std::string tmp = s.substr(0, n);
-		;
 		char domain[40];
 		getdomainname(domain, 40);
 		tmp = tmp + domain;
 		tmp = tmp + s.substr(n + 7, s.size() - n);
 		s = tmp;
 	}
+
 	return s;
 }
 
@@ -276,10 +301,14 @@ int Cfg::string2int(const char *string, bool *ok)
 	{
 		*ok = (*err == 0);
 	}
+
 	return (*err == 0) ? l : 0;
 }
 
-int Cfg::getIntOption(std::string option) { return string2int(options[option].c_str()); }
+int Cfg::getIntOption(std::string option)
+{
+	return string2int(options[option].c_str());
+}
 
 /* Get absolute position */
 int Cfg::absolutepos(const std::string &position, int max, int width)
@@ -287,12 +316,15 @@ int Cfg::absolutepos(const std::string &position, int max, int width)
 	int n = position.find("%");
 
 	if (n > 0)
-	{ /* X Position expressed in percentage */
+	{
+		/* X Position expressed in percentage */
 		int result = (max * string2int(position.substr(0, n).c_str()) / 100) - (width / 2);
+
 		return result < 0 ? 0 : result;
 	}
 	else
-	{ /* Absolute X position */
+	{
+		/* Absolute X position */
 		return string2int(position.c_str());
 	}
 }
@@ -312,10 +344,13 @@ void Cfg::split(std::vector<std::string> &v, const std::string &str, char c, boo
 		{
 			++s;
 		}
+
 		tmp = std::string(begin, s);
 
 		if (useEmpty || tmp.size() > 0)
+		{
 			v.push_back(tmp);
+		}
 
 		if (s == str.end())
 		{
@@ -325,7 +360,10 @@ void Cfg::split(std::vector<std::string> &v, const std::string &str, char c, boo
 		if (++s == str.end())
 		{
 			if (useEmpty)
+			{
 				v.push_back("");
+			}
+
 			break;
 		}
 	}

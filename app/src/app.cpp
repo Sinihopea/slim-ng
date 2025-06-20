@@ -39,7 +39,7 @@
 
 int conv(int num_msg, const struct pam_message **msg, struct pam_response **resp, void *appdata_ptr)
 {
-	*resp = (struct pam_response *)calloc(num_msg, sizeof(struct pam_response));
+	*resp = (struct pam_response *)std::calloc(num_msg, sizeof(struct pam_response));
 	Panel *panel = *static_cast<Panel **>(appdata_ptr);
 	int result = PAM_SUCCESS;
 
@@ -114,11 +114,11 @@ int conv(int num_msg, const struct pam_message **msg, struct pam_response **resp
 				continue;
 			}
 
-			free((*resp)[i].resp);
+			std::free((*resp)[i].resp);
 			(*resp)[i].resp = nullptr;
 		}
 
-		free(*resp);
+		std::free(*resp);
 		*resp = nullptr;
 	}
 
@@ -770,7 +770,7 @@ void App::Login()
 
 			n++;
 
-			child_env = static_cast<char **>(malloc(sizeof(char *) * (n + 1)));
+			child_env = static_cast<char **>(std::malloc(sizeof(char *) * (n + 1)));
 			memcpy(child_env, old_env, sizeof(char *) * n);
 			child_env[n - 1] = StrConcat("XDG_SESSION_COOKIE=", ck.get_xdg_session_cookie());
 			child_env[n] = nullptr;
@@ -783,7 +783,7 @@ void App::Login()
 #else
 		const int Num_Of_Variables = 11; /* Number of env. variables + 1 */
 #endif /* USE_CONSOLEKIT */
-		char **child_env = static_cast<char **>(malloc(sizeof(char *) * Num_Of_Variables));
+		char **child_env = static_cast<char **>(std::malloc(sizeof(char *) * Num_Of_Variables));
 		int n = 0;
 		if (term)
 			child_env[n++] = StrConcat("TERM=", term);
@@ -968,7 +968,7 @@ void App::Console()
 	/* Execute console */
 	const char *cmd = m_config_app.getOption("console_cmd").c_str();
 	auto tmp = new char[std::strlen(cmd) + 60];
-	sprintf(tmp, cmd, width, height, posx, posy, fontx, fonty);
+	std::sprintf(tmp, cmd, width, height, posx, posy, fontx, fonty);
 	std::system(tmp);
 	delete[] tmp;
 }
