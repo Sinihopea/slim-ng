@@ -54,3 +54,4 @@ compile_commands.json
 *_qmlcache.qrc
 app/release/slim
 app/debug/slim
+*.su
