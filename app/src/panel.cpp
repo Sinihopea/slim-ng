@@ -50,7 +50,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 		gcv.graphics_exposures = False;
 		WinGC = XCreateGC(m_display, Win, gcm, &gcv);
 
-		/* TODO
+		/** @todo
 		if (WinGC < 0) {
 			cerr << APPNAME << ": failed to create pixmap\n.";
 			exit (ERR_EXIT);
@@ -66,7 +66,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 	Visual *visual = DefaultVisual(m_display, m_screen);
 	Colormap colormap = DefaultColormap(m_display, m_screen);
 
-	/* NOTE: using XftColorAllocValue() would be a better solution. Lazy me. */
+	/** @note Using XftColorAllocValue() would be a better solution. Lazy me. */
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("input_color").c_str(), &inputcolor);
 	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("input_shadow_color").c_str(),
 		&inputshadowcolor);
