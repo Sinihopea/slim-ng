@@ -85,7 +85,7 @@ class App
 		Display *m_display;
 		int m_screen;
 		Window m_window_root;
-		Panel *LoginPanel;
+		Panel *m_login_panel;
 		int m_server_pid;
 		const char *m_display_name;
 		bool m_server_started;

@@ -153,7 +153,7 @@ App::App(int argc, char **argv) :
 	m_display(nullptr), m_server_pid(-1), m_server_started(false),
 
 #ifdef USE_PAM
-	pam(conv, static_cast<void *>(&LoginPanel)),
+	pam(conv, static_cast<void *>(&m_login_panel)),
 #endif
 
 	m_first_login(true), m_daemon_mode(false),
@@ -428,7 +428,7 @@ void App::Run()
 	HideCursor();
 
 	/* Create panel */
-	LoginPanel = new Panel(m_display, m_screen, m_window_root, m_config_app, themedir, Panel::Mode_DM);
+	m_login_panel = new Panel(m_display, m_screen, m_window_root, m_config_app, themedir, Panel::Mode_DM);
 
 	/* 1st time panel is shown (for automatic username) */
 	bool firstloop = true;
@@ -437,7 +437,7 @@ void App::Run()
 
 	if (m_first_login && m_config_app.getOption("default_user") != "")
 	{
-		LoginPanel->SetName(m_config_app.getOption("default_user"));
+		m_login_panel->SetName(m_config_app.getOption("default_user"));
 #ifdef USE_PAM
 		pam.set_item(PAM::Authenticator::User, m_config_app.getOption("default_user").c_str());
 #endif
@@ -480,29 +480,29 @@ void App::Run()
 			}
 
 			/* Show panel */
-			LoginPanel->OpenPanel();
+			m_login_panel->OpenPanel();
 		}
 
-		LoginPanel->Reset();
+		m_login_panel->Reset();
 
 		if (firstloop && m_config_app.getOption("default_user") != "")
-			LoginPanel->SetName(m_config_app.getOption("default_user"));
+			m_login_panel->SetName(m_config_app.getOption("default_user"));
 
 		if (firstloop)
 		{
-			LoginPanel->SwitchSession();
+			m_login_panel->SwitchSession();
 		}
 
 		if (m_testing)
 		{
-			LoginPanel->EventHandler(Panel::Get_Name);
-			LoginPanel->EventHandler(Panel::Get_Passwd);
+			m_login_panel->EventHandler(Panel::Get_Name);
+			m_login_panel->EventHandler(Panel::Get_Passwd);
 		}
 		else if (!AuthenticateUser(focuspass && firstloop))
 		{
 			panelclosed = 0;
 			firstloop = false;
-			LoginPanel->ClearPanel();
+			m_login_panel->ClearPanel();
 			XBell(m_display, 100);
 			sleep(1); // Just in case, to prevent infinite loops
 					  // without pauses
@@ -510,7 +510,7 @@ void App::Run()
 		}
 
 		firstloop = false;
-		Action = LoginPanel->getAction();
+		Action = m_login_panel->getAction();
 
 		/* for themes test we just quit */
 		if (m_testing)
@@ -519,7 +519,7 @@ void App::Run()
 		}
 
 		panelclosed = 1;
-		LoginPanel->ClosePanel();
+		m_login_panel->ClosePanel();
 
 		switch (Action)
 		{
@@ -561,7 +561,7 @@ bool App::AuthenticateUser(bool focuspass)
 	}
 	catch (PAM::Auth_Exception &e)
 	{
-		switch (LoginPanel->getAction())
+		switch (m_login_panel->getAction())
 		{
 			case Panel::Exit:
 			case Panel::Console:
@@ -584,23 +584,23 @@ bool App::AuthenticateUser(bool focuspass)
 {
 	if (!focuspass)
 	{
-		LoginPanel->EventHandler(Panel::Get_Name);
-		switch (LoginPanel->getAction())
+		m_login_panel->EventHandler(Panel::Get_Name);
+		switch (m_login_panel->getAction())
 		{
 			case Panel::Exit:
 			case Panel::Console:
-				logStream << APPNAME << ": Got a special command (" << LoginPanel->GetName() << ")" << std::endl;
+				logStream << APPNAME << ": Got a special command (" << m_login_panel->GetName() << ")" << std::endl;
 				return true; /* <--- This is simply fake! */
 			default:
 				break;
 		}
 	}
-	LoginPanel->EventHandler(Panel::Get_Passwd);
+	m_login_panel->EventHandler(Panel::Get_Passwd);
 
 	char *encrypted, *correct;
 	struct passwd *pw;
 
-	switch (LoginPanel->getAction())
+	switch (m_login_panel->getAction())
 	{
 		case Panel::Suspend:
 		case Panel::Halt:
@@ -610,7 +610,7 @@ bool App::AuthenticateUser(bool focuspass)
 		case Panel::Console:
 		case Panel::Exit:
 		case Panel::Login:
-			pw = getpwnam(LoginPanel->GetName().c_str());
+			pw = getpwnam(m_login_panel->GetName().c_str());
 			break;
 	}
 	endpwent();
@@ -629,7 +629,7 @@ bool App::AuthenticateUser(bool focuspass)
 	if (correct == 0 || correct[0] == '\0')
 		return true;
 
-	encrypted = crypt(LoginPanel->GetPasswd().c_str(), correct);
+	encrypted = crypt(m_login_panel->GetPasswd().c_str(), correct);
 	return ((encrypted && strcmp(encrypted, correct) == 0) ? true : false);
 }
 #endif
@@ -679,7 +679,7 @@ void App::Login()
 		std::exit(ERR_EXIT);
 	}
 #else
-	pw = getpwnam(LoginPanel->GetName().c_str());
+	pw = getpwnam(m_login_panel->GetName().c_str());
 #endif
 	endpwent();
 
@@ -808,7 +808,7 @@ void App::Login()
 
 		/* Login process starts here */
 		SwitchUser Su(pw, m_config_app, m_display_name, child_env);
-		std::string session = LoginPanel->getSession();
+		std::string session = m_login_panel->getSession();
 		std::string loginCommand = m_config_app.getOption("login_cmd");
 		replaceVariables(loginCommand, SESSION_VAR, session);
 		replaceVariables(loginCommand, THEME_VAR, themeName);
@@ -841,7 +841,7 @@ void App::Login()
 
 	if (WIFEXITED(status) && WEXITSTATUS(status))
 	{
-		LoginPanel->Message("Failed to execute login command");
+		m_login_panel->Message("Failed to execute login command");
 		sleep(3);
 	}
 	else
@@ -916,7 +916,7 @@ void App::Reboot()
 #endif
 
 	/* Write message */
-	LoginPanel->Message((char *)m_config_app.getOption("reboot_msg").c_str());
+	m_login_panel->Message((char *)m_config_app.getOption("reboot_msg").c_str());
 	sleep(3);
 
 	/* Stop server and reboot */
@@ -940,7 +940,7 @@ void App::Halt()
 #endif
 
 	/* Write message */
-	LoginPanel->Message((char *)m_config_app.getOption("shutdown_msg").c_str());
+	m_login_panel->Message((char *)m_config_app.getOption("shutdown_msg").c_str());
 	sleep(3);
 
 	/* Stop server and halt */
@@ -994,14 +994,14 @@ void App::Quit()
 	if (m_testing)
 	{
 		const char *testmsg = "¥·£·€·$·¢·₡·₢·₣·₤·₥·₦·₧·₨·₩·₪·₫·₭·₮·₯·₹";
-		LoginPanel->Message(testmsg);
+		m_login_panel->Message(testmsg);
 		sleep(3);
-		delete LoginPanel;
+		delete m_login_panel;
 		XCloseDisplay(m_display);
 	}
 	else
 	{
-		delete LoginPanel;
+		delete m_login_panel;
 		StopServer();
 		RemoveLock();
 	}
@@ -1028,7 +1028,7 @@ void App::RestartServer()
 
 	if (m_force_no_daemon)
 	{
-		delete LoginPanel;
+		delete m_login_panel;
 		/* use ERR_EXIT so that systemd's RESTART=on-failure works */
 		std::exit(ERR_EXIT);
 	}
