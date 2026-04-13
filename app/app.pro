@@ -10,7 +10,7 @@ LANGUAGE = C++
 
 include(../config.pri)
 
-CONFIG += c11
+CONFIG += c17
 CONFIG += c++17
 # CONFIG += x11
 
