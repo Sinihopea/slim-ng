@@ -230,7 +230,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 	delete bg;
 
 	/* Read (and substitute vars in) the welcome message */
-	welcome_message = m_config_panel.getWelcomeMessage();
+	welcome_message = m_config_panel.getWelcomeMessage().value_or("Welcome to %host");
 	intro_message = m_config_panel.getOption("intro_msg");
 
 	if (mode == Mode_Lock)
@@ -359,9 +359,6 @@ void Panel::WrongPassword(int timeout)
 
 void Panel::Message(const std::string &text)
 {
-	std::string cfgX;
-	std::string cfgY;
-	XGlyphInfo extents;
 	XftDraw *draw;
 
 	if (mode == Mode_Lock)
@@ -374,11 +371,15 @@ void Panel::Message(const std::string &text)
 			DefaultColormap(m_display, m_screen));
 	}
 
+	XGlyphInfo extents;
 	XftTextExtentsUtf8(m_display, msgfont, reinterpret_cast<const XftChar8 *>(text.c_str()), text.length(), &extents);
+
+	std::string cfgX;
 	cfgX = m_config_panel.getOption("msg_x");
+
+	std::string cfgY;
 	cfgY = m_config_panel.getOption("msg_y");
-	int shadowXOffset = m_config_panel.getIntOption("msg_shadow_xoffset");
-	int shadowYOffset = m_config_panel.getIntOption("msg_shadow_yoffset");
+
 	int msg_x;
 	int msg_y;
 
@@ -392,6 +393,9 @@ void Panel::Message(const std::string &text)
 		msg_x = Cfg::absolutepos(cfgX, XWidthOfScreen(ScreenOfDisplay(m_display, m_screen)), extents.width);
 		msg_y = Cfg::absolutepos(cfgY, XHeightOfScreen(ScreenOfDisplay(m_display, m_screen)), extents.height);
 	}
+
+	int shadowXOffset = m_config_panel.getIntOption("msg_shadow_xoffset");
+	int shadowYOffset = m_config_panel.getIntOption("msg_shadow_yoffset");
 
 	SlimDrawString8(draw, &msgcolor, msgfont, msg_x, msg_y, text, &msgshadowcolor, shadowXOffset, shadowYOffset);
 	XFlush(m_display);

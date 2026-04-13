@@ -262,7 +262,7 @@ std::string Cfg::Trim(const std::string &s)
 }
 
 /* Return the welcome message with replaced vars */
-std::string Cfg::getWelcomeMessage()
+std::optional<std::string> Cfg::getWelcomeMessage()
 {
 	std::string s = getOption("welcome_msg");
 	int n = s.find("%host");
