@@ -20,8 +20,6 @@ namespace PAM
 	{
 	}
 
-	Exception::~Exception(void) {}
-
 	Auth_Exception::Auth_Exception(pam_handle_t *_pam_handle, const std::string &_func_name, int _errnum)
 		: Exception(_pam_handle, _func_name, _errnum)
 	{

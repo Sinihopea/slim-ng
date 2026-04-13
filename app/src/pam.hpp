@@ -25,7 +25,7 @@ namespace PAM
 			std::string errstr;
 			std::string func_name;
 			Exception(pam_handle_t *_pam_handle, const std::string &_func_name, int _errnum);
-			virtual ~Exception(void);
+			virtual ~Exception(void) = default;
 	};
 
 	class Auth_Exception : public Exception
