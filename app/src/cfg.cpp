@@ -155,7 +155,7 @@ Cfg::~Cfg()
  */
 bool Cfg::readConf(std::string configfile)
 {
-	int n = -1;
+	size_t n = -1;
 	size_t pos = 0;
 	std::string line;
 	std::string next;
@@ -295,7 +295,7 @@ std::string Cfg::getWelcomeMessage()
 int Cfg::string2int(const char *string, bool *ok)
 {
 	char *err = nullptr;
-	auto l = (int)strtol(string, &err, 10);
+	auto l = static_cast<int>(strtol(string, &err, 10));
 
 	if (ok)
 	{
