@@ -179,8 +179,10 @@ int main(int argc, char **argv)
 
 	/* Create a full screen window */
 	root = RootWindow(dpy, scr);
-	win = XCreateWindow(dpy, root, 0, 0, DisplayWidth(dpy, scr), DisplayHeight(dpy, scr), 0, DefaultDepth(dpy, scr),
+	win = XCreateWindow(dpy, root, 0, 0, DisplayWidth(dpy, scr),
+		DisplayHeight(dpy, scr), 0, DefaultDepth(dpy, scr),
 		CopyFromParent, DefaultVisual(dpy, scr), CWOverrideRedirect, &wa);
+
 	XMapWindow(dpy, win);
 	XFlush(dpy);
 
@@ -223,10 +225,11 @@ int main(int argc, char **argv)
 
 	/* Set up DPMS */
 	unsigned int cfg_dpms_standby;
-	unsigned int cfg_dpms_off;
-
 	cfg_dpms_standby = Cfg::string2int(m_config_slimlock.getOption("dpms_standby_timeout").c_str());
+
+	unsigned int cfg_dpms_off;
 	cfg_dpms_off = Cfg::string2int(m_config_slimlock.getOption("dpms_off_timeout").c_str());
+
 	using_dpms = DPMSCapable(dpy) && (cfg_dpms_standby > 0);
 
 	if (using_dpms)
