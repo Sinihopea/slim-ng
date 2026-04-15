@@ -33,7 +33,7 @@ class Cfg
 		const std::string &getError() const;
 		std::string &getOption(std::string option);
 		int getIntOption(std::string option);
-		std::optional<std::string> getWelcomeMessage();
+		auto get_welcome_message() -> std::string;
 		static int absolutepos(const std::string &position, int max, int width);
 		static int string2int(const char *string, bool *ok = nullptr);
 		static void split(std::vector<std::string> &v, const std::string &str, char c, bool useEmpty = true);
@@ -41,6 +41,8 @@ class Cfg
 		std::pair<std::string, std::string> nextSession();
 
 	private:
+		auto get_domainname() -> std::optional<std::string>;
+		auto get_hostname() -> std::optional<std::string>;
 		void fillSessionList();
 
 	private:

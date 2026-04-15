@@ -57,31 +57,67 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 		}*/
 	}
 
-	font = XftFontOpenName(m_display, m_screen, m_config_panel.getOption("input_font").c_str());
-	welcomefont = XftFontOpenName(m_display, m_screen, m_config_panel.getOption("welcome_font").c_str());
-	introfont = XftFontOpenName(m_display, m_screen, m_config_panel.getOption("intro_font").c_str());
-	enterfont = XftFontOpenName(m_display, m_screen, m_config_panel.getOption("username_font").c_str());
-	msgfont = XftFontOpenName(m_display, m_screen, m_config_panel.getOption("msg_font").c_str());
+	font = XftFontOpenName(m_display, m_screen,
+		m_config_panel.getOption("input_font").c_str());
+
+	welcomefont = XftFontOpenName(m_display, m_screen,
+		m_config_panel.getOption("welcome_font").c_str());
+
+	introfont = XftFontOpenName(m_display, m_screen,
+		m_config_panel.getOption("intro_font").c_str());
+
+	enterfont = XftFontOpenName(m_display, m_screen,
+		m_config_panel.getOption("username_font").c_str());
+
+	msgfont = XftFontOpenName(m_display, m_screen,
+		m_config_panel.getOption("msg_font").c_str());
 
 	Visual *visual = DefaultVisual(m_display, m_screen);
 	Colormap colormap = DefaultColormap(m_display, m_screen);
 
 	/** @note Using XftColorAllocValue() would be a better solution. Lazy me. */
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("input_color").c_str(), &inputcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("input_shadow_color").c_str(),
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("input_color").c_str(),
+		&inputcolor);
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("input_shadow_color").c_str(),
 		&inputshadowcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("welcome_color").c_str(), &welcomecolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("welcome_shadow_color").c_str(),
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("welcome_color").c_str(),
+		&welcomecolor);
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("welcome_shadow_color").c_str(),
 		&welcomeshadowcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("username_color").c_str(), &entercolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("username_shadow_color").c_str(),
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("username_color").c_str(),
+		&entercolor);
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("username_shadow_color").c_str(),
 		&entershadowcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("msg_color").c_str(), &msgcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("msg_shadow_color").c_str(),
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("msg_color").c_str(),
+		&msgcolor);
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("msg_shadow_color").c_str(),
 		&msgshadowcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("intro_color").c_str(), &introcolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("session_color").c_str(), &sessioncolor);
-	XftColorAllocName(m_display, visual, colormap, m_config_panel.getOption("session_shadow_color").c_str(),
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("intro_color").c_str(),
+		&introcolor);
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("session_color").c_str(),
+		&sessioncolor);
+
+	XftColorAllocName(m_display, visual, colormap,
+		m_config_panel.getOption("session_shadow_color").c_str(),
 		&sessionshadowcolor);
 
 	/* Load properties from config / theme */
@@ -230,7 +266,7 @@ Panel::Panel(Display *dpy, int scr, Window root, Cfg &config, const std::string 
 	delete bg;
 
 	/* Read (and substitute vars in) the welcome message */
-	welcome_message = m_config_panel.getWelcomeMessage().value_or("Welcome to %host");
+	welcome_message = m_config_panel.get_welcome_message();
 	intro_message = m_config_panel.getOption("intro_msg");
 
 	if (mode == Mode_Lock)

@@ -13,14 +13,18 @@
 #include "cfg.hpp"
 
 #include <algorithm>
+#include <climits>
+#include <cstring>
 #include <dirent.h>
 #include <fstream>
+#include <string>
+#include <string_view>
+
 #include <sys/stat.h>
 #include <unistd.h>
 
 // #include <iostream>
 // #include <cstdlib>
-// #include <string>
 // #include <sys/types.h>
 
 using option = std::pair<std::string, std::string>;
@@ -35,19 +39,21 @@ Cfg::Cfg() :
 	options.insert(option("numlock", ""));
 	options.insert(option("daemon", ""));
 	options.insert(option("xauth_path", "/usr/bin/xauth"));
-	options.insert(option("login_cmd", "exec /bin/bash -login ~/.xinitrc %session"));
+	options.insert(option("login_cmd",
+		"exec /bin/bash -login ~/.xinitrc %session"));
 	options.insert(option("halt_cmd", "/sbin/shutdown -h now"));
 	options.insert(option("reboot_cmd", "/sbin/shutdown -r now"));
 	options.insert(option("suspend_cmd", ""));
 	options.insert(option("sessionstart_cmd", ""));
 	options.insert(option("sessionstop_cmd", ""));
 	options.insert(option("xsetup_script", ""));
-	options.insert(option("console_cmd", "/usr/bin/xterm -C -fg white -bg black +sb -g "
-										 "%dx%d+%d+%d -fn %dx%d -T "
-										 "Console login"
-										 " -e /bin/sh -c "
-										 "/bin/cat /etc/issue; exec /bin/login"
-										 ""));
+	options.insert(option("console_cmd",
+		"/usr/bin/xterm -C -fg white -bg black +sb -g "
+		"%dx%d+%d+%d -fn %dx%d -T "
+		"Console login"
+		" -e /bin/sh -c "
+		"/bin/cat /etc/issue; exec /bin/login"
+		""));
 	options.insert(option("screenshot_cmd", "import -window root /slim.png"));
 	options.insert(option("welcome_msg", "Welcome to %host"));
 	options.insert(option("session_msg", "Session:"));
@@ -71,7 +77,8 @@ Cfg::Cfg() :
 	options.insert(option("input_panel_y", "40%"));
 	options.insert(option("input_name_x", "200"));
 	options.insert(option("input_name_y", "154"));
-	options.insert(option("input_pass_x", "-1")); /* default is single inputbox */
+	/* default is single inputbox */
+	options.insert(option("input_pass_x", "-1"));
 	options.insert(option("input_pass_y", "-1"));
 	options.insert(option("input_font", "Verdana:size=11"));
 	options.insert(option("input_color", "#000000"));
@@ -134,8 +141,10 @@ Cfg::Cfg() :
 	options.insert(option("wrong_passwd_timeout", "2"));
 	options.insert(option("passwd_feedback_x", "50%"));
 	options.insert(option("passwd_feedback_y", "10%"));
-	options.insert(option("passwd_feedback_msg", "Authentication failed"));
-	options.insert(option("passwd_feedback_capslock", "Authentication failed (CapsLock is on)"));
+	options.insert(option("passwd_feedback_msg",
+		"Authentication failed"));
+	options.insert(option("passwd_feedback_capslock",
+		"Authentication failed (CapsLock is on)"));
 	options.insert(option("show_username", "1"));
 	options.insert(option("show_welcome_msg", "0"));
 	options.insert(option("tty_lock", "1"));
@@ -261,37 +270,61 @@ std::string Cfg::Trim(const std::string &s)
 	return line;
 }
 
-/* Return the welcome message with replaced vars */
-std::optional<std::string> Cfg::getWelcomeMessage()
+auto Cfg::get_hostname() -> std::optional<std::string>
 {
-	std::string s = getOption("welcome_msg");
-	int n = s.find("%host");
+	std::string host(HOST_NAME_MAX + 1, '\0');
 
-	if (n >= 0)
+	if (gethostname(host.data(), host.size()) == 0)
 	{
-		std::string tmp = s.substr(0, n);
-		char host[40];
-		gethostname(host, 40);
-		tmp = tmp + host;
-		tmp = tmp + s.substr(n + 5, s.size() - n);
-		s = tmp;
+		host += '\0';
+		host.resize(std::strlen(host.c_str()));
+
+		return std::string(host);
 	}
 
-	n = s.find("%domain");
+	return std::nullopt;
+}
 
-	if (n >= 0)
+auto Cfg::get_domainname() -> std::optional<std::string>
+{
+	std::string domain(HOST_NAME_MAX + 1, '\0');
+
+	if (getdomainname(domain.data(), domain.size()) == 0)
 	{
-		std::string tmp = s.substr(0, n);
-		char domain[40];
-		getdomainname(domain, 40);
-		tmp = tmp + domain;
-		tmp = tmp + s.substr(n + 7, s.size() - n);
-		s = tmp;
+		domain += '\0';
+		domain.resize(std::strlen(domain.c_str()));
+
+		return std::string(domain);
+	}
+
+	return std::nullopt;
+}
+
+/* Return the welcome message with replaced vars */
+auto Cfg::get_welcome_message() -> std::string
+{
+	std::string s = getOption("welcome_msg");
+
+	constexpr std::string_view host { "%host" };
+	std::string::size_type n = s.find(host);
+
+	if (n != std::string::npos)
+	{
+		s.replace(n, host.size(), get_hostname().value_or(""));
+	}
+
+	constexpr std::string_view domain { "%domain" };
+	n = s.find(domain);
+
+	if (n != std::string::npos)
+	{
+		s.replace(n, domain.size(), get_domainname().value_or(""));
 	}
 
 	return s;
 }
 
+/* Convert a string to an integer, with error checking */
 int Cfg::string2int(const char *string, bool *ok)
 {
 	char *err = nullptr;

@@ -55,3 +55,7 @@ compile_commands.json
 app/release/slim
 app/debug/slim
 *.su
+
+# Test code
+tmp/test-hostname/test_hostname.cpp
+tmp/test-hostname/hostname_test
